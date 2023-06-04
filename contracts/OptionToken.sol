@@ -40,6 +40,7 @@ contract OptionToken is ERC20, AccessControl {
     /// -----------------------------------------------------------------------
     error OptionToken_PastDeadline();
     error OptionToken_NoAdminRole();
+    error OptionToken_NoMinterRole();
     error OptionToken_NoPauserRole();
     error OptionToken_SlippageTooHigh();
     error OptionToken_InvalidDiscount();
@@ -57,7 +58,10 @@ contract OptionToken is ERC20, AccessControl {
         uint256 amount,
         uint256 paymentAmount
     );
-    event SetPair(IPair indexed newPair);
+    event SetPairAndPaymentToken(
+        IPair indexed newPair,
+        address indexed newPaymentToken
+    );
     event SetTreasury(address indexed newTreasury);
     event SetDiscount(uint256 discount);
     event PauseStateChanged(bool isPaused);
@@ -108,7 +112,7 @@ contract OptionToken is ERC20, AccessControl {
         if (
             !hasRole(ADMIN_ROLE, msg.sender) &&
             !hasRole(MINTER_ROLE, msg.sender)
-        ) revert OptionToken_NoAdminRole();
+        ) revert OptionToken_NoMinterRole();
         _;
     }
 
@@ -135,6 +139,7 @@ contract OptionToken is ERC20, AccessControl {
         uint256 _discount
     ) ERC20(_name, _symbol, 18) {
         _grantRole(ADMIN_ROLE, _admin);
+        _grantRole(PAUSER_ROLE, _admin);
         _grantRole(ADMIN_ROLE, _gaugeFactory);
         _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
         _setRoleAdmin(MINTER_ROLE, ADMIN_ROLE);
@@ -145,7 +150,7 @@ contract OptionToken is ERC20, AccessControl {
         treasury = _treasury;
         discount = _discount;
 
-        emit SetPair(_pair);
+        emit SetPairAndPaymentToken(_pair, address(paymentToken));
         emit SetTreasury(_treasury);
         emit SetDiscount(_discount);
     }
@@ -234,7 +239,7 @@ contract OptionToken is ERC20, AccessControl {
         ) revert OptionToken_IncorrectPairToken();
         pair = _pair;
         paymentToken = ERC20(_paymentToken);
-        emit SetPair(_pair);
+        emit SetPairAndPaymentToken(_pair, _paymentToken);
     }
 
     /// @notice Sets the treasury address. Only callable by the admin.
