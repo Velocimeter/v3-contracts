@@ -8,6 +8,7 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 import {IFlow} from "./interfaces/IFlow.sol";
 import {IVotingEscrow} from "./interfaces/IVotingEscrow.sol";
 import {IPair} from "./interfaces/IPair.sol";
+import {IRouter} from "./interfaces/IRouter.sol";
 
 /// @title Option Token
 /// @notice Option token representing the right to purchase the underlying token
@@ -75,8 +76,10 @@ contract OptionTokenV2 is ERC20, AccessControl {
     event SetTreasury(address indexed newTreasury);
     event SetDiscount(uint256 discount);
     event SetVeDiscount(uint256 veDiscount);
+    event SetLpDiscount(uint256 lpDiscount);
     event PauseStateChanged(bool isPaused);
     event SetTwapPoints(uint256 twapPoints);
+    event SetCoolDown(address cooldown);
 
     /// -----------------------------------------------------------------------
     /// Immutable parameters
@@ -90,6 +93,13 @@ contract OptionTokenV2 is ERC20, AccessControl {
 
     /// @notice The voting escrow for locking FLOW to veFLOR
     address public votingEscrow;
+
+    /// @notice The router for adding liquidity
+    address public router;
+
+    /// @notice The staking contract for the LP tokens
+    address public cooldown;
+
 
     /// -----------------------------------------------------------------------
     /// Storage variables
@@ -107,6 +117,9 @@ contract OptionTokenV2 is ERC20, AccessControl {
 
     /// @notice the further discount for locking to veFLOW
     uint256 public veDiscount;
+    
+    /// @notice the further discount for making LP
+    uint256 public lpDiscount;
 
     /// @notice controls the duration of the twap used to calculate the strike price
     // each point represents 30 minutes. 4 points = 2 hours
@@ -155,7 +168,9 @@ contract OptionTokenV2 is ERC20, AccessControl {
         address _treasury,
         uint256 _discount,
         uint256 _veDiscount,
-        address _votingEscrow
+        uint256 _lpDiscount,
+        address _votingEscrow,
+        address _router
     ) ERC20(_name, _symbol, 18) {
         _grantRole(ADMIN_ROLE, _admin);
         _grantRole(PAUSER_ROLE, _admin);
@@ -169,7 +184,9 @@ contract OptionTokenV2 is ERC20, AccessControl {
         treasury = _treasury;
         discount = _discount;
         veDiscount = _veDiscount;
+        lpDiscount = _lpDiscount;
         votingEscrow = _votingEscrow;
+        router = _router;
 
         emit SetPairAndPaymentToken(_pair, address(paymentToken));
         emit SetTreasury(_treasury);
@@ -228,6 +245,23 @@ contract OptionTokenV2 is ERC20, AccessControl {
         if (block.timestamp > _deadline) revert OptionToken_PastDeadline();
         return _exerciseVe(_amount, _maxPaymentAmount, _recipient);
     }
+    /// @notice Exercises options tokens to purchase the underlying tokens.
+    /// @dev The oracle may revert if it cannot give a secure result.
+    /// @param _amount The amount of options tokens to exercise
+    /// @param _maxPaymentAmount The maximum acceptable amount to pay. Used for slippage protection.
+    /// @param _recipient The recipient of the purchased underlying tokens
+    /// @param _deadline The Unix timestamp (in seconds) after which the call will revert
+    /// @return The amount paid to the treasury to purchase the underlying tokens
+    
+    function exerciseLp(
+        uint256 _amount,
+        uint256 _maxPaymentAmount,
+        address _recipient,
+        uint256 _deadline
+    ) external returns (uint256, uint256) {
+        if (block.timestamp > _deadline) revert OptionToken_PastDeadline();
+        return _exerciseLp(_amount, _maxPaymentAmount, _recipient, _deadline);
+    }
 
     /// -----------------------------------------------------------------------
     /// Public functions
@@ -247,6 +281,15 @@ contract OptionTokenV2 is ERC20, AccessControl {
         uint256 _amount
     ) public view returns (uint256) {
         return (getTimeWeightedAveragePrice(_amount) * veDiscount) / 100;
+    }
+
+    /// @notice Returns the discounted price in paymentTokens for a given amount of options tokens redeemed to veFLOW
+    /// @param _amount The amount of options tokens to exercise
+    /// @return The amount of payment tokens to pay to purchase the underlying tokens
+    function getLpDiscountedPrice(
+        uint256 _amount
+    ) public view returns (uint256) {
+        return (getTimeWeightedAveragePrice(_amount) * lpDiscount) / 100;
     }
 
     /// @notice Returns the average price in payment tokens over 2 hours for a given amount of underlying tokens
@@ -306,7 +349,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
         emit SetDiscount(_discount);
     }
 
-    /// @notice Sets the further discount amount for locking. Only callable by the admin.
+    /// @notice Sets the discount amount for locking. Only callable by the admin.
     /// @param _veDiscount The new discount amount.
     function setVeDiscount(uint256 _veDiscount) external onlyAdmin {
         if (_veDiscount > MAX_DISCOUNT || _veDiscount == MIN_DISCOUNT)
@@ -314,6 +357,21 @@ contract OptionTokenV2 is ERC20, AccessControl {
         veDiscount = _veDiscount;
         emit SetVeDiscount(_veDiscount);
     }
+    /// @notice Sets the  discount amount for creating LP in to cooldown staker. Only callable by the admin.
+    /// @param _lpDiscount The new discount amount.
+    function setLpDiscount(uint256 _lpDiscount) external onlyAdmin {
+        if (_lpDiscount > MAX_DISCOUNT || _lpDiscount == MIN_DISCOUNT)
+            revert OptionToken_InvalidDiscount();
+        lpDiscount = _lpDiscount;
+        emit SetLpDiscount(_lpDiscount);
+    }
+    /// @notice Sets the cooldown staker. Only callable by the admin.
+    /// @param _cooldownDiscount The new discount amount.
+    function setCoolDown(uint256 _cooldown) external onlyAdmin {
+        cooldown = _cooldown;
+        emit SetCoolDown(_cooldown);
+    }
+
 
     /// @notice Sets the twap points. to control the length of our twap
     /// @param _twapPoints The new twap points.
@@ -410,5 +468,34 @@ contract OptionTokenV2 is ERC20, AccessControl {
         );
 
         emit ExerciseVe(msg.sender, _recipient, _amount, paymentAmount, nftId);
+    }
+    function _exerciseLp(
+        uint256 _amount,
+        uint256 _maxPaymentAmount,
+        address _recipient
+        uint256 _deadline
+    ) internal returns (uint256 paymentAmount, uint256 nftId) {
+        if (isPaused) revert OptionToken_Paused();
+
+        // burn callers tokens
+        _burn(msg.sender, _amount);
+        paymentAmount = getLpDiscountedPrice(_amount);
+        if (paymentAmount > _maxPaymentAmount)
+            revert OptionToken_SlippageTooHigh();
+
+        // transfer payment tokens from msg.sender to the treasury
+        paymentToken.transferFrom(msg.sender, treasury, paymentAmount); // sCANTO reverts on failure
+
+        // CreateLp and stakes in cooldown vault. 
+        uint256 _half = _amount / 2;
+        uint256 lpBal = IRouter.addLiquidityETH(underlyingToken, false, _half, 1, 1, address(this), _deadline);
+        IPair(pair).approve(cooldown, lpBal);
+        ICooldown(cooldown).depositFor(lpBal, _recipient);
+        uint256 oFlowBal = _mint(address(this), _half);
+        _approve(cooldown, oFlowBal);
+        ICooldown.notifyRewardAmount(oFlow, oFlowBal);
+
+
+        emit ExerciseLp(msg.sender, _recipient, _amount, paymentAmount, nftId);
     }
 }
