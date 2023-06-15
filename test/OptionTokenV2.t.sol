@@ -6,6 +6,7 @@ import "./BaseTest.sol";
 contract OptionTokenV2Test is BaseTest {
     GaugeFactory gaugeFactory;
     VotingEscrow escrow;
+    Voter voter;
 
     error OptionToken_InvalidDiscount();
     error OptionToken_Paused();
@@ -60,6 +61,7 @@ contract OptionTokenV2Test is BaseTest {
         deployOptionTokenV2WithOwner(
             address(owner),
             address(gaugeFactory),
+            address(voter),
             address(escrow)
         );
     }

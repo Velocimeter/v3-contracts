@@ -437,8 +437,8 @@ contract GaugeV2 is IGauge {
         deposit(IERC20(stake).balanceOf(msg.sender), tokenId);
     }
 
-    function depositWithLock(address account, uint256 amount, uint tokenId, uint256 _lockDuration) public lock {
-        _deposit(account, amount, tokenId);
+    function depositWithLock(address account, uint256 amount, uint256 _lockDuration) public lock {
+        _deposit(account, amount, 0);
         balanceWithLock[account] += amount;
 
         uint256 currentLockEnd = lockEnd[account];

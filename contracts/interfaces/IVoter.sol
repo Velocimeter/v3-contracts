@@ -11,4 +11,5 @@ interface IVoter {
     function isWhitelisted(address token) external view returns (bool);
     function notifyRewardAmount(uint amount) external;
     function distribute(address _gauge) external;
+    function gauges(address) external view returns (address);
 }
