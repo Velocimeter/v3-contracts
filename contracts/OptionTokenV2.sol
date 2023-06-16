@@ -32,7 +32,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
     uint256 public constant MAX_TWAP_POINTS = 50; // 25 hours
     uint256 public constant FULL_LOCK = 26 * 7 * 86400; // 26 weeks
     uint256 public constant MIN_LOCK = 7 * 86400; // 1 week
-    uint256 public constant MAX_TEAM_FEE = 50; // 30%
+    uint256 public constant MAX_TEAM_FEE = 50; // 50%
 
     /// -----------------------------------------------------------------------
     /// Roles
