@@ -561,7 +561,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
             paymentGaugeRewardAmount + paymentAmountToAddLiquidity
         );
 
-        // CreateLp and stakes in gauge with lock.
+        // Create Lp for users
         _safeApprove(underlyingToken, router, _amount);
         _safeApprove(paymentToken, router, paymentAmountToAddLiquidity);
         (, , lpAmount) = IRouter(router).addLiquidity(
@@ -575,10 +575,15 @@ contract OptionTokenV2 is ERC20, AccessControl {
             address(this),
             block.timestamp
         );
-        uint256 lockDuration = getLockDurationForLpDiscount(_discount);
+
+        // Stake the LP in the gauge with lock
         address _gauge = gauge;
         _safeApprove(address(pair), _gauge, lpAmount);
-        IGaugeV2(_gauge).depositWithLock(msg.sender, lpAmount, lockDuration);
+        IGaugeV2(_gauge).depositWithLock(
+            msg.sender,
+            lpAmount,
+            getLockDurationForLpDiscount(_discount)
+        );
 
         // notify gauge reward with payment token
         _safeApprove(paymentToken, _gauge, paymentGaugeRewardAmount);
