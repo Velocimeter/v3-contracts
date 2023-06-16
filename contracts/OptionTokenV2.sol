@@ -275,7 +275,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
         uint256 _deadline
     ) external returns (uint256, uint256) {
         if (block.timestamp > _deadline) revert OptionToken_PastDeadline();
-        return _exerciseLp(_amount, _maxPaymentAmount, _discount, _deadline);
+        return _exerciseLp(_amount, _maxPaymentAmount, _discount);
     }
 
     /// -----------------------------------------------------------------------
@@ -531,9 +531,8 @@ contract OptionTokenV2 is ERC20, AccessControl {
     function _exerciseLp(
         uint256 _amount,
         uint256 _maxPaymentAmount,
-        uint256 _discount,
-        uint256 _deadline
-    ) internal returns (uint256 paymentAmount, uint256 nftId) {
+        uint256 _discount
+    ) internal returns (uint256 paymentAmount, uint256 lpAmount) {
         if (isPaused) revert OptionToken_Paused();
         if (_discount > MIN_LP_DISCOUNT || _discount < MAX_LP_DISCOUNT)
             revert OptionToken_InvalidDiscount();
@@ -544,61 +543,44 @@ contract OptionTokenV2 is ERC20, AccessControl {
         if (paymentAmount > _maxPaymentAmount)
             revert OptionToken_SlippageTooHigh();
 
-        // CreateLp and stakes in gauge with lock.
-        uint256 underlyingAmountToAddLiquidity = _amount / 2;
-        (uint256 paymentAmountToAddLiquidity, ) = IRouter(router).getAmountOut(
-            underlyingAmountToAddLiquidity,
-            underlyingToken,
-            paymentToken
+        // Quote liquidity
+        (uint256 underlyingReserve, uint256 paymentReserve) = IRouter(router)
+            .getReserves(underlyingToken, paymentToken, false);
+        uint256 paymentAmountToAddLiquidity = (_amount * paymentReserve) /
+            underlyingReserve;
+
+        // Take team fee
+        uint256 paymentGaugeRewardAmount = _takeTeamFee(
+            paymentToken,
+            paymentAmount
         );
         _safeTransferFrom(
             paymentToken,
             msg.sender,
             address(this),
-            paymentAmount
+            paymentGaugeRewardAmount + paymentAmountToAddLiquidity
         );
 
-        _safeApprove(underlyingToken, router, underlyingAmountToAddLiquidity);
+        // CreateLp and stakes in gauge with lock.
+        _safeApprove(underlyingToken, router, _amount);
         _safeApprove(paymentToken, router, paymentAmountToAddLiquidity);
-        (
-            uint256 usedUnderlyingAmount,
-            uint256 usedPaymentAmount,
-            uint256 lpAmount
-        ) = IRouter(router).addLiquidity(
-                underlyingToken,
-                paymentToken,
-                false,
-                underlyingAmountToAddLiquidity,
-                paymentAmountToAddLiquidity,
-                1,
-                1,
-                address(this),
-                _deadline
-            );
+        (, , lpAmount) = IRouter(router).addLiquidity(
+            underlyingToken,
+            paymentToken,
+            false,
+            _amount,
+            paymentAmountToAddLiquidity,
+            1,
+            1,
+            address(this),
+            block.timestamp
+        );
         uint256 lockDuration = getLockDurationForLpDiscount(_discount);
         address _gauge = gauge;
         _safeApprove(address(pair), _gauge, lpAmount);
         IGaugeV2(_gauge).depositWithLock(msg.sender, lpAmount, lockDuration);
 
-        // transfer team fee to treasury
-        uint256 underlyingGaugeRewardAmount = _takeTeamFee(
-            underlyingToken,
-            _amount - usedUnderlyingAmount
-        );
-        uint256 paymentGaugeRewardAmount = _takeTeamFee(
-            paymentToken,
-            paymentAmount - usedPaymentAmount
-        );
-
-        // mint oToken
-        _mint(address(this), underlyingGaugeRewardAmount);
-
-        // notify reward amount in gauge
-        approve(_gauge, underlyingGaugeRewardAmount);
-        IGaugeV2(_gauge).notifyRewardAmount(
-            address(this),
-            underlyingGaugeRewardAmount
-        );
+        // notify gauge reward with payment token
         _safeApprove(paymentToken, _gauge, paymentGaugeRewardAmount);
         IGaugeV2(_gauge).notifyRewardAmount(
             paymentToken,
