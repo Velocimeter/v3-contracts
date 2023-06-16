@@ -313,9 +313,9 @@ contract OptionTokenV2 is ERC20, AccessControl {
     ///
     function getLockDurationForLpDiscount(
         uint256 _discount
-    ) public view returns (int256 duration) {
+    ) public view returns (uint256 duration) {
         (int256 slope, int256 intercept) = getSlopeInterceptForLpDiscount();
-        duration = slope * int256(_discount) + intercept;
+        duration = SignedMath.abs(slope * int256(_discount) + intercept);
     }
 
     function getSlopeInterceptForLpDiscount()
@@ -575,9 +575,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
                 address(this),
                 _deadline
             );
-        uint256 lockDuration = SignedMath.abs(
-            getLockDurationForLpDiscount(_discount)
-        );
+        uint256 lockDuration = getLockDurationForLpDiscount(_discount);
         address _gauge = gauge;
         _safeApprove(address(pair), _gauge, lpAmount);
         IGaugeV2(_gauge).depositWithLock(msg.sender, lpAmount, lockDuration);
