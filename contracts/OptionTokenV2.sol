@@ -79,7 +79,13 @@ contract OptionTokenV2 is ERC20, AccessControl {
         uint256 paymentAmount,
         uint256 nftId
     );
-    // event ExerciseLp();
+    event ExerciseLp(
+        address indexed sender,
+        address indexed recipient,
+        uint256 amount,
+        uint256 paymentAmount,
+        uint256 lpAmount
+    );
     event SetPairAndPaymentToken(
         IPair indexed newPair,
         address indexed newPaymentToken
@@ -271,11 +277,12 @@ contract OptionTokenV2 is ERC20, AccessControl {
     function exerciseLp(
         uint256 _amount,
         uint256 _maxPaymentAmount,
+        address _recipient
         uint256 _discount,
         uint256 _deadline
     ) external returns (uint256, uint256) {
         if (block.timestamp > _deadline) revert OptionToken_PastDeadline();
-        return _exerciseLp(_amount, _maxPaymentAmount, _discount);
+        return _exerciseLp(_amount, _maxPaymentAmount, _recipient, _discount);
     }
 
     /// -----------------------------------------------------------------------
@@ -531,6 +538,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
     function _exerciseLp(
         uint256 _amount,
         uint256 _maxPaymentAmount,
+        address _recipient,
         uint256 _discount
     ) internal returns (uint256 paymentAmount, uint256 lpAmount) {
         if (isPaused) revert OptionToken_Paused();
@@ -580,7 +588,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
         address _gauge = gauge;
         _safeApprove(address(pair), _gauge, lpAmount);
         IGaugeV2(_gauge).depositWithLock(
-            msg.sender,
+            _recipient,
             lpAmount,
             getLockDurationForLpDiscount(_discount)
         );
@@ -592,7 +600,13 @@ contract OptionTokenV2 is ERC20, AccessControl {
             paymentGaugeRewardAmount
         );
 
-        // emit ExerciseLp(msg.sender, _recipient, _amount, paymentAmount, nftId);
+        emit ExerciseLp(
+            msg.sender,
+            _recipient,
+            _amount,
+            paymentAmount,
+            lpAmount
+        );
     }
 
     function _takeTeamFee(
