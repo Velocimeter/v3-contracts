@@ -506,12 +506,6 @@ contract GaugeV2 is IGauge {
         if (amount > freeAmount) {
             // Check if lock has expired
             require(block.timestamp >= lockEnd[msg.sender], "The lock didn't expire");
-            // Reduced steps to save gas
-            // Actual operation:
-            // uint256 newLockedAmount = lockedAmount - (amount - freeAmount);
-            // uint256 newLockedAmount = lockedAmount - (amount - (totalBalance - lockedAmount));
-            // uint256 newLockedAmount = lockedAmount - (amount - totalBalance + lockedAmount);
-            // uint256 newLockedAmount = lockedAmount - amount + totalBalance - lockedAmount;
             uint256 newLockedAmount = totalBalance - amount;
             if (newLockedAmount == 0) {
                 delete lockEnd[msg.sender];
