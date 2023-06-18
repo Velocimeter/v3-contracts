@@ -280,7 +280,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
     function exerciseLp(
         uint256 _amount,
         uint256 _maxPaymentAmount,
-        address _recipient
+        address _recipient,
         uint256 _discount,
         uint256 _deadline
     ) external returns (uint256, uint256) {
