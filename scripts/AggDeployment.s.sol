@@ -59,7 +59,7 @@ contract AggDeployment is Script {
       VOTER,
       AGG,
       address(oAgg),
-      address(0),
+      TEAM_MULTI_SIG,
       true,
       whitelistedTokens
     );
