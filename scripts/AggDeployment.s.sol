@@ -18,12 +18,12 @@ contract AggDeployment is Script {
   address private constant AGGSCANTO =
     0x5c87D41bc9Ac200a18179Cc2702D9Bb38c27d8fE;
   address private constant VEADDRESS =
-    0xfa01adbAA40f0EEeCEA76b7B18AC8bE064536787;
-  address private constant VOTER = 0x2862Bf1ADC96d485B6E85C062b170903DE9A2Bd5;
-  address private constant ROUTER = 0x52A18b2386D6221Cf9DbcD4790456a23249e5279;
+    0x8E003242406FBa53619769F31606ef2Ed8A65C00;
+  address private constant VOTER = 0x8e3525Dbc8356c08d2d55F3ACb6416b5979D3389;
+  address private constant ROUTER = 0x8e2e2f70B4bD86F82539187A634FB832398cc771;
 
   address private constant TEAM_MULTI_SIG =
-    0x0A868fd1523a1ef58Db1F2D135219F0e30CBf7FB;
+    0x13eeB8EdfF60BbCcB24Ec7Dd5668aa246525Dc51;
 
   function run() external {
     uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
