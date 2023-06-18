@@ -110,18 +110,21 @@ contract OptionTokenV2 is ERC20, AccessControl {
     /// @notice The underlying token purchased during redemption
     address public immutable underlyingToken;
 
-    /// @notice The voting escrow for locking FLOW to veFLOR
+    /// @notice The voting escrow for locking FLOW to veFLOW
     address public immutable votingEscrow;
 
     /// @notice The voter contract
     address public immutable voter;
 
-    /// @notice The router for adding liquidity
-    address public router;
+ 
 
     /// -----------------------------------------------------------------------
     /// Storage variables
     /// -----------------------------------------------------------------------
+
+
+       /// @notice The router for adding liquidity
+    address public router; // this should not be immutable
 
     /// @notice The pair contract that provides the current TWAP price to purchase
     /// the underlying token while exercising options (the strike price)
