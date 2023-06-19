@@ -437,7 +437,8 @@ contract GaugeV2 is IGauge {
         deposit(IERC20(stake).balanceOf(msg.sender), tokenId);
     }
 
-    function depositWithLock(address account, uint256 amount, uint256 _lockDuration) public lock {
+    function depositWithLock(address account, uint256 amount, uint256 _lockDuration) external lock {
+        require(msg.sender == account || msg.sender == oFlow);
         _deposit(account, amount, 0);
         balanceWithLock[account] += amount;
 
@@ -448,11 +449,11 @@ contract GaugeV2 is IGauge {
         }
     }
 
-    function deposit(uint amount, uint tokenId) public lock {
+    function deposit(uint amount, uint tokenId) public lock { 
         _deposit(msg.sender, amount, tokenId);
     }
 
-    function _deposit(address account, uint amount, uint tokenId) private lock {
+    function _deposit(address account, uint amount, uint tokenId) private {
         require(amount > 0);
         _updateRewardForAllTokens();
 
