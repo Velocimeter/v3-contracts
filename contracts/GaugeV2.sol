@@ -566,7 +566,7 @@ contract GaugeV2 is IGauge {
         } else {
             uint _remaining = periodFinish[token] - block.timestamp;
             uint _left = _remaining * rewardRate[token];
-            require(amount > _left);
+            require(amount > _left || msg.sender == oFlow); // allow oToken to always deposit the rewards
             uint256 balanceBefore = IERC20(token).balanceOf(address(this));
             _safeTransferFrom(token, msg.sender, address(this), amount);
             uint256 balanceAfter = IERC20(token).balanceOf(address(this));
