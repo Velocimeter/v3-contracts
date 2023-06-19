@@ -457,7 +457,7 @@ contract GaugeV2 is IGauge {
         require(amount > 0);
         _updateRewardForAllTokens();
 
-        _safeTransferFrom(stake, account, address(this), amount);
+        _safeTransferFrom(stake, msg.sender, address(this), amount);
         totalSupply += amount;
         balanceOf[account] += amount;
 
