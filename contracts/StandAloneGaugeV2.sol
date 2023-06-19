@@ -481,7 +481,6 @@ contract AggMaxxingGauge is IGauge {
         _writeCheckpoint(account, _derivedBalance);
         _writeSupplyCheckpoint();
 
-        IVoter(voter).emitDeposit(tokenId, account, amount);
         emit Deposit(account, tokenId, amount);
     }
 
