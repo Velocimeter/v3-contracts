@@ -1085,6 +1085,7 @@ interface IFlow {
 }
 
 interface IGaugeV2 {
+    function left(address token) external view returns (uint);
     function notifyRewardAmount(address token, uint amount) external;
 
     function depositWithLock(
@@ -1796,8 +1797,15 @@ contract OptionTokenV2 is ERC20, AccessControl {
 
     function _usePaymentAsGaugeReward(uint256 amount) internal {
         _safeTransferFrom(paymentToken, msg.sender, address(this), amount);
-        _safeApprove(paymentToken, gauge, amount);
-        IGaugeV2(gauge).notifyRewardAmount(paymentToken, amount);
+
+        uint256 paymentTokenCollectedAmount = IERC20(paymentToken).balanceOf(address(this));
+
+        uint256 leftRewards = IGaugeV2(gauge).left(paymentToken);
+
+        if(paymentTokenCollectedAmount > leftRewards) { // we are sending rewards only if we have more then the current rewards in the gauge
+            _safeApprove(paymentToken, gauge, paymentTokenCollectedAmount);
+            IGaugeV2(gauge).notifyRewardAmount(paymentToken, paymentTokenCollectedAmount);
+        }
     }
 
     function _safeTransfer(address token, address to, uint256 value) internal {

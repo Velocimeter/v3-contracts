@@ -846,26 +846,27 @@ contract AggMaxxingGauge is IGauge {
         deposit(IERC20(stake).balanceOf(msg.sender), tokenId);
     }
 
-    function depositWithLock(address account, uint256 amount, uint256 _lockDuration) public lock {
+    function depositWithLock(address account, uint256 amount, uint256 _lockDuration) external lock {
+        require(msg.sender == account || msg.sender == oAgg); // shoutout to dawid.d
         _deposit(account, amount, 0);
         balanceWithLock[account] += amount;
 
         uint256 currentLockEnd = lockEnd[account];
-        uint256 newLockEnd = block.timestamp + _lockDuration;
+        uint256 newLockEnd = block.timestamp + _lockDuration ;
         if (currentLockEnd < newLockEnd) {
             lockEnd[account] = newLockEnd;
         }
     }
 
-    function deposit(uint amount, uint tokenId) public lock {
+    function deposit(uint amount, uint tokenId) public lock  { 
         _deposit(msg.sender, amount, tokenId);
     }
 
-    function _deposit(address account, uint amount, uint tokenId) private lock {
+    function _deposit(address account, uint amount, uint tokenId) private  { // removed lock
         require(amount > 0);
         _updateRewardForAllTokens();
 
-        _safeTransferFrom(stake, account, address(this), amount);
+       _safeTransferFrom(stake, msg.sender, address(this), amount);
         totalSupply += amount;
         balanceOf[account] += amount;
 
@@ -889,7 +890,6 @@ contract AggMaxxingGauge is IGauge {
         _writeCheckpoint(account, _derivedBalance);
         _writeSupplyCheckpoint();
 
-        IVoter(voter).emitDeposit(tokenId, account, amount);
         emit Deposit(account, tokenId, amount);
     }
 
@@ -974,7 +974,7 @@ contract AggMaxxingGauge is IGauge {
         } else {
             uint _remaining = periodFinish[token] - block.timestamp;
             uint _left = _remaining * rewardRate[token];
-            require(amount > _left);
+            require(amount > _left );
             uint256 balanceBefore = IERC20(token).balanceOf(address(this));
             _safeTransferFrom(token, msg.sender, address(this), amount);
             uint256 balanceAfter = IERC20(token).balanceOf(address(this));

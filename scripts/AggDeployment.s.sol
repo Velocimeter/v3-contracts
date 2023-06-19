@@ -23,7 +23,7 @@ contract AggDeployment is Script {
   address private constant ROUTER = 0x8e2e2f70B4bD86F82539187A634FB832398cc771;
 
   address private constant TEAM_MULTI_SIG =
-    0x069e85D4F1010DD961897dC8C095FBB5FF297434;
+    0x17bf9E816fe122dd435Ef10AF8fd3a14f8f02501;  // need to approve transfers for scanto and agg for this address in this script also TODO set gauge in the script
 
   function run() external {
     uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
