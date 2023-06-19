@@ -388,6 +388,13 @@ contract OptionTokenV2 is ERC20, AccessControl {
         emit SetGauge(newGauge);
     }
 
+        /// @notice Sets the gauge address when the gauge is not listed in Voter. Only callable by the admin.
+    /// @param _gauge The new treasury address
+    function setGauge(address _gauge) external onlyAdmin {
+        gauge = _gauge;
+        emit SetGauge(_gauge);
+    }
+
     /// @notice Sets the treasury address. Only callable by the admin.
     /// @param _treasury The new treasury address
     function setTreasury(address _treasury) external onlyAdmin {
@@ -539,8 +546,8 @@ contract OptionTokenV2 is ERC20, AccessControl {
     }
 
     function _exerciseLp(
-        uint256 _amount,
-        uint256 _maxPaymentAmount,
+        uint256 _amount,   // the oTOKEN amount the user wants to redeem with
+        uint256 _maxPaymentAmount, // the 
         address _recipient,
         uint256 _discount
     ) internal returns (uint256 paymentAmount, uint256 lpAmount) {
@@ -555,10 +562,15 @@ contract OptionTokenV2 is ERC20, AccessControl {
             revert OptionToken_SlippageTooHigh();
 
         // Quote liquidity
+
+        // does this do ( 100 agg * num sCANTO in pool ) / amount of agg in the pool? And makes that number the amount of sCANTO to use to LP with?
+
         (uint256 underlyingReserve, uint256 paymentReserve) = IRouter(router)
             .getReserves(underlyingToken, paymentToken, false);
-        uint256 paymentAmountToAddLiquidity = (_amount * paymentReserve) /
+        uint256 paymentAmountToAddLiquidity = (_amount * paymentReserve) /  
             underlyingReserve;
+
+          
 
         // Take team fee
         uint256 paymentGaugeRewardAmount = _takeTeamFee(
