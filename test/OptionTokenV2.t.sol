@@ -151,6 +151,31 @@ contract OptionTokenV2Test is BaseTest {
         vm.stopPrank();
     }
 
+     function testSetMinLpLock() public {
+        vm.startPrank(address(owner));
+        assertEq(oFlowV2.lockDurationForMinLpDiscount(), 7 * 86400);
+        oFlowV2.setLockDurationForMinLpDiscount(1 * 86400);
+        assertEq(oFlowV2.lockDurationForMinLpDiscount(), 1 * 86400);
+        assertEq(oFlowV2.getLockDurationForLpDiscount(oFlowV2.minLPDiscount()),1 * 86400);
+        vm.stopPrank();
+    }
+
+    function testSetMinLPDiscount() public {
+        vm.startPrank(address(owner));
+        assertEq(oFlowV2.minLPDiscount(), 80);
+        oFlowV2.setMinLPDiscount(70);
+        assertEq(oFlowV2.minLPDiscount(), 70);
+        vm.stopPrank();
+    }
+
+     function testSetMaxLPDiscount() public {
+        vm.startPrank(address(owner));
+        assertEq(oFlowV2.maxLPDiscount(), 20);
+        oFlowV2.setMaxLPDiscount(10);
+        assertEq(oFlowV2.maxLPDiscount(), 10);
+        vm.stopPrank();
+    }
+
     function testNonAdminCannotSetDiscount() public {
         vm.startPrank(address(owner2));
         vm.expectRevert(OptionToken_NoAdminRole.selector);
