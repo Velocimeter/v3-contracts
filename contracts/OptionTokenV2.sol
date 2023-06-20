@@ -603,21 +603,10 @@ contract OptionTokenV2 is ERC20, AccessControl {
 
         // burn callers tokens
         _burn(msg.sender, _amount);
-        paymentAmount = getLpDiscountedPrice(_amount, _discount);
+        (uint256 paymentAmount,uint256 paymentAmountToAddLiquidity) =  getPaymentTokenAmountForExerciseLp(_amount,_discount);
         if (paymentAmount > _maxPaymentAmount)
             revert OptionToken_SlippageTooHigh();
-
-        // Quote liquidity
-
-        // does this do ( 100 agg * num sCANTO in pool ) / amount of agg in the pool? And makes that number the amount of sCANTO to use to LP with?
-
-        (uint256 underlyingReserve, uint256 paymentReserve) = IRouter(router)
-            .getReserves(underlyingToken, paymentToken, false);
-        uint256 paymentAmountToAddLiquidity = (_amount * paymentReserve) /  
-            underlyingReserve;
-
           
-
         // Take team fee
         uint256 paymentGaugeRewardAmount = _takeTeamFee(
             paymentToken,
