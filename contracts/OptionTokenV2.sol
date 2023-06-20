@@ -609,11 +609,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
         );
 
         // notify gauge reward with payment token
-        _safeApprove(paymentToken, _gauge, paymentGaugeRewardAmount);
-        IGaugeV2(_gauge).notifyRewardAmount(
-            paymentToken,
-            paymentGaugeRewardAmount
-        );
+        _transferRewardToGauge();
 
         emit ExerciseLp(
             msg.sender,
@@ -635,7 +631,10 @@ contract OptionTokenV2 is ERC20, AccessControl {
 
     function _usePaymentAsGaugeReward(uint256 amount) internal {
         _safeTransferFrom(paymentToken, msg.sender, address(this), amount);
+        _transferRewardToGauge();
+    }
 
+    function _transferRewardToGauge() internal {
         uint256 paymentTokenCollectedAmount = IERC20(paymentToken).balanceOf(address(this));
 
         uint256 leftRewards = IGaugeV2(gauge).left(paymentToken);
