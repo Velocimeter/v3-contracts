@@ -335,6 +335,16 @@ contract OptionTokenV2 is ERC20, AccessControl {
         duration = SignedMath.abs(slope * int256(_discount) + intercept);
     }
 
+     // @notice Returns the amount in paymentTokens for a given amount of options tokens required for the LP exercise lp
+    /// @param _amount The amount of options tokens to exercise
+    /// @param _discount The discount amount
+    function getPaymentTokenAmountForExerciseLp(uint256 _amount,uint256 _discount) public view returns (uint256 paymentAmount, uint256 paymentAmountToAddLiquidity)
+    {
+        paymentAmount = getLpDiscountedPrice(_amount, _discount);
+        (uint256 underlyingReserve, uint256 paymentReserve) = IRouter(router).getReserves(underlyingToken, paymentToken, false);
+        paymentAmountToAddLiquidity = (_amount * paymentReserve) / underlyingReserve;
+    }
+
     function getSlopeInterceptForLpDiscount()
         public
         view
