@@ -87,6 +87,73 @@ contract OptionTokenV2Test is BaseTest {
         oFlowV2.setGauge(address(gauge));
     }
 
+    function testGaugeLock() public {
+        vm.startPrank(address(owner));
+        washTrades();
+        flowDaiPair.approve(address(gauge),1000);
+
+        uint256 lpBalanceBefore = flowDaiPair.balanceOf(address(owner));
+        gauge.depositWithLock(address(owner), 1, 7 * 86400);
+        vm.warp(block.timestamp + 7 * 86400 + 1);
+        gauge.withdraw(1);
+        uint256 lpBalanceAfter = flowDaiPair.balanceOf(address(owner));
+        vm.stopPrank();
+
+        assertEq(gauge.balanceWithLock(address(owner)),0);
+        assertEq(lpBalanceBefore - lpBalanceAfter, 0);
+    }
+
+    function testGaugeWithdrawWithLock() public {
+        vm.startPrank(address(owner));
+        washTrades();
+        flowDaiPair.approve(address(gauge),1000);
+
+        uint256 lpBalanceBefore = flowDaiPair.balanceOf(address(owner));
+        gauge.depositWithLock(address(owner), 1, 7 * 86400);
+        vm.expectRevert("The lock didn't expire");
+        gauge.withdraw(1);
+        uint256 lpBalanceAfter = flowDaiPair.balanceOf(address(owner));
+        vm.stopPrank();
+
+        assertEq(gauge.balanceWithLock(address(owner)),1);
+        assertEq(lpBalanceBefore - lpBalanceAfter, 1);
+    }
+
+    function testGaugeLockAfterExpire() public {
+        vm.startPrank(address(owner));
+        washTrades();
+        flowDaiPair.approve(address(gauge),1000);
+
+        uint256 lpBalanceBefore = flowDaiPair.balanceOf(address(owner));
+        gauge.depositWithLock(address(owner), 1, 7 * 86400);
+        vm.warp(block.timestamp + 7 * 86400 + 1);
+        gauge.depositWithLock(address(owner), 2, 7 * 86400);
+        gauge.withdraw(1);
+        uint256 lpBalanceAfter = flowDaiPair.balanceOf(address(owner));
+        vm.stopPrank();
+
+        assertEq(gauge.lockEnd(address(owner)),block.timestamp +  7 * 86400);
+        assertEq(gauge.balanceWithLock(address(owner)),2);
+        assertEq(lpBalanceBefore - lpBalanceAfter, 2);
+    }
+
+    function testGaugeLockExtendLock() public {
+        vm.startPrank(address(owner));
+        washTrades();
+        flowDaiPair.approve(address(gauge),1000);
+
+        uint256 lpBalanceBefore = flowDaiPair.balanceOf(address(owner));
+        gauge.depositWithLock(address(owner), 1, 14 * 86400);
+        vm.warp(block.timestamp + 7 * 86400 + 1);
+        gauge.depositWithLock(address(owner), 2, 8 * 86400);
+        uint256 lpBalanceAfter = flowDaiPair.balanceOf(address(owner));
+        vm.stopPrank();
+
+        assertEq(gauge.lockEnd(address(owner)),block.timestamp +  8 * 86400);
+        assertEq(gauge.balanceWithLock(address(owner)),3);
+        assertEq(lpBalanceBefore - lpBalanceAfter, 3);
+    }
+
     function testAdminCanSetPairAndPaymentToken() public {
         address flowFraxPair = factory.createPair(
             address(FLOW),
@@ -458,6 +525,7 @@ contract OptionTokenV2Test is BaseTest {
         oFlowV2.exercise(TOKEN_1, TOKEN_1, address(owner2));
         oFlowV2.exercise(TOKEN_1, TOKEN_1, address(owner2));
         oFlowV2.exercise(TOKEN_1, TOKEN_1, address(owner2));
+
         vm.stopPrank();
 
         uint256 flowBalanceAfter = FLOW.balanceOf(address(owner2));
@@ -473,6 +541,7 @@ contract OptionTokenV2Test is BaseTest {
              (rewardGaugeDaiAfter - rewardGaugeDaiBalanceBefore) + (treasuryDaiBalanceAfter - treasuryDaiBalanceBefore),
              discountedPrice*amountOfExercise
         );
+
     }
 
     function testCannotExercisePastDeadline() public {
