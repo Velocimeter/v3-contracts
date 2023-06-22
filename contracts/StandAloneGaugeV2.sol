@@ -438,9 +438,9 @@ contract AggMaxxingGauge is IGauge {
         require(msg.sender == account || msg.sender == oAgg); // shoutout to dawid.d
         _deposit(account, amount, 0);
 
-        if(block.timestamp >= lockEnd[msg.sender]) { // if the current lock is expired relased the tokens from that lock before loking again
-            delete lockEnd[msg.sender];
-            delete balanceWithLock[msg.sender];
+        if(block.timestamp >= lockEnd[account]) { // if the current lock is expired relased the tokens from that lock before loking again
+            delete lockEnd[account];
+            delete balanceWithLock[account];
         }
 
         balanceWithLock[account] += amount;
