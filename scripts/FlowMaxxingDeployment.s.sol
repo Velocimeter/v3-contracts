@@ -8,19 +8,18 @@ import { IERC20 } from "../contracts/interfaces/IERC20.sol";
 import { ERC20 } from "solmate/tokens/ERC20.sol";
 
 import { Pair } from "../contracts/Pair.sol";
-import { AggMaxxingGauge } from "../contracts/FLOWMAXXING.sol";
+import { FLOWMaxxing } from "../contracts/FLOWMAXXING.sol";
 import { OptionTokenV2 } from "../contracts/OptionTokenV2.sol";
 
-contract AggDeployment is Script {
-  address private constant SCANTO = 0x9F823D534954Fc119E31257b3dDBa0Db9E2Ff4ed;
-  address private constant AGG = 0xA649325Aa7C5093d12D6F98EB4378deAe68CE23F;
-  address private constant FLOW = 0xB5b060055F0d1eF5174329913ef861bC3aDdF029;
-  address private constant AGGSCANTO =
-    0x5c87D41bc9Ac200a18179Cc2702D9Bb38c27d8fE;
-  address private constant VEADDRESS =
-    0x8E003242406FBa53619769F31606ef2Ed8A65C00;
-  address private constant VOTER = 0x8e3525Dbc8356c08d2d55F3ACb6416b5979D3389;
-  address private constant ROUTER = 0x8e2e2f70B4bD86F82539187A634FB832398cc771;
+contract FLOWMAXXINGDeployment is Script {
+  address private constant USDC = 0x15D38573d2feeb82e7ad5187aB8c1D52810B1f07;
+
+  address private constant FLOW = 0x39b9D781dAD0810D07E24426c876217218Ad353D;
+  address private constant FLOWUSDC = 0xd166B6BAcDeC273dD457DD3aDeF9708dcB26734A; //pair address
+  address private constant VEADDRESS = 0xe7b8F4D74B7a7b681205d6A3D231d37d472d4986;
+
+  address private constant VOTER = 0x8C4FF4004c8a85054639B86E9F8c26e9DA7ff738;
+  address private constant ROUTER = 0x370d160992C8C48BCCFcf009f0c9db9d00574eF7;
 
   address private constant TEAM_MULTI_SIG =
     0x069e85D4F1010DD961897dC8C095FBB5FF297434;  
@@ -31,12 +30,12 @@ contract AggDeployment is Script {
     vm.startBroadcast(deployerPrivateKey);
 
     // Option to buy Agg
-    OptionTokenV2 oAgg = new OptionTokenV2(
-      "Option to buy AGG", // name
-      "oAGG", // symbol
+    OptionTokenV2 oFlow = new OptionTokenV2(
+      "Option to buy FLOW", // name
+      "oFLOW", // symbol
       TEAM_MULTI_SIG, // admin
       USDC, // payment token
-      FLOW, // underlying token
+      FLOW, // underlying
       Pair(FLOWUSDC), // pair
       TEAM_MULTI_SIG, // used to be gauge factory but just grants admin role
       TEAM_MULTI_SIG, // treasury
@@ -47,18 +46,19 @@ contract AggDeployment is Script {
 
     // Initialize tokens for gauge
     address[] memory whitelistedTokens = new address[](4);
-    whitelistedTokens[0] = address(oAgg);
-    whitelistedTokens[1] = SCANTO;
-    whitelistedTokens[2] = AGG;
-    whitelistedTokens[3] = FLOW;
+    whitelistedTokens[0] = address(oFlow);
+    whitelistedTokens[1] = USDC;
+    whitelistedTokens[2] = FLOW;
+   
+    // whitelistedTokens[3] = FLOW;  // never give flow directly
 
-    AggMaxxingGauge gauge = new AggMaxxingGauge(
-      AGGSCANTO,
+    FLOWMaxxing gauge = new FLOWMaxxing(
+      FLOWUSDC,
       address(0),
       VEADDRESS,
       VOTER,
-      AGG,
-      address(oAgg),
+      FLOW,
+      address(oFlow),
       TEAM_MULTI_SIG,
       true,
       whitelistedTokens

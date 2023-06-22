@@ -10,15 +10,15 @@ import 'contracts/interfaces/IVoter.sol';
 import 'contracts/interfaces/IVotingEscrow.sol';
 
 // Gauges are used to incentivize pools, they emit reward tokens over 7 days for staked LP tokens
-contract AggMaxxingGauge is IGauge {
+contract FLOWMaxxing is IGauge {
 
-    address public immutable stake; // the LP token that needs to be staked for rewards 0x5c87d41bc9ac200a18179cc2702d9bb38c27d8fe
+    address public immutable stake; // the LP token that needs to be staked for rewards FLOWUSD
     address public immutable _ve; // the ve token used for gauges
     address public immutable external_bribe; // set to zero in script
     address public immutable voter;
-    address public immutable agg;
+    address public immutable flow;
     address public immutable gaugeFactory;
-    address public oAgg;
+    address public oFlow;
 
     uint public derivedSupply;
     mapping(address => uint) public derivedBalances;
@@ -88,16 +88,16 @@ contract AggMaxxingGauge is IGauge {
     event ClaimRewards(address indexed from, address indexed reward, uint amount);
     event OFlowSet(address indexed _oFlow);
 
-    constructor(address _stake, address _external_bribe, address  __ve, address _voter, address _agg, address _oAgg, address _gaugeFactory, bool _forPair, address[] memory _allowedRewardTokens) {
+    constructor(address _stake, address _external_bribe, address  __ve, address _voter, address _flow, address _oFlow, address _gaugeFactory, bool _forPair, address[] memory _allowedRewardTokens) {
         stake = _stake;
         external_bribe = _external_bribe;
         _ve = __ve;
         voter = _voter;
-        oAgg = _oAgg;
+        oFlow = _oFlow;
         gaugeFactory = _gaugeFactory;
         isForPair = _forPair;
-        agg = _agg;
-        _safeApprove(agg, oAgg, type(uint256).max);
+        flow = _flow;
+        _safeApprove(flow, oFlow, type(uint256).max);
 
         for (uint i; i < _allowedRewardTokens.length; i++) {
             if (_allowedRewardTokens[i] != address(0)) {
@@ -273,8 +273,8 @@ contract AggMaxxingGauge is IGauge {
             lastEarn[tokens[i]][account] = block.timestamp;
             userRewardPerTokenStored[tokens[i]][account] = rewardPerTokenStored[tokens[i]];
             if (_reward > 0) {
-                if (tokens[i] == agg) {   
-                    try IOptionToken(oAgg).mint(account, _reward){} catch {
+                if (tokens[i] == flow) {   
+                    try IOptionToken(oFlow).mint(account, _reward){} catch {
                         _safeTransfer(tokens[i], account, _reward);
                     }
                 } else {
@@ -435,7 +435,7 @@ contract AggMaxxingGauge is IGauge {
     }
 
     function depositWithLock(address account, uint256 amount, uint256 _lockDuration) external lock {
-        require(msg.sender == account || msg.sender == oAgg); // shoutout to dawid.d
+        require(msg.sender == account || msg.sender == oFlow); // shoutout to dawid.d
         _deposit(account, amount, 0);
 
         if(block.timestamp >= lockEnd[account]) { // if the current lock is expired relased the tokens from that lock before loking again
@@ -596,8 +596,8 @@ contract AggMaxxingGauge is IGauge {
 
     function setOFlow(address _oFlow) external {
         require(msg.sender == gaugeFactory, "not gauge factory");
-        oAgg = _oFlow;
-        _safeApprove(agg, _oFlow, type(uint256).max);
+        oFlow = _oFlow;
+        _safeApprove(flow, _oFlow, type(uint256).max);
         emit OFlowSet(_oFlow);
     }
 

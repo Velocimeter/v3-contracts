@@ -675,9 +675,6 @@ contract AggMaxxingGauge is IGauge {
 
     function getReward(address account, address[] memory tokens) external lock {
         require(msg.sender == account || msg.sender == voter);
-        _unlocked = 1;
-        IVoter(voter).distribute(address(this));
-        _unlocked = 2;
 
         for (uint i = 0; i < tokens.length; i++) {
             (rewardPerTokenStored[tokens[i]], lastUpdateTime[tokens[i]]) = _updateRewardPerToken(tokens[i], type(uint).max, true);
@@ -849,13 +846,19 @@ contract AggMaxxingGauge is IGauge {
     function depositWithLock(address account, uint256 amount, uint256 _lockDuration) external lock {
         require(msg.sender == account || msg.sender == oAgg); // shoutout to dawid.d
         _deposit(account, amount, 0);
-        balanceWithLock[account] += amount;
 
+        if(block.timestamp >= lockEnd[msg.sender]) { // if the current lock is expired relased the tokens from that lock before loking again
+            delete lockEnd[msg.sender];
+            delete balanceWithLock[msg.sender];
+        }
+
+        balanceWithLock[account] += amount;
         uint256 currentLockEnd = lockEnd[account];
         uint256 newLockEnd = block.timestamp + _lockDuration ;
-        if (currentLockEnd < newLockEnd) {
-            lockEnd[account] = newLockEnd;
-        }
+        if (currentLockEnd > newLockEnd) {
+            revert("The current lock end > new lock end");
+        } 
+        lockEnd[account] = newLockEnd;
     }
 
     function deposit(uint amount, uint tokenId) public lock  { 
@@ -945,7 +948,6 @@ contract AggMaxxingGauge is IGauge {
         _writeCheckpoint(msg.sender, derivedBalances[msg.sender]);
         _writeSupplyCheckpoint();
 
-        IVoter(voter).emitWithdraw(tokenId, msg.sender, amount);
         emit Withdraw(msg.sender, tokenId, amount);
     }
 

@@ -1190,11 +1190,8 @@ contract OptionTokenV2 is ERC20, AccessControl {
     /// -----------------------------------------------------------------------
     uint256 public constant MAX_DISCOUNT = 100; // 100%
     uint256 public constant MIN_DISCOUNT = 0; // 0%
-    uint256 public constant MAX_LP_DISCOUNT = 20; // 20%
-    uint256 public constant MIN_LP_DISCOUNT = 80; // 80%
     uint256 public constant MAX_TWAP_POINTS = 50; // 25 hours
     uint256 public constant FULL_LOCK = 26 * 7 * 86400; // 26 weeks
-    uint256 public constant MIN_LOCK = 7 * 86400; // 1 week
     uint256 public constant MAX_TEAM_FEE = 50; // 50%
 
     /// -----------------------------------------------------------------------
@@ -1259,7 +1256,10 @@ contract OptionTokenV2 is ERC20, AccessControl {
     event SetRouter(address indexed newRouter);
     event SetDiscount(uint256 discount);
     event SetVeDiscount(uint256 veDiscount);
+    event SetMinLPDiscount(uint256 lpMinDiscount);
+    event SetMaxLPDiscount(uint256 lpMaxDiscount);
     event SetLockDurationForMaxLpDiscount(uint256 lockDurationForMaxLpDiscount);
+    event SetLockDurationForMinLpDiscount(uint256 lockDurationForMinLpDiscount);
     event PauseStateChanged(bool isPaused);
     event SetTwapPoints(uint256 twapPoints);
 
@@ -1298,6 +1298,10 @@ contract OptionTokenV2 is ERC20, AccessControl {
     /// @notice The treasury address which receives tokens paid during redemption
     address public treasury;
 
+    /// @notice the discount given during exercising with locking to the LP
+    uint256 public  maxLPDiscount = 20; //  User pays 20%
+    uint256 public  minLPDiscount = 80; //  User pays 80%
+
     /// @notice the discount given during exercising. 30 = user pays 30%
     uint256 public discount = 90; // User pays 90%
 
@@ -1306,6 +1310,9 @@ contract OptionTokenV2 is ERC20, AccessControl {
 
     /// @notice the lock duration for max discount to create locked LP
     uint256 public lockDurationForMaxLpDiscount = FULL_LOCK; // 26 weeks
+
+    // @notice the lock duration for max discount to create locked LP
+    uint256 public lockDurationForMinLpDiscount = 7 * 86400; // 1 week
 
     /// @notice
     uint256 public teamFee = 10; // 10%
@@ -1490,15 +1497,25 @@ contract OptionTokenV2 is ERC20, AccessControl {
         duration = SignedMath.abs(slope * int256(_discount) + intercept);
     }
 
+     // @notice Returns the amount in paymentTokens for a given amount of options tokens required for the LP exercise lp
+    /// @param _amount The amount of options tokens to exercise
+    /// @param _discount The discount amount
+    function getPaymentTokenAmountForExerciseLp(uint256 _amount,uint256 _discount) public view returns (uint256 paymentAmount, uint256 paymentAmountToAddLiquidity)
+    {
+        paymentAmount = getLpDiscountedPrice(_amount, _discount);
+        (uint256 underlyingReserve, uint256 paymentReserve) = IRouter(router).getReserves(underlyingToken, paymentToken, false);
+        paymentAmountToAddLiquidity = (_amount * paymentReserve) / underlyingReserve;
+    }
+
     function getSlopeInterceptForLpDiscount()
         public
         view
         returns (int256 slope, int256 intercept)
     {
         slope =
-            int256(lockDurationForMaxLpDiscount - MIN_LOCK) /
-            (int256(MAX_LP_DISCOUNT) - int256(MIN_LP_DISCOUNT));
-        intercept = int256(MIN_LOCK) - (slope * int256(MIN_LP_DISCOUNT));
+            int256(lockDurationForMaxLpDiscount - lockDurationForMinLpDiscount) /
+            (int256(maxLPDiscount) - int256(minLPDiscount));
+        intercept = int256(lockDurationForMinLpDiscount) - (slope * int256(minLPDiscount));
     }
 
     /// @notice Returns the average price in payment tokens over 2 hours for a given amount of underlying tokens
@@ -1597,15 +1614,44 @@ contract OptionTokenV2 is ERC20, AccessControl {
         emit SetVeDiscount(_veDiscount);
     }
 
+    /// @notice Sets the discount amount for lp. Only callable by the admin.
+    /// @param _lpMinDiscount The new discount amount.
+    function setMinLPDiscount(uint256 _lpMinDiscount) external onlyAdmin {
+        if (_lpMinDiscount > MAX_DISCOUNT || _lpMinDiscount == MIN_DISCOUNT || maxLPDiscount > _lpMinDiscount)
+            revert OptionToken_InvalidDiscount();
+        minLPDiscount = _lpMinDiscount;
+        emit SetMinLPDiscount(_lpMinDiscount);
+    }
+
+    /// @notice Sets the discount amount for lp. Only callable by the admin.
+    /// @param _lpMaxDiscount The new discount amount.
+    function setMaxLPDiscount(uint256 _lpMaxDiscount) external onlyAdmin {
+        if (_lpMaxDiscount > MAX_DISCOUNT || _lpMaxDiscount == MIN_DISCOUNT || _lpMaxDiscount > minLPDiscount)
+            revert OptionToken_InvalidDiscount();
+        maxLPDiscount = _lpMaxDiscount;
+        emit SetMaxLPDiscount(_lpMaxDiscount);
+    }
+
     /// @notice Sets the lock duration for max discount amount to create LP and stake in gauge. Only callable by the admin.
     /// @param _duration The new lock duration.
     function setLockDurationForMaxLpDiscount(
         uint256 _duration
     ) external onlyAdmin {
-        if (_duration > FULL_LOCK || _duration <= MIN_LOCK)
+        if (_duration <= lockDurationForMinLpDiscount)
             revert OptionToken_InvalidLockDuration();
         lockDurationForMaxLpDiscount = _duration;
         emit SetLockDurationForMaxLpDiscount(_duration);
+    }
+
+    // @notice Sets the lock duration for min discount amount to create LP and stake in gauge. Only callable by the admin.
+    /// @param _duration The new lock duration.
+    function setLockDurationForMinLpDiscount(
+        uint256 _duration
+    ) external onlyAdmin {
+        if (_duration > lockDurationForMaxLpDiscount)
+            revert OptionToken_InvalidLockDuration();
+        lockDurationForMinLpDiscount = _duration;
+        emit SetLockDurationForMinLpDiscount(_duration);
     }
 
     /// @notice Sets the twap points. to control the length of our twap
@@ -1714,26 +1760,15 @@ contract OptionTokenV2 is ERC20, AccessControl {
         uint256 _discount
     ) internal returns (uint256 paymentAmount, uint256 lpAmount) {
         if (isPaused) revert OptionToken_Paused();
-        if (_discount > MIN_LP_DISCOUNT || _discount < MAX_LP_DISCOUNT)
+        if (_discount > minLPDiscount || _discount < maxLPDiscount)
             revert OptionToken_InvalidDiscount();
 
         // burn callers tokens
         _burn(msg.sender, _amount);
-        paymentAmount = getLpDiscountedPrice(_amount, _discount);
+        (uint256 paymentAmount,uint256 paymentAmountToAddLiquidity) =  getPaymentTokenAmountForExerciseLp(_amount,_discount);
         if (paymentAmount > _maxPaymentAmount)
             revert OptionToken_SlippageTooHigh();
-
-        // Quote liquidity
-
-        // does this do ( 100 agg * num sCANTO in pool ) / amount of agg in the pool? And makes that number the amount of sCANTO to use to LP with?
-
-        (uint256 underlyingReserve, uint256 paymentReserve) = IRouter(router)
-            .getReserves(underlyingToken, paymentToken, false);
-        uint256 paymentAmountToAddLiquidity = (_amount * paymentReserve) /  
-            underlyingReserve;
-
           
-
         // Take team fee
         uint256 paymentGaugeRewardAmount = _takeTeamFee(
             paymentToken,
@@ -1771,11 +1806,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
         );
 
         // notify gauge reward with payment token
-        _safeApprove(paymentToken, _gauge, paymentGaugeRewardAmount);
-        IGaugeV2(_gauge).notifyRewardAmount(
-            paymentToken,
-            paymentGaugeRewardAmount
-        );
+        _transferRewardToGauge();
 
         emit ExerciseLp(
             msg.sender,
@@ -1797,7 +1828,10 @@ contract OptionTokenV2 is ERC20, AccessControl {
 
     function _usePaymentAsGaugeReward(uint256 amount) internal {
         _safeTransferFrom(paymentToken, msg.sender, address(this), amount);
+        _transferRewardToGauge();
+    }
 
+    function _transferRewardToGauge() internal {
         uint256 paymentTokenCollectedAmount = IERC20(paymentToken).balanceOf(address(this));
 
         uint256 leftRewards = IGaugeV2(gauge).left(paymentToken);
