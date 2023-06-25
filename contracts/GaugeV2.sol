@@ -438,15 +438,21 @@ contract GaugeV2 is IGauge {
     }
 
     function depositWithLock(address account, uint256 amount, uint256 _lockDuration) external lock {
-        require(msg.sender == account || msg.sender == oFlow);
+        require(msg.sender == account || msg.sender == oFlow); // shoutout to dawid.d
         _deposit(account, amount, 0);
-        balanceWithLock[account] += amount;
 
-        uint256 currentLockEnd = lockEnd[account];
-        uint256 newLockEnd = block.timestamp + _lockDuration;
-        if (currentLockEnd < newLockEnd) {
-            lockEnd[account] = newLockEnd;
+        if(block.timestamp >= lockEnd[account]) { // if the current lock is expired relased the tokens from that lock before loking again
+            delete lockEnd[account];
+            delete balanceWithLock[account];
         }
+
+        balanceWithLock[account] += amount;
+        uint256 currentLockEnd = lockEnd[account];
+        uint256 newLockEnd = block.timestamp + _lockDuration ;
+        if (currentLockEnd > newLockEnd) {
+            revert("The current lock end > new lock end");
+        } 
+        lockEnd[account] = newLockEnd;
     }
 
     function deposit(uint amount, uint tokenId) public lock { 
@@ -566,7 +572,7 @@ contract GaugeV2 is IGauge {
         } else {
             uint _remaining = periodFinish[token] - block.timestamp;
             uint _left = _remaining * rewardRate[token];
-            require(amount > _left || msg.sender == oFlow); // allow oToken to always deposit the rewards
+            require(amount > _left); 
             uint256 balanceBefore = IERC20(token).balanceOf(address(this));
             _safeTransferFrom(token, msg.sender, address(this), amount);
             uint256 balanceAfter = IERC20(token).balanceOf(address(this));
