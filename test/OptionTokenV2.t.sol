@@ -2,14 +2,14 @@
 pragma solidity 0.8.13;
 
 import "./BaseTest.sol";
-import "contracts/StandAloneGaugeV2.sol";
+import "contracts/FLOWMaxxing.sol";
 
 contract OptionTokenV2Test is BaseTest {
     GaugeFactory gaugeFactory;
     VotingEscrow escrow;
     Voter voter;
     BribeFactory bribeFactory;
-    AggMaxxingGauge gauge;
+    FLOWMaxxing gauge;
 
     error OptionToken_InvalidDiscount();
     error OptionToken_Paused();
@@ -82,7 +82,7 @@ contract OptionTokenV2Test is BaseTest {
 
         address[] memory rewards = new address[](1);
         rewards[0] = address(DAI);
-        gauge = new AggMaxxingGauge(address(flowDaiPair),address(0),address(escrow),address(voter),address(FLOW),address(oFlowV2),address(gaugeFactory),true,rewards);
+        gauge = new FLOWMaxxing(address(flowDaiPair),address(0),address(escrow),address(voter),address(FLOW),address(oFlowV2),address(gaugeFactory),true,rewards);
     
         oFlowV2.setGauge(address(gauge));
     }
@@ -639,16 +639,18 @@ contract OptionTokenV2Test is BaseTest {
 
         uint256 discountedPrice = oFlowV2.getLpDiscountedPrice(TOKEN_1,20);
 
+      
         vm.startPrank(address(owner2));
         DAI.approve(address(oFlowV2), TOKEN_100K);
-        // vm.expectEmit(true, true, false, true); 
-        // emit ExerciseLp(
-        //     address(owner2),
-        //     address(owner2),
-        //     TOKEN_1,
-        //     discountedPrice,
-        //     0
-        // );
+        vm.expectEmit(true, true, false, true); 
+        emit ExerciseLp(
+            address(owner2),
+            address(owner2),
+            TOKEN_1,
+            discountedPrice,
+            1000000000999700046
+        );
+
   
         oFlowV2.exerciseLp(TOKEN_1, TOKEN_1, address(owner2),20,block.timestamp);
         vm.stopPrank();
