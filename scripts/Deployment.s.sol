@@ -36,7 +36,7 @@ contract Deployment is Script {
     // privileged accounts
     // TODO: change these accounts!
     address private constant TEAM_MULTI_SIG =
-        0xA3082Df7a11071db5ed0e02d48bca5f471dDbaF4;
+        0x88Dec6df03C2C111Efd4ad89Cef2c0347034AFC0;
     address private constant TANK = 0x1bAe1083CF4125eD5dEeb778985C1Effac0ecC06;
     address private constant DEPLOYER =
         0x7e4fB7276353cfa80683F779c20bE9611F7536e5;
