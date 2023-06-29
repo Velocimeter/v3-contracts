@@ -5,7 +5,7 @@ pragma solidity 0.8.13;
 import {Script} from "../lib/forge-std/src/Script.sol";
 
 import {Flow} from "../contracts/Flow.sol";
-import {GaugeFactory} from "../contracts/factories/GaugeFactory.sol";
+import {GaugeFactoryV2} from "../contracts/factories/GaugeFactoryV2.sol";
 import {BribeFactory} from "../contracts/factories/BribeFactory.sol";
 import {PairFactory} from "../contracts/factories/PairFactory.sol";
 import {Router} from "../contracts/Router.sol";
@@ -17,7 +17,7 @@ import {Voter} from "../contracts/Voter.sol";
 import {Minter} from "../contracts/Minter.sol";
 import {MintTank} from "../contracts/MintTank.sol";
 import {AirdropClaim} from "../contracts/AirdropClaim.sol";
-import {OptionToken} from "../contracts/OptionToken.sol";
+import {OptionTokenV2} from "../contracts/OptionTokenV2.sol";
 import {IERC20} from "../contracts/interfaces/IERC20.sol";
 import {IPair} from "../contracts/interfaces/IPair.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
@@ -55,7 +55,7 @@ contract Deployment is Script {
         Flow flow = new Flow(DEPLOYER, INITIAL_MINT_AMOUNT);
 
         // Gauge factory
-        GaugeFactory gaugeFactory = new GaugeFactory();
+        GaugeFactoryV2 gaugeFactory = new GaugeFactoryV2();
 
         // Bribe factory
         BribeFactory bribeFactory = new BribeFactory();

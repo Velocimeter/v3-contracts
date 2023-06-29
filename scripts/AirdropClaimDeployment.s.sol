@@ -24,6 +24,8 @@ contract AirdropClaimDeployment is Script {
             TEAM_MULTI_SIG
         );
 
+        airdropClaim.setOwner(TEAM_MULTI_SIG);
+
         vm.stopBroadcast();
     }
 }

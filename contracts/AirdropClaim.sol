@@ -55,7 +55,6 @@ contract AirdropClaim is ReentrancyGuard {
 
     function deposit(uint256 amount) external {
         require(msg.sender == owner);
-        require(!seeded);
         token.safeTransferFrom(msg.sender, address(this), amount);
         totalAirdrop += amount;
         seeded = true;
