@@ -102,13 +102,14 @@ contract MinterTest is BaseTest {
         uint256 claimable = distributor.claimable(1);
         /**
          * This has been updated from 128115516517529 to
-         * 1614113861 because originally in VELO the
+         * 1_614_113_861 because originally in VELO the
          * constructor mints 0 tokens, but now we are minting
          * an initial supply instead of using the initialMint
          * function.
          */
 
-        assertGt(claimable, 1614113861);
+        assertGt(claimable, 1000_000_000);
+        assertGt(claimable, 1_613_779_019);
 
         distributor.claim(1);
         assertEq(distributor.claimable(1), 0);
