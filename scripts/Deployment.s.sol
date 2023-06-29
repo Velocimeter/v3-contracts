@@ -25,13 +25,7 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 contract Deployment is Script {
     // token addresses
     // TODO: check token address
-    address private constant WPLS = 0xA1077a294dDE1B09bB078844df40758a5D0f9a27;
-    address private constant USDC = 0x15D38573d2feeb82e7ad5187aB8c1D52810B1f07;
-    address private constant DAI = 0xefD766cCb38EaF1dfd701853BFCe31359239F305;
-    address private constant WETH = 0x02DcdD04e3F455D838cd1249292C58f3B79e3C3C;
-    address private constant WBTC = 0xb17D901469B9208B17d916112988A3FeD19b5cA1;
-    address private constant USDT = 0x0Cb6F5a34ad42ec934882A05265A7d5F59b51A2f;
-    address private constant HEX = 0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39;
+    address private constant WFTM = 0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83;
 
     // privileged accounts
     // TODO: change these accounts!
@@ -64,7 +58,7 @@ contract Deployment is Script {
         PairFactory pairFactory = new PairFactory();
 
         // Router
-        Router router = new Router(address(pairFactory), WPLS);
+        Router router = new Router(address(pairFactory), WFTM);
 
         // VelocimeterLibrary
         new VelocimeterLibrary(address(router));
@@ -114,8 +108,8 @@ contract Deployment is Script {
         flow.transfer(address(mintTank), MINT_TANK_AMOUNT);
         flow.transfer(address(TEAM_MULTI_SIG), MSIG_FLOW_AMOUNT);
 
-        IPair flowWplsPair = IPair(
-            pairFactory.createPair(address(flow), WPLS, false)
+        IPair flowWftmPair = IPair(
+            pairFactory.createPair(address(flow), WFTM, false)
         );
 
         // Option to buy Flow
@@ -123,9 +117,9 @@ contract Deployment is Script {
             "Option to buy FVM", // name
             "oFVM", // symbol
             TEAM_MULTI_SIG, // admin
-            ERC20(WPLS), // payment token
+            ERC20(WFTM), // payment token
             ERC20(address(flow)), // underlying token
-            flowWplsPair, // pair
+            flowWftmPair, // pair
             address(gaugeFactory), // gauge factory
             TEAM_MULTI_SIG, // treasury
             address(voter),
@@ -164,15 +158,10 @@ contract Deployment is Script {
         rewardsDistributor.setDepositor(address(minter));
 
         // Initialize tokens for voter
-        address[] memory whitelistedTokens = new address[](8);
+        address[] memory whitelistedTokens = new address[](3);
         whitelistedTokens[0] = address(flow);
-        whitelistedTokens[1] = WPLS;
-        whitelistedTokens[2] = USDC;
-        whitelistedTokens[3] = DAI;
-        whitelistedTokens[4] = WETH;
-        whitelistedTokens[5] = WBTC;
-        whitelistedTokens[6] = USDT;
-        whitelistedTokens[7] = HEX;
+        whitelistedTokens[1] = WFTM;
+        whitelistedTokens[2] = address(oFlow);
         voter.initialize(whitelistedTokens, address(minter));
 
         vm.stopBroadcast();
