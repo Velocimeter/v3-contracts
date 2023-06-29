@@ -119,16 +119,18 @@ contract Deployment is Script {
         );
 
         // Option to buy Flow
-        OptionToken oFlow = new OptionToken(
-            "Option to buy FLOW", // name
-            "oFLOW", // symbol
+        OptionTokenV2 oFlow = new OptionTokenV2(
+            "Option to buy FVM", // name
+            "oFVM", // symbol
             TEAM_MULTI_SIG, // admin
             ERC20(WPLS), // payment token
             ERC20(address(flow)), // underlying token
             flowWplsPair, // pair
             address(gaugeFactory), // gauge factory
             TEAM_MULTI_SIG, // treasury
-            50 // discount
+            address(voter),
+            address(votingEscrow),
+            address(router)
         );
 
         gaugeFactory.setOFlow(address(oFlow));
