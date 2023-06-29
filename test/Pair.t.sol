@@ -37,7 +37,7 @@ contract PairTest is BaseTest {
         deployPairCoins();
 
         FLOW.approve(address(escrow), 5e17);
-        escrow.create_lock(5e17, TWENTY_SIX_WEEKS);
+        escrow.create_lock(5e17, FIFTY_TWO_WEEKS);
         vm.roll(block.number + 1); // fwd 1 block because escrow.balanceOfNFT() returns 0 in same block
         assertGt(escrow.balanceOfNFT(1), 495063075414519385);
         assertEq(FLOW.balanceOf(address(escrow)), 5e17);
@@ -49,7 +49,7 @@ contract PairTest is BaseTest {
         FLOW.approve(address(escrow), 5e17);
         escrow.increase_amount(1, 5e17);
         vm.expectRevert(abi.encodePacked('Can only increase lock duration'));
-        escrow.increase_unlock_time(1, TWENTY_SIX_WEEKS);
+        escrow.increase_unlock_time(1, FIFTY_TWO_WEEKS);
         assertGt(escrow.balanceOfNFT(1), 995063075414519385);
         assertEq(FLOW.balanceOf(address(escrow)), TOKEN_1);
     }
@@ -80,7 +80,7 @@ contract PairTest is BaseTest {
         stealNFT();
 
         FLOW.approve(address(escrow), TOKEN_1);
-        escrow.create_lock(TOKEN_1, TWENTY_SIX_WEEKS);
+        escrow.create_lock(TOKEN_1, FIFTY_TWO_WEEKS);
         assertGt(escrow.balanceOfNFT(2), 995063075414519385);
         assertEq(FLOW.balanceOf(address(escrow)), 2 * TOKEN_1);
         console2.log(escrow.totalSupply());
@@ -92,7 +92,7 @@ contract PairTest is BaseTest {
         assertEq(amount, 0);
         assertEq(escrow.ownerOf(2), address(0));
         FLOW.approve(address(escrow), TOKEN_1);
-        escrow.create_lock(TOKEN_1, TWENTY_SIX_WEEKS);
+        escrow.create_lock(TOKEN_1, FIFTY_TWO_WEEKS);
         assertGt(escrow.balanceOfNFT(3), 995063075414519385);
         assertEq(FLOW.balanceOf(address(escrow)), 3 * TOKEN_1);
         console2.log(escrow.totalSupply());
@@ -408,7 +408,7 @@ contract PairTest is BaseTest {
         voterPokeSelf();
 
         FLOW.approve(address(escrow), TOKEN_1);
-        escrow.create_lock(TOKEN_1, TWENTY_SIX_WEEKS);
+        escrow.create_lock(TOKEN_1, FIFTY_TWO_WEEKS);
         vm.warp(block.timestamp + 1);
         assertGt(escrow.balanceOfNFT(1), 995063075414519385);
         assertEq(FLOW.balanceOf(address(escrow)), 4 * TOKEN_1);
@@ -603,7 +603,7 @@ contract PairTest is BaseTest {
         claims[0] = Minter.Claim({
             claimant: address(owner),
             amount: TOKEN_1,
-            lockTime: TWENTY_SIX_WEEKS
+            lockTime: FIFTY_TWO_WEEKS
         });
         minter.initialMintAndLock(claims, TOKEN_1);
         minter.startActivePeriod();
@@ -734,7 +734,7 @@ contract PairTest is BaseTest {
         voter.claimBribes(bribes_, rewards, 1);
         uint256 supply = escrow.totalSupply();
         assertGt(supply, 0);
-        vm.warp(block.timestamp + TWENTY_SIX_WEEKS);
+        vm.warp(block.timestamp + FIFTY_TWO_WEEKS);
         vm.roll(block.number + 1);
         assertEq(escrow.balanceOfNFT(1), 0);
         assertEq(escrow.totalSupply(), 0);

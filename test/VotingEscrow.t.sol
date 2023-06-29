@@ -69,8 +69,8 @@ contract VotingEscrowTest is BaseTest {
 
     function testCreateLockOutsideAllowedZones() public {
         FLOW.approve(address(escrow), 1e21);
-        vm.expectRevert(abi.encodePacked('Voting lock can be 26 weeks max'));
-        escrow.create_lock(1e21, TWENTY_SIX_WEEKS + ONE_WEEK);
+        vm.expectRevert(abi.encodePacked('Voting lock can be 52 weeks max'));
+        escrow.create_lock(1e21, FIFTY_TWO_WEEKS + ONE_WEEK);
     }
 
     function testWithdraw() public {

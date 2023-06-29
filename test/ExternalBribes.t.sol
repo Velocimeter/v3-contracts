@@ -68,17 +68,17 @@ contract ExternalBribesTest is BaseTest {
 
         // ve
         FLOW.approve(address(escrow), TOKEN_1);
-        escrow.create_lock(TOKEN_1, TWENTY_SIX_WEEKS);
+        escrow.create_lock(TOKEN_1, FIFTY_TWO_WEEKS);
         vm.startPrank(address(owner2));
         FLOW.approve(address(escrow), TOKEN_1);
-        escrow.create_lock(TOKEN_1, TWENTY_SIX_WEEKS);
+        escrow.create_lock(TOKEN_1, FIFTY_TWO_WEEKS);
         vm.warp(block.timestamp + 1);
         vm.stopPrank();
 
 
         vm.startPrank(address(owner3));
         FLOW.approve(address(escrow), TOKEN_1);
-        escrow.create_lock(TOKEN_1, TWENTY_SIX_WEEKS);
+        escrow.create_lock(TOKEN_1, FIFTY_TWO_WEEKS);
         vm.warp(block.timestamp + 1);
         vm.stopPrank();
     }

@@ -14,7 +14,7 @@ import {IVotingEscrow} from "contracts/interfaces/IVotingEscrow.sol";
 /// @author Modified from Solidly (https://github.com/solidlyexchange/solidly/blob/master/contracts/ve.sol)
 /// @author Modified from Curve (https://github.com/curvefi/curve-dao-contracts/blob/master/contracts/VotingEscrow.vy)
 /// @author Modified from Nouns DAO (https://github.com/withtally/my-nft-dao-project/blob/main/contracts/ERC721Checkpointable.sol)
-/// @dev Vote weight decays linearly over time. Lock time cannot be more than `MAXTIME` (26 weeks).
+/// @dev Vote weight decays linearly over time. Lock time cannot be more than `MAXTIME` (52 weeks).
 contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     enum DepositType {
         DEPOSIT_FOR_TYPE,
@@ -529,8 +529,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     uint public supply;
 
     uint internal constant WEEK = 1 weeks;
-    uint internal constant MAXTIME = 26 * 7 * 86400;
-    int128 internal constant iMAXTIME = 26 * 7 * 86400;
+    uint internal constant MAXTIME = 52 * 7 * 86400;
+    int128 internal constant iMAXTIME = 52 * 7 * 86400;
     uint internal constant MULTIPLIER = 1 ether;
 
     /*//////////////////////////////////////////////////////////////
@@ -774,7 +774,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
 
         require(_value > 0); // dev: need non-zero value
         require(unlock_time > block.timestamp, 'Can only lock until time in the future');
-        require(unlock_time <= block.timestamp + MAXTIME, 'Voting lock can be 26 weeks max');
+        require(unlock_time <= block.timestamp + MAXTIME, 'Voting lock can be 52 weeks max');
 
         ++tokenId;
         uint _tokenId = tokenId;
@@ -824,7 +824,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         require(_locked.end > block.timestamp, 'Lock expired');
         require(_locked.amount > 0, 'Nothing is locked');
         require(unlock_time > _locked.end, 'Can only increase lock duration');
-        require(unlock_time <= block.timestamp + MAXTIME, 'Voting lock can be 26 weeks max');
+        require(unlock_time <= block.timestamp + MAXTIME, 'Voting lock can be 52 weeks max');
 
         _deposit_for(_tokenId, 0, unlock_time, _locked, DepositType.INCREASE_UNLOCK_TIME);
     }
@@ -1123,7 +1123,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         // save end
         uint unlock_time = end;
         require(unlock_time > block.timestamp, 'Can only lock until time in the future');
-        require(unlock_time <= block.timestamp + MAXTIME, 'Voting lock can be 26 weeks max');
+        require(unlock_time <= block.timestamp + MAXTIME, 'Voting lock can be 52 weeks max');
         
         // mint 
         uint _value = 0;

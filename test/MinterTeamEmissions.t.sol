@@ -43,7 +43,7 @@ contract MinterTeamEmissions is BaseTest {
         tokens[1] = address(FLOW);
         voter.initialize(tokens, address(owner));
         FLOW.approve(address(escrow), TOKEN_1);
-        escrow.create_lock(TOKEN_1, TWENTY_SIX_WEEKS);
+        escrow.create_lock(TOKEN_1, FIFTY_TWO_WEEKS);
         distributor = new RewardsDistributor(address(escrow));
         escrow.setVoter(address(voter));
 
@@ -87,7 +87,7 @@ contract MinterTeamEmissions is BaseTest {
         claims[0] = Minter.Claim({
             claimant: address(owner),
             amount: TOKEN_1M,
-            lockTime: TWENTY_SIX_WEEKS
+            lockTime: FIFTY_TWO_WEEKS
         });
         minter.initialMintAndLock(claims, 13 * TOKEN_1M);
         minter.startActivePeriod();

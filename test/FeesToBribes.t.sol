@@ -158,7 +158,7 @@ contract FeesToBribesTest is BaseTest {
 
     function createLock() public {
         FLOW.approve(address(escrow), 5e17);
-        escrow.create_lock(5e17, TWENTY_SIX_WEEKS);
+        escrow.create_lock(5e17, FIFTY_TWO_WEEKS);
         vm.roll(block.number + 1); // fwd 1 block because escrow.balanceOfNFT() returns 0 in same block
         assertGt(escrow.balanceOfNFT(1), 495063075414519385);
         assertEq(FLOW.balanceOf(address(escrow)), 5e17);

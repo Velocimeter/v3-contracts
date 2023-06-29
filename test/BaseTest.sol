@@ -37,7 +37,7 @@ abstract contract BaseTest is Test, TestOwner {
     uint256 constant PAIR_1 = 1e9;
     uint256 constant private ONE_DAY = 86400;
     uint256 constant internal ONE_WEEK = ONE_DAY * 7;
-    uint256 constant internal TWENTY_SIX_WEEKS = 26 * ONE_WEEK;
+    uint256 constant internal FIFTY_TWO_WEEKS = 52 * ONE_WEEK;
 
     TestOwner owner;
     TestOwner owner2;

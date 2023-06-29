@@ -28,7 +28,7 @@ contract AirdropClaim is ReentrancyGuard {
     IERC20 public token;
 
     
-    uint public constant LOCK = 26 * 7 * 86400;
+    uint public constant LOCK = 52 * 7 * 86400;
     
 
     mapping(address => uint) public claimableAmount;

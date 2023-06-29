@@ -28,7 +28,7 @@ contract WashTradeTest is BaseTest {
         deployBaseCoins();
 
         FLOW.approve(address(escrow), TOKEN_1);
-        escrow.create_lock(TOKEN_1, TWENTY_SIX_WEEKS);
+        escrow.create_lock(TOKEN_1, FIFTY_TWO_WEEKS);
         vm.roll(block.number + 1); // fwd 1 block because escrow.balanceOfNFT() returns 0 in same block
         assertGt(escrow.balanceOfNFT(1), 995063075414519385);
         assertEq(FLOW.balanceOf(address(escrow)), TOKEN_1);
@@ -38,7 +38,7 @@ contract WashTradeTest is BaseTest {
         createLock();
 
         FLOW.approve(address(escrow), TOKEN_1);
-        escrow.create_lock(TOKEN_1, TWENTY_SIX_WEEKS);
+        escrow.create_lock(TOKEN_1, FIFTY_TWO_WEEKS);
         vm.roll(block.number + 1);
         assertGt(escrow.balanceOfNFT(2), 995063075414519385);
         assertEq(FLOW.balanceOf(address(escrow)), 2 * TOKEN_1);
