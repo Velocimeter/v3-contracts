@@ -41,10 +41,10 @@ contract Deployment is Script {
     address private constant DEPLOYER =
         0x7e4fB7276353cfa80683F779c20bE9611F7536e5;
     // TODO: set the following variables
-    uint private constant INITIAL_MINT_AMOUNT = 315_000_000e18;
+    uint private constant INITIAL_MINT_AMOUNT = 6_000_000e18;
     uint private constant MINT_TANK_MIN_LOCK_TIME = 52 * 7 * 86400;
-    uint private constant MINT_TANK_AMOUNT = 150_000_000e18;
-    uint private constant MSIG_FLOW_AMOUNT = 165_000_000e18;
+    uint private constant MINT_TANK_AMOUNT = 1_290_000e18;
+    uint private constant MSIG_FLOW_AMOUNT = 4_710_000e18;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
