@@ -33,7 +33,7 @@ contract Deployment is Script {
         0x88Dec6df03C2C111Efd4ad89Cef2c0347034AFC0;
     address private constant TANK = 0xb32d744CAc212cAB825b5Eb9c5ba65d7D1CF3bD8;
     address private constant DEPLOYER =
-        0x7e4fB7276353cfa80683F779c20bE9611F7536e5;
+        0xDB13D9b2AF28405395243f5d28c5F34a6af92662;
     // TODO: set the following variables
     uint private constant INITIAL_MINT_AMOUNT = 6_000_000e18;
     uint private constant MINT_TANK_MIN_LOCK_TIME = 52 * 7 * 86400;
@@ -63,13 +63,10 @@ contract Deployment is Script {
         // VelocimeterLibrary
         new VelocimeterLibrary(address(router));
 
-        // VeArtProxy
-        VeArtProxy veArtProxy = new VeArtProxy();
-
         // VotingEscrow
         VotingEscrow votingEscrow = new VotingEscrow(
             address(flow),
-            address(veArtProxy),
+            address(0),
             TEAM_MULTI_SIG
         );
 
@@ -117,8 +114,8 @@ contract Deployment is Script {
             "Option to buy FVM", // name
             "oFVM", // symbol
             TEAM_MULTI_SIG, // admin
-            ERC20(WFTM), // payment token
-            ERC20(address(flow)), // underlying token
+            WFTM, // payment token
+            address(flow), // underlying token
             flowWftmPair, // pair
             address(gaugeFactory), // gauge factory
             TEAM_MULTI_SIG, // treasury
@@ -134,9 +131,6 @@ contract Deployment is Script {
 
         // Set pair factory pauser and tank
         pairFactory.setTank(TANK);
-
-        // Set voting escrow's art proxy
-        votingEscrow.setArtProxy(address(veArtProxy));
 
         // Set minter and voting escrow's team
         votingEscrow.setTeam(TEAM_MULTI_SIG);
