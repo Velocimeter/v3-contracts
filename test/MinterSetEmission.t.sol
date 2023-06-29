@@ -2,6 +2,7 @@
 pragma solidity 0.8.13;
 
 import "./BaseTest.sol";
+import "forge-std/console2.sol";
 
 contract MinterSetEmission is BaseTest {
     VotingEscrow escrow;
@@ -88,28 +89,28 @@ contract MinterSetEmission is BaseTest {
         Minter.Claim[] memory claims = new Minter.Claim[](1);
         claims[0] = Minter.Claim({
             claimant: address(owner),
-            amount: TOKEN_1M,
+            amount: TOKEN_100K,
             lockTime: FIFTY_TWO_WEEKS
         });
-        minter.initialMintAndLock(claims, 13 * TOKEN_1M);
+        minter.initialMintAndLock(claims, 3 * TOKEN_100K);
         minter.startActivePeriod();
 
         assertEq(escrow.ownerOf(2), address(owner));
         assertEq(escrow.ownerOf(3), address(0));
         vm.roll(block.number + 1);
-        assertEq(FLOW.balanceOf(address(minter)), 12 * TOKEN_1M);
+        assertEq(FLOW.balanceOf(address(minter)), 2 * TOKEN_100K);
 
         uint256 before = FLOW.balanceOf(address(owner));
         minter.update_period(); // initial period week 1
         uint256 after_ = FLOW.balanceOf(address(owner));
-        assertEq(minter.weekly(), 13 * TOKEN_1M);
+        assertEq(minter.weekly(), 3 * TOKEN_100K);
         assertEq(after_ - before, 0);
         vm.warp(block.timestamp + ONE_WEEK);
         vm.roll(block.number + 1);
         before = FLOW.balanceOf(address(owner));
         minter.update_period(); // initial period week 2
         after_ = FLOW.balanceOf(address(owner));
-        assertEq(minter.weekly(), (13 * TOKEN_1M * 990) / 1000); // <13M for week shift
+        assertEq(minter.weekly(), (3 * TOKEN_100K * 990) / 1000); // <13M for week shift
     }
 
     function testSetEmission() public {
@@ -135,9 +136,10 @@ contract MinterSetEmission is BaseTest {
         team.setEmission(address(minter), 500);
 
         minter.update_period(); // new period
+        console2.log(minter.weekly());
         assertEq(
             minter.weekly(),
-            (((13 * TOKEN_1M * 990) / 1000) * 500) / 1000
+            (((3 * TOKEN_100K * 990) / 1000) * 500) / 1000
         );
     }
 

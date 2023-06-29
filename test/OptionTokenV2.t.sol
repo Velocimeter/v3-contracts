@@ -2,14 +2,14 @@
 pragma solidity 0.8.13;
 
 import "./BaseTest.sol";
-import "contracts/FLOWMaxxing.sol";
+import "contracts/GaugeV2.sol";
 
 contract OptionTokenV2Test is BaseTest {
     GaugeFactory gaugeFactory;
     VotingEscrow escrow;
     Voter voter;
     BribeFactory bribeFactory;
-    FLOWMaxxing gauge;
+    GaugeV2 gauge;
 
     error OptionToken_InvalidDiscount();
     error OptionToken_Paused();
@@ -82,7 +82,7 @@ contract OptionTokenV2Test is BaseTest {
 
         address[] memory rewards = new address[](1);
         rewards[0] = address(DAI);
-        gauge = new FLOWMaxxing(address(flowDaiPair),address(0),address(escrow),address(voter),address(FLOW),address(oFlowV2),address(gaugeFactory),true,rewards);
+        gauge = new GaugeV2(address(flowDaiPair),address(0),address(escrow),address(voter),address(oFlowV2),address(gaugeFactory),true,rewards);
     
         oFlowV2.setGauge(address(gauge));
     }
@@ -661,7 +661,7 @@ contract OptionTokenV2Test is BaseTest {
         uint256 treasuryDaiBalanceAfter = DAI.balanceOf(address(owner));
         uint256 rewardGaugeDaiAfter = DAI.balanceOf(address(gauge));
 
-        assertEq(gauge.lockEnd(address(owner2)),block.timestamp + 26 * 7 * 86400);
+        assertEq(gauge.lockEnd(address(owner2)),block.timestamp + 52 * 7 * 86400);
 
         assertEq(flowBalanceAfter - flowBalanceBefore, 0);
         assertEq(oFlowV2BalanceBefore - oFlowV2BalanceAfter, TOKEN_1);

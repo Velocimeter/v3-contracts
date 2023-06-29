@@ -72,29 +72,29 @@ contract MinterTest is BaseTest {
         Minter.Claim[] memory claims = new Minter.Claim[](1);
         claims[0] = Minter.Claim({
             claimant: address(owner),
-            amount: TOKEN_1M,
+            amount: TOKEN_100K,
             lockTime: FIFTY_TWO_WEEKS
         });
-        minter.initialMintAndLock(claims, 2e25);
+        minter.initialMintAndLock(claims, 2 * TOKEN_100K);
         minter.startActivePeriod();
 
         assertEq(escrow.ownerOf(2), address(owner));
         assertEq(escrow.ownerOf(3), address(0));
         vm.roll(block.number + 1);
-        assertEq(FLOW.balanceOf(address(minter)), 19 * TOKEN_1M);
+        assertEq(FLOW.balanceOf(address(minter)), 1 * TOKEN_100K);
     }
 
     function testMinterWeeklyDistribute() public {
         initializeVotingEscrow();
 
         minter.update_period();
-        assertEq(minter.weekly(), 13 * TOKEN_1M); // 13M
+        assertEq(minter.weekly(), 3 * TOKEN_100K); // 13M
 
         _elapseOneWeek();
 
         minter.update_period();
         assertEq(distributor.claimable(1), 0);
-        assertLt(minter.weekly(), 13 * TOKEN_1M); // <13M for week shift
+        assertLt(minter.weekly(), 3 * TOKEN_100K); // <13M for week shift
 
         _elapseOneWeek();
 
@@ -102,13 +102,13 @@ contract MinterTest is BaseTest {
         uint256 claimable = distributor.claimable(1);
         /**
          * This has been updated from 128115516517529 to
-         * 3491157091884 because originally in VELO the
+         * 1614113861 because originally in VELO the
          * constructor mints 0 tokens, but now we are minting
          * an initial supply instead of using the initialMint
          * function.
          */
 
-        assertGt(claimable, 3491157091884);
+        assertGt(claimable, 1614113861);
 
         distributor.claim(1);
         assertEq(distributor.claimable(1), 0);

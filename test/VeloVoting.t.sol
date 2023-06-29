@@ -88,28 +88,28 @@ contract VeloVotingTest is BaseTest {
         Minter.Claim[] memory claims = new Minter.Claim[](1);
         claims[0] = Minter.Claim({
             claimant: address(owner),
-            amount: TOKEN_1M,
+            amount: TOKEN_100K,
             lockTime: FIFTY_TWO_WEEKS
         });
-        minter.initialMintAndLock(claims, 13 * TOKEN_1M);
+        minter.initialMintAndLock(claims, 3 * TOKEN_100K);
         minter.startActivePeriod();
 
         assertEq(escrow.ownerOf(2), address(owner));
         assertEq(escrow.ownerOf(3), address(0));
         vm.roll(block.number + 1);
-        assertEq(FLOW.balanceOf(address(minter)), 12 * TOKEN_1M);
+        assertEq(FLOW.balanceOf(address(minter)), 2 * TOKEN_100K);
 
         uint256 before = FLOW.balanceOf(address(owner));
         minter.update_period(); // initial period week 1
         uint256 after_ = FLOW.balanceOf(address(owner));
-        assertEq(minter.weekly(), 13 * TOKEN_1M);
+        assertEq(minter.weekly(), 3 * TOKEN_100K);
         assertEq(after_ - before, 0);
         vm.warp(block.timestamp + ONE_WEEK);
         vm.roll(block.number + 1);
         before = FLOW.balanceOf(address(owner));
         minter.update_period(); // initial period week 2
         after_ = FLOW.balanceOf(address(owner));
-        assertLt(minter.weekly(), 13 * TOKEN_1M); // <13m for week shift
+        assertLt(minter.weekly(), 3 * TOKEN_100K); // <13m for week shift
     }
 
     // Note: _vote and _reset are not included in one-vote-per-epoch

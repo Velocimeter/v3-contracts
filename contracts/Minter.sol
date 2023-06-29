@@ -22,7 +22,7 @@ contract Minter is IMinter {
     IVoter public immutable _voter;
     IVotingEscrow public immutable _ve;
     IRewardsDistributor public immutable _rewards_distributor;
-    uint public weekly = 13_000_000 * 1e18; // represents a starting weekly emission of 13M FLOW (FLOW has 18 decimals)
+    uint public weekly = 300_000 * 1e18; // represents a starting weekly emission of 300K FLOW (FLOW has 18 decimals)
     uint public active_period;
 
     address internal initializer;
@@ -47,7 +47,7 @@ contract Minter is IMinter {
     ) {
         initializer = msg.sender;
         team = msg.sender;
-        teamRate = 30; // 30 bps = 3%
+        teamRate = 50; // 30 bps = 3%
         _flow = IFlow(IVotingEscrow(__ve).token());
         _voter = IVoter(__voter);
         _ve = IVotingEscrow(__ve);
