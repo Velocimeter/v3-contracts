@@ -397,8 +397,8 @@ contract OptionTokenV2 is ERC20, AccessControl {
         emit SetPairAndPaymentToken(_pair, _paymentToken);
     }
 
-    /// @notice
-    function updateGauge() external onlyAdmin {
+    /// @notice Update gauge address to match with Voter contract
+    function updateGauge() external {
         address newGauge = IVoter(voter).gauges(address(pair));
         gauge = newGauge;
         emit SetGauge(newGauge);
