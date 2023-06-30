@@ -124,7 +124,8 @@ contract Deployment is Script {
             address(router)
         );
 
-        gaugeFactory.setOFlow(address(oFlow));
+        // NOTE: comment this out to emit liquid FLOW
+        // gaugeFactory.setOFlow(address(oFlow));
 
         // Create gauge for flowWftm pair
         voter.createGauge(address(flowWftmPair), 0);
