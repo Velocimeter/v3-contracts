@@ -17,7 +17,9 @@ contract GaugeFactory is IGaugeFactory, Ownable {
 
     function createGauge(address _pool, address _external_bribe, address _ve, bool isPair, address[] memory allowedRewards) external returns (address) {
         last_gauge = address(new Gauge(_pool, _external_bribe, _ve, msg.sender, oFlow, address(this), isPair, allowedRewards));
-        IAccessControl(oFlow).grantRole(MINTER_ROLE, last_gauge);
+        if (oFlow != address(0)) {
+            IAccessControl(oFlow).grantRole(MINTER_ROLE, last_gauge);
+        }
         return last_gauge;
     }
 
