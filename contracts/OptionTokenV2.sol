@@ -217,7 +217,6 @@ contract OptionTokenV2 is ERC20, AccessControl {
         voter = _voter;
         votingEscrow = _votingEscrow;
         router = _router;
-        gauge = IVoter(_voter).gauges(address(pair));
 
         emit SetPairAndPaymentToken(_pair, paymentToken);
         emit SetTreasury(_treasury);
@@ -405,7 +404,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
         emit SetGauge(newGauge);
     }
 
-        /// @notice Sets the gauge address when the gauge is not listed in Voter. Only callable by the admin.
+    /// @notice Sets the gauge address when the gauge is not listed in Voter. Only callable by the admin.
     /// @param _gauge The new treasury address
     function setGauge(address _gauge) external onlyAdmin {
         gauge = _gauge;
