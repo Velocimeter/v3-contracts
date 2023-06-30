@@ -3,9 +3,10 @@ pragma solidity 0.8.13;
 
 import "./BaseTest.sol";
 import "contracts/GaugeV2.sol";
+import "contracts/factories/GaugeFactoryV2.sol";
 
 contract OptionTokenV2Test is BaseTest {
-    GaugeFactory gaugeFactory;
+    GaugeFactoryV2 gaugeFactory;
     VotingEscrow escrow;
     Voter voter;
     BribeFactory bribeFactory;
@@ -61,14 +62,15 @@ contract OptionTokenV2Test is BaseTest {
         amounts[2] = 1e27;
         mintFlow(owners, amounts);
 
-        gaugeFactory = new GaugeFactory();
+        gaugeFactory = new GaugeFactoryV2();
         bribeFactory = new BribeFactory();
         VeArtProxy artProxy = new VeArtProxy();
         
         escrow = new VotingEscrow(address(FLOW), address(artProxy), owners[0]);
-        voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory));
         
         deployPairFactoryAndRouter();
+        voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory));
+        factory.setVoter(address(voter));
         flowDaiPair = Pair(
             factory.createPair(address(FLOW), address(DAI), false)
         );
@@ -79,12 +81,10 @@ contract OptionTokenV2Test is BaseTest {
             address(voter),
             address(escrow)
         );
+        gaugeFactory.setOFlow(address(oFlowV2));
 
-        address[] memory rewards = new address[](1);
-        rewards[0] = address(DAI);
-        gauge = new GaugeV2(address(flowDaiPair),address(0),address(escrow),address(voter),address(oFlowV2),address(gaugeFactory),true,rewards);
-    
-        oFlowV2.setGauge(address(gauge));
+        gauge = GaugeV2(voter.createGauge(address(flowDaiPair), 0));
+        oFlowV2.updateGauge();
     }
 
     function testGaugeLock() public {
