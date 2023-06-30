@@ -8,8 +8,8 @@ import {AirdropClaim} from "../contracts/AirdropClaim.sol";
 
 contract AirdropClaimDeployment is Script {
     // TODO: set variables
-    address private constant FLOW = 0x39b9D781dAD0810D07E24426c876217218Ad353D;
-    address private constant VOTING_ESCROW = 0xe7b8F4D74B7a7b681205d6A3D231d37d472d4986;
+    address private constant FLOW = 0xE1689e9AaD6b36D91E357FAf95cd7c2C4C1b5475;
+    address private constant VOTING_ESCROW = 0x34172780901eF075C67942392Ab461186d8C8cc5;
     address private constant TEAM_MULTI_SIG = 0x88Dec6df03C2C111Efd4ad89Cef2c0347034AFC0;
 
     function run() external {
