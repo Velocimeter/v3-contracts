@@ -2,7 +2,6 @@
 pragma solidity 0.8.13;
 
 import "./BaseTest.sol";
-import "forge-std/console2.sol";
 
 contract MinterSetEmission is BaseTest {
     VotingEscrow escrow;

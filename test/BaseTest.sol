@@ -74,7 +74,7 @@ abstract contract BaseTest is Test, TestOwner {
         USDC = new MockERC20("USDC", "USDC", 6);
         FRAX = new MockERC20("FRAX", "FRAX", 18);
         DAI = new MockERC20("DAI", "DAI", 18);
-        FLOW = new Flow(msg.sender, 82800140034502500000000000);
+        FLOW = new Flow(msg.sender, 6_000_000e18);
         LR = new MockERC20("LR", "LR", 18);
         WETH = new TestWETH();
         stake = new TestToken("stake", "stake", 18, address(owner));

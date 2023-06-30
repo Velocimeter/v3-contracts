@@ -139,7 +139,7 @@ contract MinterTeamEmissions is BaseTest {
         minter.update_period(); // new period
         uint256 afterTeamSupply = FLOW.balanceOf(address(team));
         uint256 newTeamVelo = afterTeamSupply - beforeTeamSupply;
-        assertEq(((weekly + growth + newTeamVelo) * 30) / 1000, newTeamVelo); // check 3% of new emissions to team
+        assertEq(((weekly + growth + newTeamVelo) * 50) / 1000, newTeamVelo); // check 3% of new emissions to team
 
         vm.warp(block.timestamp + ONE_WEEK);
         vm.roll(block.number + 1);
@@ -149,7 +149,7 @@ contract MinterTeamEmissions is BaseTest {
         minter.update_period(); // new period
         afterTeamSupply = FLOW.balanceOf(address(team));
         newTeamVelo = afterTeamSupply - beforeTeamSupply;
-        assertEq(((weekly + growth + newTeamVelo) * 30) / 1000, newTeamVelo); // check 3% of new emissions to team
+        assertEq(((weekly + growth + newTeamVelo) * 50) / 1000, newTeamVelo); // check 3% of new emissions to team
 
         // rate is right even when FLOW is sent to Minter contract
         vm.warp(block.timestamp + ONE_WEEK);
@@ -161,7 +161,7 @@ contract MinterTeamEmissions is BaseTest {
         minter.update_period(); // new period
         afterTeamSupply = FLOW.balanceOf(address(team));
         newTeamVelo = afterTeamSupply - beforeTeamSupply;
-        assertEq(((weekly + growth + newTeamVelo) * 30) / 1000, newTeamVelo); // check 3% of new emissions to team
+        assertEq(((weekly + growth + newTeamVelo) * 50) / 1000, newTeamVelo); // check 3% of new emissions to team
     }
 
     function testChangeTeamEmissionsRate() public {
