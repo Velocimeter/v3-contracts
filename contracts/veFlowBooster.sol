@@ -63,13 +63,17 @@ contract veFlowBooster is Ownable {
         router = _router;
     }
 
-    function boostedBuyAndVeLock(uint256 _amount, uint _deadline) public {
+    function boostedBuyAndVeLock(uint256 _amount, uint _minOut, uint _deadline) public {
         require(_amount > 0, 'need to lock at least 1 paymentToken');
         require(balanceOfFlow > 0, 'no extra FLOW for boosting');
         IERC20(paymentToken).transferFrom(msg.sender, address(this), _amount);
 
+        if (_minOut == 0) {
+            _minOut = 1;
+        }
+
         uint256 flowBefore = balanceOfFlow();
-        IRouter(router).swapExactTokensForTokensSimple(_amount, 1, paymentToken, flow, false, address(this), _deadline);
+        IRouter(router).swapExactTokensForTokensSimple(_amount, _minOut, paymentToken, flow, false, address(this), _deadline);
         uint256 flowAfter = balanceOfFlow();
         uint256 flowResult = flowAfter - flowBefore;
 
