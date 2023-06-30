@@ -126,6 +126,12 @@ contract Deployment is Script {
 
         gaugeFactory.setOFlow(address(oFlow));
 
+        // Create gauge for flowWftm pair
+        voter.createGauge(address(flowWftmPair), 0);
+
+        // Update gauge in Option Token contract
+        oFlow.updateGauge();
+
         // Set flow minter to contract
         flow.setMinter(address(minter));
 
