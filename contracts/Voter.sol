@@ -325,7 +325,7 @@ contract Voter is IVoter {
             }
         }
 
-        if (msg.sender != governor || msg.sender != emergencyCouncil) { // gov can create for any pool, even non-Velocimeter pairs
+        if (msg.sender != governor && msg.sender != emergencyCouncil) { // gov can create for any pool, even non-Velocimeter pairs
             require(isPair, "!_pool");
             require(isWhitelisted[tokenA] && isWhitelisted[tokenB], "!whitelisted");
         }
