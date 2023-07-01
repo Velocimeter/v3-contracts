@@ -33,12 +33,12 @@ contract Deployment is Script {
         0x88Dec6df03C2C111Efd4ad89Cef2c0347034AFC0;
     address private constant TANK = 0xb32d744CAc212cAB825b5Eb9c5ba65d7D1CF3bD8;
     address private constant DEPLOYER =
-        0xDB13D9b2AF28405395243f5d28c5F34a6af92662;
+        0xc9c8449259566cdC82f396FeF5E6EA4b5015708A;
     // TODO: set the following variables
     uint private constant INITIAL_MINT_AMOUNT = 6_000_000e18;
     uint private constant MINT_TANK_MIN_LOCK_TIME = 52 * 7 * 86400;
     uint private constant MINT_TANK_AMOUNT = 1_290_000e18;
-    uint private constant MSIG_FLOW_AMOUNT = 4_710_000e18;
+    uint private constant PREMINT_AMOUNT = 690_000e18;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -102,12 +102,21 @@ contract Deployment is Script {
             MINT_TANK_MIN_LOCK_TIME
         );
 
-        flow.transfer(address(mintTank), MINT_TANK_AMOUNT);
-        flow.transfer(address(TEAM_MULTI_SIG), MSIG_FLOW_AMOUNT);
+        flow.approve(address(votingEscrow), PREMINT_AMOUNT);
+        votingEscrow.create_lock_for(240_000e18, 52 * 7 * 86400, 0xcC06464C7bbCF81417c08563dA2E1847c22b703a);
+        votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0x5F21E3cA21fc0C33cfA5FB33fc7031f61e34D256);
+        votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0xB1dD2Fdb023cB54b7cc2a0f5D9e8d47a9F7723ce);
+        votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0x83B285E802D76055169B1C5e3bF21702B85b89Cb);
+        votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0x89955a99552F11487FFdc054a6875DF9446B2902);
+        votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0x06917EFCE692CAD37A77a50B9BEEF6f4Cdd36422);
 
-        IPair flowWftmPair = IPair(
-            pairFactory.createPair(address(flow), WFTM, false)
-        );
+        flow.transfer(address(mintTank), MINT_TANK_AMOUNT);
+        flow.transfer(address(TEAM_MULTI_SIG), INITIAL_MINT_AMOUNT - MINT_TANK_AMOUNT - PREMINT_AMOUNT);
+
+        // NOTE: comment out and set pair in OptionToken later
+        // IPair flowWftmPair = IPair(
+        //     pairFactory.createPair(address(flow), WFTM, false)
+        // );
 
         // Option to buy Flow
         OptionTokenV2 oFlow = new OptionTokenV2(
@@ -116,7 +125,8 @@ contract Deployment is Script {
             TEAM_MULTI_SIG, // admin
             WFTM, // payment token
             address(flow), // underlying token
-            flowWftmPair, // pair
+            // TODO: change if want to set beforehand
+            IPair(address(0)), // pair
             address(gaugeFactory), // gauge factory
             TEAM_MULTI_SIG, // treasury
             address(voter),
@@ -128,7 +138,7 @@ contract Deployment is Script {
         // gaugeFactory.setOFlow(address(oFlow));
 
         // Create gauge for flowWftm pair
-        voter.createGauge(address(flowWftmPair), 0);
+        // voter.createGauge(address(flowWftmPair), 0);
 
         // Update gauge in Option Token contract
         oFlow.updateGauge();
