@@ -1,6 +1,10 @@
 pragma solidity 0.8.13;
 
 interface IVotingEscrow {
+    struct LockedBalance {
+        int128 amount;
+        uint end;
+    }
 
     struct Point {
         int128 bias;
@@ -31,4 +35,10 @@ interface IVotingEscrow {
 
     function balanceOfNFT(uint) external view returns (uint);
     function totalSupply() external view returns (uint);
+    function safeTransferFrom(
+        address _from,
+        address _to,
+        uint _tokenId
+    ) external;
+    function locked(uint) external view returns (LockedBalance memory);
 }
