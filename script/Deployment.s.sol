@@ -120,8 +120,8 @@ contract Deployment is Script {
 
         // Option to buy Flow
         OptionTokenV2 oFlow = new OptionTokenV2(
-            "Option to buy FVM", // name
-            "oFVM", // symbol
+            "Option to buy FLOW", // name
+            "oFLOW", // symbol
             TEAM_MULTI_SIG, // admin
             WFTM, // payment token
             address(flow), // underlying token
