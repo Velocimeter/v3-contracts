@@ -102,6 +102,8 @@ contract Deployment is Script {
             MINT_TANK_MIN_LOCK_TIME
         );
 
+        // Premint for Partners
+        // TODO: amend amounts
         flow.approve(address(votingEscrow), PREMINT_AMOUNT);
         votingEscrow.create_lock_for(240_000e18, 52 * 7 * 86400, 0xcC06464C7bbCF81417c08563dA2E1847c22b703a);
         votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0x5F21E3cA21fc0C33cfA5FB33fc7031f61e34D256);
