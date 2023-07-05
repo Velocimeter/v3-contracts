@@ -1,0 +1,48 @@
+{
+  "transactions": [
+    {
+      "hash": "0x645b60cc55416e7a77724dc1af9f26844c1a98002a3363560d8086d8415e6873",
+      "transactionType": "CALL",
+      "contractName": "Minter",
+      "contractAddress": "0xAA28F5F63a9DC90640abF7F008726460127a4Da6",
+      "function": "startActivePeriod()",
+      "arguments": [],
+      "transaction": {
+        "type": "0x00",
+        "from": "0xc9c8449259566cdc82f396fef5e6ea4b5015708a",
+        "to": "0xaa28f5f63a9dc90640abf7f008726460127a4da6",
+        "gas": "0x905f",
+        "value": "0x0",
+        "data": "0x8489973a",
+        "nonce": "0x25"
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [
+    {
+      "transactionHash": "0x645b60cc55416e7a77724dc1af9f26844c1a98002a3363560d8086d8415e6873",
+      "transactionIndex": "0x3",
+      "blockHash": "0x0003609f000003121f4f3937cd0c7fdd58b23269e43345b940f26055d490f3c7",
+      "blockNumber": "0x3e17b4e",
+      "from": "0xc9c8449259566cdC82f396FeF5E6EA4b5015708A",
+      "to": "0xAA28F5F63a9DC90640abF7F008726460127a4Da6",
+      "cumulativeGasUsed": "0x4f944",
+      "gasUsed": "0x6aa2",
+      "contractAddress": null,
+      "logs": [],
+      "status": "0x1",
+      "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "type": "0x0",
+      "effectiveGasPrice": "0x1021e8dbe9f"
+    }
+  ],
+  "libraries": [],
+  "pending": [],
+  "returns": {},
+  "timestamp": 1688455017,
+  "chain": 250,
+  "multi": false,
+  "commit": "73a6549"
+}
