@@ -1,7 +1,7 @@
 pragma solidity 0.8.13;
 
 import "contracts/interfaces/IVotingEscrow.sol";
-import "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import "contracts/interfaces/IERC20.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 /**
@@ -33,13 +33,8 @@ contract FlowConvertor is Ownable {
      */
     function redeem(uint256 amount) public {
         require(amount > 0, "you dont have and v1 tokens");
-        SafeERC20.safeTransferFrom(
-            IERC20(v1),
-            _msgSender(),
-            address(this),
-            amount
-        );
-        SafeERC20.safeTransfer(IERC20(v2), _msgSender(), amount);
+        _safeTransferFrom(v1, _msgSender(), address(this), amount);
+        _safeTransfer(v2, _msgSender(), amount);
     }
 
     /**
@@ -47,28 +42,28 @@ contract FlowConvertor is Ownable {
      */
     function redeemTo(address _to, uint256 amount) public {
         require(amount > 0, "you dont have and v1 tokens");
-        SafeERC20.safeTransferFrom(
-            IERC20(v1),
-            _msgSender(),
-            address(this),
-            amount
-        );
-        SafeERC20.safeTransfer(IERC20(v2), _to, amount);
+        _safeTransferFrom(v1, _msgSender(), address(this), amount);
+        _safeTransfer(v2, _to, amount);
     }
 
     /**
      * @dev Transfers V1 NFT from user to contract, and create NFT v2 to user, 1 to 1.
      */
-    function redeemNft(uint256 tokenId) public {
-        IVotingEscrow(votingEscrowV1).safeTransferFrom(
+    function redeemNft(uint256 tokenId) public returns (uint256 newTokenId) {
+        IVotingEscrow.LockedBalance memory locked = IVotingEscrow(
+            votingEscrowV1
+        ).locked(tokenId);
+        IVotingEscrow(votingEscrowV1).transferFrom(
             msg.sender,
             address(this),
             tokenId
         );
 
-        IVotingEscrow(votingEscrowV2).create_lock_for(
-            IVotingEscrow(votingEscrowV1).balanceOfNFT(tokenId),
-            IVotingEscrow(votingEscrowV1).locked(tokenId).end - block.timestamp,
+        uint256 amount = uint256(int256(locked.amount));
+        _safeApprove(v2, votingEscrowV2, amount);
+        newTokenId = IVotingEscrow(votingEscrowV2).create_lock_for(
+            amount,
+            locked.end - block.timestamp,
             msg.sender
         );
     }
@@ -76,16 +71,24 @@ contract FlowConvertor is Ownable {
     /**
      * @dev Transfers V1 NFT from user to contract, and create NFT v2 to an address specified, 1 to 1.
      */
-    function redeemNftTo(address _to, uint256 tokenId) public {
-        IVotingEscrow(votingEscrowV1).safeTransferFrom(
+    function redeemNftTo(
+        address _to,
+        uint256 tokenId
+    ) public returns (uint256 newTokenId) {
+        IVotingEscrow.LockedBalance memory locked = IVotingEscrow(
+            votingEscrowV1
+        ).locked(tokenId);
+        IVotingEscrow(votingEscrowV1).transferFrom(
             msg.sender,
             address(this),
             tokenId
         );
 
-        IVotingEscrow(votingEscrowV2).create_lock_for(
-            IVotingEscrow(votingEscrowV1).balanceOfNFT(tokenId),
-            IVotingEscrow(votingEscrowV1).locked(tokenId).end - block.timestamp,
+        uint256 amount = uint256(int256(locked.amount));
+        _safeApprove(v2, votingEscrowV2, amount);
+        newTokenId = IVotingEscrow(votingEscrowV2).create_lock_for(
+            amount,
+            locked.end - block.timestamp,
             _to
         );
     }
@@ -99,7 +102,7 @@ contract FlowConvertor is Ownable {
         uint256 _amount
     ) public onlyOwner {
         require(_token != address(v1), "these tkns are essentially burnt");
-        SafeERC20.safeTransfer(IERC20(_token), _to, _amount);
+        _safeTransfer(_token, _to, _amount);
     }
 
     /**
@@ -107,7 +110,7 @@ contract FlowConvertor is Ownable {
      */
     function sweepV2(address _to) public onlyOwner {
         uint256 _surplus = IERC20(v2).balanceOf(address(this));
-        SafeERC20.safeTransfer(IERC20(v2), _to, _surplus);
+        _safeTransfer(v2, _to, _surplus);
     }
 
     /**
@@ -115,6 +118,44 @@ contract FlowConvertor is Ownable {
      */
     function sweepV1(address _to) public onlyOwner {
         uint256 _cache = IERC20(v1).balanceOf(address(this));
-        SafeERC20.safeTransfer(IERC20(v1), _to, _cache);
+        _safeTransfer(v1, _to, _cache);
+    }
+
+    function _safeTransfer(address token, address to, uint256 value) internal {
+        require(token.code.length > 0);
+        (bool success, bytes memory data) = token.call(
+            abi.encodeWithSelector(IERC20.transfer.selector, to, value)
+        );
+        require(success && (data.length == 0 || abi.decode(data, (bool))));
+    }
+
+    function _safeTransferFrom(
+        address token,
+        address from,
+        address to,
+        uint256 value
+    ) internal {
+        require(token.code.length > 0);
+        (bool success, bytes memory data) = token.call(
+            abi.encodeWithSelector(
+                IERC20.transferFrom.selector,
+                from,
+                to,
+                value
+            )
+        );
+        require(success && (data.length == 0 || abi.decode(data, (bool))));
+    }
+
+    function _safeApprove(
+        address token,
+        address spender,
+        uint256 value
+    ) internal {
+        require(token.code.length > 0);
+        (bool success, bytes memory data) = token.call(
+            abi.encodeWithSelector(IERC20.approve.selector, spender, value)
+        );
+        require(success && (data.length == 0 || abi.decode(data, (bool))));
     }
 }
