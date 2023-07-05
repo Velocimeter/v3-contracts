@@ -3,6 +3,12 @@ pragma solidity 0.8.13;
 import "./BaseTest.sol";
 import "contracts/factories/CooldownGaugeFactory.sol";
 import "contracts/CooldownGauge.sol";
+//TODO test
+
+//Normal widraw deposit
+// widrawe with skip
+// stake rewards callucation
+// check if user is not earning the rewards after the widraw
 
 contract CooldownGaugeTest is BaseTest {
     VotingEscrow escrow;
@@ -70,6 +76,8 @@ contract CooldownGaugeTest is BaseTest {
         gauge.depositWithLock(address(owner), 1, 7 * 86400);
         vm.warp(block.timestamp + 7 * 86400 + 1);
         gauge.withdraw(1);
+        vm.warp(block.timestamp + 3 * 86400 + 1);
+        gauge.withdrawFromCooldown();
         uint256 lpBalanceAfter = flowDaiPair.balanceOf(address(owner));
         vm.stopPrank();
 
@@ -102,11 +110,14 @@ contract CooldownGaugeTest is BaseTest {
         gauge.depositWithLock(address(owner), 1, 7 * 86400);
         vm.warp(block.timestamp + 7 * 86400 + 1);
         gauge.depositWithLock(address(owner), 2, 7 * 86400);
+        uint256 expectedLockEnd = block.timestamp +  7 * 86400;
         gauge.withdraw(1);
+        vm.warp(block.timestamp + 3 * 86400 + 1);
+        gauge.withdrawFromCooldown();
         uint256 lpBalanceAfter = flowDaiPair.balanceOf(address(owner));
         vm.stopPrank();
 
-        assertEq(gauge.lockEnd(address(owner)),block.timestamp +  7 * 86400);
+        assertEq(gauge.lockEnd(address(owner)),expectedLockEnd);
         assertEq(gauge.balanceWithLock(address(owner)),2);
         assertEq(lpBalanceBefore - lpBalanceAfter, 2);
     }

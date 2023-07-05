@@ -29,6 +29,10 @@ contract CooldownGauge is IGauge {
     uint internal constant PRECISION = 10 ** 18;
     uint internal constant MAX_REWARD_TOKENS = 4;
 
+
+    uint256 public cooldownDuration = 3 * 86400; // 3 days
+    uint256 public cooldownSkipFee = 10; // 10% //TODO do the functions to setup that parameters
+
     // default snx staking contract implementation
     mapping(address => uint) public rewardRate;
     mapping(address => uint) public periodFinish;
@@ -41,9 +45,14 @@ contract CooldownGauge is IGauge {
     mapping(address => uint) public tokenIds;
 
     uint public totalSupply;
+    uint public totalSupplyCooldown;
+    uint public totalStakeTokenRewards;
     mapping(address => uint) public balanceOf;
     mapping(address => uint) public balanceWithLock;
+    mapping(address => uint) public balanceWithCooldown;
     mapping(address => uint) public lockEnd;
+    mapping(address => uint) public cooldownEnd;
+    uint256 public stakeRewardsBuffer;
 
     address[] public rewards;
     mapping(address => bool) public isReward;
@@ -84,6 +93,10 @@ contract CooldownGauge is IGauge {
 
     event Deposit(address indexed from, uint tokenId, uint amount);
     event Withdraw(address indexed from, uint tokenId, uint amount);
+    event WithdrawFromCooldown(address indexed from, uint amount);
+    event WithdrawSkipCooldown(address indexed from, uint amount,uint skipFee);
+    
+    
     event NotifyReward(address indexed from, address indexed reward, uint amount);
     event ClaimRewards(address indexed from, address indexed reward, uint amount);
     event OFlowSet(address indexed _oFlow);
@@ -99,8 +112,12 @@ contract CooldownGauge is IGauge {
         flow = IVotingEscrow(_ve).token();
         _safeApprove(flow, oFlow, type(uint256).max);
 
+        //stake token is always reward in the CooldownGauge
+        isReward[_stake] = true;
+        rewards.push(_stake);
+
         for (uint i; i < _allowedRewardTokens.length; i++) {
-            if (_allowedRewardTokens[i] != address(0)) {
+            if (_allowedRewardTokens[i] != address(0) && _allowedRewardTokens[i] != _stake) {
                 isReward[_allowedRewardTokens[i]] = true;
                 rewards.push(_allowedRewardTokens[i]);
             }
@@ -276,6 +293,11 @@ contract CooldownGauge is IGauge {
             lastEarn[tokens[i]][account] = block.timestamp;
             userRewardPerTokenStored[tokens[i]][account] = rewardPerTokenStored[tokens[i]];
             if (_reward > 0) {
+                if(tokens[i] == stake) {
+                    require(IERC20(stake).balanceOf(address(this)) >= stakeLiability(),"consistency check failed");
+                    totalStakeTokenRewards -= _reward;
+                }
+
                 if (tokens[i] == flow) {
                     try IOptionToken(oFlow).mint(account, _reward){} catch {
                         _safeTransfer(tokens[i], account, _reward);
@@ -524,7 +546,10 @@ contract CooldownGauge is IGauge {
 
         totalSupply -= amount;
         balanceOf[msg.sender] -= amount;
-        _safeTransfer(stake, msg.sender, amount);
+
+        balanceWithCooldown[msg.sender] += amount;
+        cooldownEnd[msg.sender] = block.timestamp + cooldownDuration;
+        totalSupplyCooldown += amount;
 
         if (tokenId > 0) {
             require(tokenId == tokenIds[msg.sender]);
@@ -547,10 +572,85 @@ contract CooldownGauge is IGauge {
         emit Withdraw(msg.sender, tokenId, amount);
     }
 
+    function withdrawFromCooldown() public lock {
+         require(block.timestamp >= cooldownEnd[msg.sender], "The cooldown didn't expire");
+         uint amount = balanceWithCooldown[msg.sender];
+         delete balanceWithCooldown[msg.sender];
+         delete cooldownEnd[msg.sender];
+        totalSupplyCooldown -= amount;
+        _safeTransfer(stake, msg.sender, amount);
+
+        emit WithdrawFromCooldown(msg.sender, amount);
+    }
+
+    function withdrawSkipCooldown(uint amount) public lock {
+         require(block.timestamp < cooldownEnd[msg.sender], "The cooldown expire");
+         uint256 newCooldownAmount = balanceWithCooldown[msg.sender] - amount;
+         if (newCooldownAmount == 0) {
+                delete cooldownEnd[msg.sender];
+                delete balanceWithCooldown[msg.sender];
+        } else {
+            balanceWithCooldown[msg.sender] = newCooldownAmount;
+        }
+        totalSupplyCooldown -= amount;
+
+        uint256 amountTowithdraw = _takeSkipFee(amount);
+
+        _safeTransfer(stake, msg.sender, amountTowithdraw); 
+        emit WithdrawSkipCooldown(msg.sender, amount, amount - amountTowithdraw); 
+    }
+
+    function _takeSkipFee(
+        uint256 amount
+    ) internal returns (uint256 remaining) {
+        uint256 _skipFee = (amount * cooldownSkipFee) / 100;
+        _sendSkipFeeToReward(_skipFee);
+        remaining = amount - _skipFee;
+    }
+
     function left(address token) external view returns (uint) {
+        return _left(token); // to work without need for interface changes
+    }
+
+    function _left(address token) internal view returns (uint) {
         if (block.timestamp >= periodFinish[token]) return 0;
         uint _remaining = periodFinish[token] - block.timestamp;
         return _remaining * rewardRate[token];
+    }
+
+    function stakeLiability() public view returns (uint) {
+        return totalSupply + totalSupplyCooldown + totalStakeTokenRewards + stakeRewardsBuffer;
+    }
+
+    function _sendSkipFeeToReward(uint amount) internal {
+        stakeRewardsBuffer+= amount;
+        if(stakeRewardsBuffer > _left(stake)) {
+            stakeRewardsBuffer = 0;
+            _notifyRewardAmountStakeToken(stakeRewardsBuffer);
+        }
+    }
+
+    function _notifyRewardAmountStakeToken(uint amount) internal {
+        require(IERC20(stake).balanceOf(address(this)) >= (stakeLiability() + amount),"consistency check failed"); 
+        
+        address token = stake;
+        totalStakeTokenRewards += amount;
+
+        if (rewardRate[token] == 0) _writeRewardPerTokenCheckpoint(token, 0, block.timestamp);
+        (rewardPerTokenStored[token], lastUpdateTime[token]) = _updateRewardPerToken(token, type(uint).max, true);
+
+        if (block.timestamp >= periodFinish[token]) {
+            rewardRate[token] = amount / DURATION;
+        } else {
+            uint _remaining = periodFinish[token] - block.timestamp;
+            uint _left = _remaining * rewardRate[token];
+            require(amount > _left); 
+            rewardRate[token] = (amount + _left) / DURATION;
+        }
+        require(rewardRate[token] > 0);
+        periodFinish[token] = block.timestamp + DURATION;
+        
+        emit NotifyReward(msg.sender, token, amount);
     }
 
     function notifyRewardAmount(address token, uint amount) external lock {
@@ -604,6 +704,17 @@ contract CooldownGauge is IGauge {
         oFlow = _oFlow;
         _safeApprove(flow, _oFlow, type(uint256).max);
         emit OFlowSet(_oFlow);
+    }
+
+    function setCooldownDuration(uint _cooldownDuration) external { // TODO add to the factory + validation
+        require(msg.sender == gaugeFactory, "not gauge factory");
+        cooldownDuration = _cooldownDuration;
+        
+    }
+
+    function setCooldownSkipFee(uint _cooldownSkipFee) external { 
+        require(msg.sender == gaugeFactory, "not gauge factory");
+        cooldownSkipFee = _cooldownSkipFee;     
     }
 
     function _safeTransfer(address token, address to, uint256 value) internal {
