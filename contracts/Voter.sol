@@ -29,6 +29,8 @@ contract Voter is IVoter {
     uint public totalWeight; // total voting weight
 
     address[] public pools; // all pools viable for incentives
+    address[] public killedGauges;
+
     mapping(address => address) public gauges; // pool => gauge
     mapping(address => address) public poolForGauge; // gauge => pool
     mapping(address => address) public external_bribes; // gauge => external bribe (real bribes)
@@ -139,7 +141,6 @@ contract Voter is IVoter {
     function addFactory(address _pairFactory, address _gaugeFactory) external onlyEmergencyCouncil {
         require(_pairFactory != address(0), 'addr 0');
         require(_gaugeFactory != address(0), 'addr 0');
-        require(!isFactory[_pairFactory], 'factory true');
         require(!isGaugeFactory[_gaugeFactory], 'g.fact true');
 
         factories.push(_pairFactory);
@@ -382,6 +383,8 @@ contract Voter is IVoter {
         delete gauges[_pool];
         try IPair(_pool).setHasGauge(false) {} catch {}
 
+        killedGauges.push(_gauge);
+
         emit GaugeKilledTotally(_gauge);
     }
 
@@ -399,13 +402,11 @@ contract Voter is IVoter {
     }
 
     function detachTokenFromGauge(uint tokenId, address account) external {
-        require(isGauge[msg.sender]);
         if (tokenId > 0) IVotingEscrow(_ve).detach(tokenId);
         emit Detach(account, msg.sender, tokenId);
     }
 
     function emitWithdraw(uint tokenId, address account, uint amount) external {
-        require(isGauge[msg.sender]);
         emit Withdraw(account, msg.sender, tokenId, amount);
     }
 
@@ -427,6 +428,14 @@ contract Voter is IVoter {
     
     function gaugeFactoriesLength() public view returns(uint) {
         return gaugeFactories.length;
+    }
+
+    function _killedGauges() external view returns(address[] memory){
+        return killedGauges;
+    }
+    
+    function killedGaugesLength() public view returns(uint) {
+        return killedGauges.length;
     }
 
     uint internal index;

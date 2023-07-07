@@ -180,19 +180,24 @@ abstract contract BaseTest is Test, TestOwner {
         );
     }
 
-    function deployOptionTokenV2WithOwner(address _owner, address _gaugeFactory, address _escrow) public {
+    function deployOptionTokenV2WithOwner(
+        address _owner,
+        address _gaugeFactory,
+        address _voter,
+        address _escrow
+    ) public {
         oFlowV2 = new OptionTokenV2(
             "Option to buy FLOW",
             "oFLOW",
             _owner,
-            DAI,
-            ERC20(address(FLOW)),
+            address(DAI),
+            address(FLOW),
             flowDaiPair,
             _gaugeFactory,
             _owner,
-            30,
-            60,
-            _escrow
+            _voter,
+            _escrow,
+            address(router)
         );
     }
 

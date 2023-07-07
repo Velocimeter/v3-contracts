@@ -133,6 +133,59 @@ contract KillGaugesTest is BaseTest {
     assertFalse(voter.gauges(address(pair)) == address(0));
   }
 
+   function testKillGaugeIsAddedToArray() public {
+    address gaugeAddress = address(gauge);
+
+    // emergency council is owner
+    voter.killGaugeTotally(gaugeAddress);
+
+    assertEq(voter._killedGauges()[0],gaugeAddress);
+  }
+
+  function testFullyKilledGaugeCanWithdraw() public {
+    USDC.approve(address(router), USDC_100K);
+    FRAX.approve(address(router), TOKEN_100K);
+    router.addLiquidity(address(FRAX), address(USDC), true, TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
+
+    address gaugeAddress = address(gauge);
+
+    uint256 supply = pair.balanceOf(address(owner));
+    pair.approve(address(gauge), supply);
+    gauge.deposit(supply, 1);
+
+    voter.killGaugeTotally(gaugeAddress);
+
+    gauge.withdrawToken(supply, 1); // should be allowed
+  }
+
+   function testCanStillDistroAllWithFullyKilledGauge() public {
+    vm.warp(block.timestamp + ONE_WEEK * 2);
+    vm.roll(block.number + 1);
+    minter.update_period();
+    voter.updateGauge(address(gauge));
+    voter.updateGauge(address(gauge2));
+
+    uint256 claimable = voter.claimable(address(gauge));
+    console2.log(claimable);
+    FLOW.approve(address(staking), claimable);
+    staking.notifyRewardAmount(claimable);
+
+    uint256 claimable2 = voter.claimable(address(gauge2));
+    FLOW.approve(address(staking), claimable2);
+    staking.notifyRewardAmount(claimable2);
+
+    address[] memory gauges = new address[](2);
+    gauges[0] = address(gauge);
+    gauges[1] = address(gauge2);
+    voter.updateFor(gauges);
+
+    voter.killGaugeTotally(address(gauge));
+
+    // should be able to claim from gauge2, just not from gauge
+    voter.distribute(address(gauge));
+  }
+
+
   function testFailCouncilCannotKillNonExistentGauge() public {
     voter.pauseGauge(address(0xDEAD));
   }

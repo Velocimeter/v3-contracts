@@ -2,12 +2,17 @@
 pragma solidity 0.8.13;
 
 import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
+import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
+import {IERC20} from "./interfaces/IERC20.sol";
 import {IFlow} from "./interfaces/IFlow.sol";
+import {IGaugeV2} from "./interfaces/IGaugeV2.sol";
+import {IVoter} from "./interfaces/IVoter.sol";
 import {IVotingEscrow} from "./interfaces/IVotingEscrow.sol";
 import {IPair} from "./interfaces/IPair.sol";
+import {IRouter} from "./interfaces/IRouter.sol";
 
 /// @title Option Token
 /// @notice Option token representing the right to purchase the underlying token
@@ -23,7 +28,8 @@ contract OptionTokenV2 is ERC20, AccessControl {
     uint256 public constant MAX_DISCOUNT = 100; // 100%
     uint256 public constant MIN_DISCOUNT = 0; // 0%
     uint256 public constant MAX_TWAP_POINTS = 50; // 25 hours
-    uint256 public constant FULL_LOCK = 26 * 7 * 86400; //26 weeks
+    uint256 public constant FULL_LOCK = 26 * 7 * 86400; // 26 weeks
+    uint256 public constant MAX_TEAM_FEE = 50; // 50%
 
     /// -----------------------------------------------------------------------
     /// Roles
@@ -47,6 +53,8 @@ contract OptionTokenV2 is ERC20, AccessControl {
     error OptionToken_NoPauserRole();
     error OptionToken_SlippageTooHigh();
     error OptionToken_InvalidDiscount();
+    error OptionToken_InvalidLockDuration();
+    error OptionToken_InvalidTeamFee();
     error OptionToken_Paused();
     error OptionToken_InvalidTwapPoints();
     error OptionToken_IncorrectPairToken();
@@ -68,13 +76,27 @@ contract OptionTokenV2 is ERC20, AccessControl {
         uint256 paymentAmount,
         uint256 nftId
     );
+    event ExerciseLp(
+        address indexed sender,
+        address indexed recipient,
+        uint256 amount,
+        uint256 paymentAmount,
+        uint256 lpAmount
+    );
     event SetPairAndPaymentToken(
         IPair indexed newPair,
         address indexed newPaymentToken
     );
+    event SetGauge(address indexed newGauge);
     event SetTreasury(address indexed newTreasury);
+    event SetTeamFee(uint256 newFee);
+    event SetRouter(address indexed newRouter);
     event SetDiscount(uint256 discount);
     event SetVeDiscount(uint256 veDiscount);
+    event SetMinLPDiscount(uint256 lpMinDiscount);
+    event SetMaxLPDiscount(uint256 lpMaxDiscount);
+    event SetLockDurationForMaxLpDiscount(uint256 lockDurationForMaxLpDiscount);
+    event SetLockDurationForMinLpDiscount(uint256 lockDurationForMinLpDiscount);
     event PauseStateChanged(bool isPaused);
     event SetTwapPoints(uint256 twapPoints);
 
@@ -83,30 +105,55 @@ contract OptionTokenV2 is ERC20, AccessControl {
     /// -----------------------------------------------------------------------
 
     /// @notice The token paid by the options token holder during redemption
-    ERC20 public paymentToken;
+    address public paymentToken;
 
     /// @notice The underlying token purchased during redemption
-    ERC20 public immutable underlyingToken;
+    address public immutable underlyingToken;
 
-    /// @notice The voting escrow for locking FLOW to veFLOR
-    address public votingEscrow;
+    /// @notice The voting escrow for locking FLOW to veFLOW
+    address public immutable votingEscrow;
+
+    /// @notice The voter contract
+    address public immutable voter;
+
+ 
 
     /// -----------------------------------------------------------------------
     /// Storage variables
     /// -----------------------------------------------------------------------
 
+
+       /// @notice The router for adding liquidity
+    address public router; // this should not be immutable
+
     /// @notice The pair contract that provides the current TWAP price to purchase
     /// the underlying token while exercising options (the strike price)
     IPair public pair;
 
+    /// @notice The guage contract for the pair
+    address public gauge;
+
     /// @notice The treasury address which receives tokens paid during redemption
     address public treasury;
 
-    /// @notice the discount given during exercising. 30 = user pays 30%
-    uint256 public discount;
+    /// @notice the discount given during exercising with locking to the LP
+    uint256 public  maxLPDiscount = 20; //  User pays 20%
+    uint256 public  minLPDiscount = 80; //  User pays 80%
 
-    /// @notice the further discount for locking to veFLOW
-    uint256 public veDiscount;
+    /// @notice the discount given during exercising. 30 = user pays 30%
+    uint256 public discount = 90; // User pays 90%
+
+    /// @notice the discount for locking to veFLOW
+    uint256 public veDiscount = 10; // User pays 10%
+
+    /// @notice the lock duration for max discount to create locked LP
+    uint256 public lockDurationForMaxLpDiscount = FULL_LOCK; // 26 weeks
+
+    // @notice the lock duration for max discount to create locked LP
+    uint256 public lockDurationForMinLpDiscount = 7 * 86400; // 1 week
+
+    /// @notice
+    uint256 public teamFee = 10; // 10%
 
     /// @notice controls the duration of the twap used to calculate the strike price
     // each point represents 30 minutes. 4 points = 2 hours
@@ -148,14 +195,14 @@ contract OptionTokenV2 is ERC20, AccessControl {
         string memory _name,
         string memory _symbol,
         address _admin,
-        ERC20 _paymentToken,
-        ERC20 _underlyingToken,
+        address _paymentToken,
+        address _underlyingToken,
         IPair _pair,
         address _gaugeFactory,
         address _treasury,
-        uint256 _discount,
-        uint256 _veDiscount,
-        address _votingEscrow
+        address _voter,
+        address _votingEscrow,
+        address _router
     ) ERC20(_name, _symbol, 18) {
         _grantRole(ADMIN_ROLE, _admin);
         _grantRole(PAUSER_ROLE, _admin);
@@ -167,14 +214,14 @@ contract OptionTokenV2 is ERC20, AccessControl {
         underlyingToken = _underlyingToken;
         pair = _pair;
         treasury = _treasury;
-        discount = _discount;
-        veDiscount = _veDiscount;
+        voter = _voter;
         votingEscrow = _votingEscrow;
+        router = _router;
+        gauge = IVoter(_voter).gauges(address(pair));
 
-        emit SetPairAndPaymentToken(_pair, address(paymentToken));
+        emit SetPairAndPaymentToken(_pair, paymentToken);
         emit SetTreasury(_treasury);
-        emit SetDiscount(_discount);
-        emit SetVeDiscount(_veDiscount);
+        emit SetRouter(_router);
     }
 
     /// -----------------------------------------------------------------------
@@ -229,6 +276,25 @@ contract OptionTokenV2 is ERC20, AccessControl {
         return _exerciseVe(_amount, _maxPaymentAmount, _recipient);
     }
 
+    /// @notice Exercises options tokens to create LP and stake in gauges with lock.
+    /// @dev The oracle may revert if it cannot give a secure result.
+    /// @param _amount The amount of options tokens to exercise
+    /// @param _maxPaymentAmount The maximum acceptable amount to pay. Used for slippage protection.
+    /// @param _discount The desired discount
+    /// @param _deadline The Unix timestamp (in seconds) after which the call will revert
+    /// @return The amount paid to the treasury to purchase the underlying tokens
+
+    function exerciseLp(
+        uint256 _amount,
+        uint256 _maxPaymentAmount,
+        address _recipient,
+        uint256 _discount,
+        uint256 _deadline
+    ) external returns (uint256, uint256) {
+        if (block.timestamp > _deadline) revert OptionToken_PastDeadline();
+        return _exerciseLp(_amount, _maxPaymentAmount, _recipient, _discount);
+    }
+
     /// -----------------------------------------------------------------------
     /// Public functions
     /// -----------------------------------------------------------------------
@@ -249,6 +315,47 @@ contract OptionTokenV2 is ERC20, AccessControl {
         return (getTimeWeightedAveragePrice(_amount) * veDiscount) / 100;
     }
 
+    /// @notice Returns the discounted price in paymentTokens for a given amount of options tokens redeemed to veFLOW
+    /// @param _amount The amount of options tokens to exercise
+    /// @param _discount The discount amount
+    /// @return The amount of payment tokens to pay to purchase the underlying tokens
+    function getLpDiscountedPrice(
+        uint256 _amount,
+        uint256 _discount
+    ) public view returns (uint256) {
+        return (getTimeWeightedAveragePrice(_amount) * _discount) / 100;
+    }
+
+    /// @notice Returns the lock duration for a desired discount to create locked LP
+    ///
+    function getLockDurationForLpDiscount(
+        uint256 _discount
+    ) public view returns (uint256 duration) {
+        (int256 slope, int256 intercept) = getSlopeInterceptForLpDiscount();
+        duration = SignedMath.abs(slope * int256(_discount) + intercept);
+    }
+
+     // @notice Returns the amount in paymentTokens for a given amount of options tokens required for the LP exercise lp
+    /// @param _amount The amount of options tokens to exercise
+    /// @param _discount The discount amount
+    function getPaymentTokenAmountForExerciseLp(uint256 _amount,uint256 _discount) public view returns (uint256 paymentAmount, uint256 paymentAmountToAddLiquidity)
+    {
+        paymentAmount = getLpDiscountedPrice(_amount, _discount);
+        (uint256 underlyingReserve, uint256 paymentReserve) = IRouter(router).getReserves(underlyingToken, paymentToken, false);
+        paymentAmountToAddLiquidity = (_amount * paymentReserve) / underlyingReserve;
+    }
+
+    function getSlopeInterceptForLpDiscount()
+        public
+        view
+        returns (int256 slope, int256 intercept)
+    {
+        slope =
+            int256(lockDurationForMaxLpDiscount - lockDurationForMinLpDiscount) /
+            (int256(maxLPDiscount) - int256(minLPDiscount));
+        intercept = int256(lockDurationForMinLpDiscount) - (slope * int256(minLPDiscount));
+    }
+
     /// @notice Returns the average price in payment tokens over 2 hours for a given amount of underlying tokens
     /// @param _amount The amount of underlying tokens to purchase
     /// @return The amount of payment tokens
@@ -256,7 +363,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
         uint256 _amount
     ) public view returns (uint256) {
         uint256[] memory amtsOut = IPair(pair).prices(
-            address(underlyingToken),
+            underlyingToken,
             _amount,
             twapPoints
         );
@@ -282,12 +389,27 @@ contract OptionTokenV2 is ERC20, AccessControl {
     ) external onlyAdmin {
         (address token0, address token1) = _pair.tokens();
         if (
-            !((token0 == _paymentToken && token1 == address(underlyingToken)) ||
-                (token0 == address(underlyingToken) && token1 == _paymentToken))
+            !((token0 == _paymentToken && token1 == underlyingToken) ||
+                (token0 == underlyingToken && token1 == _paymentToken))
         ) revert OptionToken_IncorrectPairToken();
         pair = _pair;
-        paymentToken = ERC20(_paymentToken);
+        gauge = IVoter(voter).gauges(address(_pair));
+        paymentToken = _paymentToken;
         emit SetPairAndPaymentToken(_pair, _paymentToken);
+    }
+
+    /// @notice
+    function updateGauge() external onlyAdmin {
+        address newGauge = IVoter(voter).gauges(address(pair));
+        gauge = newGauge;
+        emit SetGauge(newGauge);
+    }
+
+        /// @notice Sets the gauge address when the gauge is not listed in Voter. Only callable by the admin.
+    /// @param _gauge The new treasury address
+    function setGauge(address _gauge) external onlyAdmin {
+        gauge = _gauge;
+        emit SetGauge(_gauge);
     }
 
     /// @notice Sets the treasury address. Only callable by the admin.
@@ -295,6 +417,21 @@ contract OptionTokenV2 is ERC20, AccessControl {
     function setTreasury(address _treasury) external onlyAdmin {
         treasury = _treasury;
         emit SetTreasury(_treasury);
+    }
+
+    /// @notice Sets the router address. Only callable by the admin.
+    /// @param _router The new router address
+    function setRouter(address _router) external onlyAdmin {
+        router = _router;
+        emit SetRouter(_router);
+    }
+
+    /// @notice Sets the team fee. Only callable by the admin.
+    /// @param _fee The new team fee.
+    function setTeamFee(uint256 _fee) external onlyAdmin {
+        if (_fee > MAX_TEAM_FEE) revert OptionToken_InvalidTeamFee();
+        teamFee = _fee;
+        emit SetTeamFee(_fee);
     }
 
     /// @notice Sets the discount amount. Only callable by the admin.
@@ -306,13 +443,53 @@ contract OptionTokenV2 is ERC20, AccessControl {
         emit SetDiscount(_discount);
     }
 
-    /// @notice Sets the further discount amount for locking. Only callable by the admin.
+    /// @notice Sets the discount amount for locking. Only callable by the admin.
     /// @param _veDiscount The new discount amount.
     function setVeDiscount(uint256 _veDiscount) external onlyAdmin {
         if (_veDiscount > MAX_DISCOUNT || _veDiscount == MIN_DISCOUNT)
             revert OptionToken_InvalidDiscount();
         veDiscount = _veDiscount;
         emit SetVeDiscount(_veDiscount);
+    }
+
+    /// @notice Sets the discount amount for lp. Only callable by the admin.
+    /// @param _lpMinDiscount The new discount amount.
+    function setMinLPDiscount(uint256 _lpMinDiscount) external onlyAdmin {
+        if (_lpMinDiscount > MAX_DISCOUNT || _lpMinDiscount == MIN_DISCOUNT || maxLPDiscount > _lpMinDiscount)
+            revert OptionToken_InvalidDiscount();
+        minLPDiscount = _lpMinDiscount;
+        emit SetMinLPDiscount(_lpMinDiscount);
+    }
+
+    /// @notice Sets the discount amount for lp. Only callable by the admin.
+    /// @param _lpMaxDiscount The new discount amount.
+    function setMaxLPDiscount(uint256 _lpMaxDiscount) external onlyAdmin {
+        if (_lpMaxDiscount > MAX_DISCOUNT || _lpMaxDiscount == MIN_DISCOUNT || _lpMaxDiscount > minLPDiscount)
+            revert OptionToken_InvalidDiscount();
+        maxLPDiscount = _lpMaxDiscount;
+        emit SetMaxLPDiscount(_lpMaxDiscount);
+    }
+
+    /// @notice Sets the lock duration for max discount amount to create LP and stake in gauge. Only callable by the admin.
+    /// @param _duration The new lock duration.
+    function setLockDurationForMaxLpDiscount(
+        uint256 _duration
+    ) external onlyAdmin {
+        if (_duration <= lockDurationForMinLpDiscount)
+            revert OptionToken_InvalidLockDuration();
+        lockDurationForMaxLpDiscount = _duration;
+        emit SetLockDurationForMaxLpDiscount(_duration);
+    }
+
+    // @notice Sets the lock duration for min discount amount to create LP and stake in gauge. Only callable by the admin.
+    /// @param _duration The new lock duration.
+    function setLockDurationForMinLpDiscount(
+        uint256 _duration
+    ) external onlyAdmin {
+        if (_duration > lockDurationForMaxLpDiscount)
+            revert OptionToken_InvalidLockDuration();
+        lockDurationForMinLpDiscount = _duration;
+        emit SetLockDurationForMinLpDiscount(_duration);
     }
 
     /// @notice Sets the twap points. to control the length of our twap
@@ -329,7 +506,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
     /// @param _amount The amount of options tokens that will be minted
     function mint(address _to, uint256 _amount) external onlyMinter {
         // transfer underlying tokens from the caller
-        underlyingToken.transferFrom(msg.sender, address(this), _amount); // BLOTR reverts on failure
+        _safeTransferFrom(underlyingToken, msg.sender, address(this), _amount);
         // mint options tokens
         _mint(_to, _amount);
     }
@@ -338,7 +515,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
     /// @param _amount The amount of options tokens that will be burned and underlying tokens transferred to the caller
     function burn(uint256 _amount) external onlyAdmin {
         // transfer underlying tokens to the caller
-        underlyingToken.transfer(msg.sender, _amount); // BLOTR reverts on failure
+        _safeTransfer(underlyingToken, msg.sender, _amount);
         // burn option tokens
         _burn(msg.sender, _amount);
     }
@@ -376,11 +553,12 @@ contract OptionTokenV2 is ERC20, AccessControl {
         if (paymentAmount > _maxPaymentAmount)
             revert OptionToken_SlippageTooHigh();
 
-        // transfer payment tokens from msg.sender to the treasury
-        paymentToken.transferFrom(msg.sender, treasury, paymentAmount); // sCANTO reverts on failure
+        // transfer team fee to treasury and notify reward amount in gauge
+        uint256 gaugeRewardAmount = _takeTeamFee(paymentToken, paymentAmount);
+        _usePaymentAsGaugeReward(gaugeRewardAmount);
 
         // send underlying tokens to recipient
-        underlyingToken.transfer(_recipient, _amount); // will revert on failure
+        _safeTransfer(underlyingToken, _recipient, _amount);
 
         emit Exercise(msg.sender, _recipient, _amount, paymentAmount);
     }
@@ -398,11 +576,12 @@ contract OptionTokenV2 is ERC20, AccessControl {
         if (paymentAmount > _maxPaymentAmount)
             revert OptionToken_SlippageTooHigh();
 
-        // transfer payment tokens from msg.sender to the treasury
-        paymentToken.transferFrom(msg.sender, treasury, paymentAmount); // sCANTO reverts on failure
+        // transfer team fee to treasury and notify reward amount in gauge
+        uint256 gaugeRewardAmount = _takeTeamFee(paymentToken, paymentAmount);
+        _usePaymentAsGaugeReward(gaugeRewardAmount);
 
         // lock underlying tokens to veFLOW
-        underlyingToken.approve(votingEscrow, _amount);
+        _safeApprove(underlyingToken, votingEscrow, _amount);
         nftId = IVotingEscrow(votingEscrow).create_lock_for(
             _amount,
             FULL_LOCK,
@@ -410,5 +589,132 @@ contract OptionTokenV2 is ERC20, AccessControl {
         );
 
         emit ExerciseVe(msg.sender, _recipient, _amount, paymentAmount, nftId);
+    }
+
+    function _exerciseLp(
+        uint256 _amount,   // the oTOKEN amount the user wants to redeem with
+        uint256 _maxPaymentAmount, // the 
+        address _recipient,
+        uint256 _discount
+    ) internal returns (uint256 paymentAmount, uint256 lpAmount) {
+        if (isPaused) revert OptionToken_Paused();
+        if (_discount > minLPDiscount || _discount < maxLPDiscount)
+            revert OptionToken_InvalidDiscount();
+
+        // burn callers tokens
+        _burn(msg.sender, _amount);
+        (uint256 paymentAmount,uint256 paymentAmountToAddLiquidity) =  getPaymentTokenAmountForExerciseLp(_amount,_discount);
+        if (paymentAmount > _maxPaymentAmount)
+            revert OptionToken_SlippageTooHigh();
+          
+        // Take team fee
+        uint256 paymentGaugeRewardAmount = _takeTeamFee(
+            paymentToken,
+            paymentAmount
+        );
+        _safeTransferFrom(
+            paymentToken,
+            msg.sender,
+            address(this),
+            paymentGaugeRewardAmount + paymentAmountToAddLiquidity
+        );
+
+        // Create Lp for users
+        _safeApprove(underlyingToken, router, _amount);
+        _safeApprove(paymentToken, router, paymentAmountToAddLiquidity);
+        (, , lpAmount) = IRouter(router).addLiquidity(
+            underlyingToken,
+            paymentToken,
+            false,
+            _amount,
+            paymentAmountToAddLiquidity,
+            1,
+            1,
+            address(this),
+            block.timestamp
+        );
+
+        // Stake the LP in the gauge with lock
+        address _gauge = gauge;
+        _safeApprove(address(pair), _gauge, lpAmount);
+        IGaugeV2(_gauge).depositWithLock(
+            _recipient,
+            lpAmount,
+            getLockDurationForLpDiscount(_discount)
+        );
+
+        // notify gauge reward with payment token
+        _transferRewardToGauge();
+
+        emit ExerciseLp(
+            msg.sender,
+            _recipient,
+            _amount,
+            paymentAmount,
+            lpAmount
+        );
+    }
+
+    function _takeTeamFee(
+        address token,
+        uint256 paymentAmount
+    ) internal returns (uint256 remaining) {
+        uint256 _teamFee = (paymentAmount * teamFee) / 100;
+        _safeTransferFrom(token, msg.sender, treasury, _teamFee);
+        remaining = paymentAmount - _teamFee;
+    }
+
+    function _usePaymentAsGaugeReward(uint256 amount) internal {
+        _safeTransferFrom(paymentToken, msg.sender, address(this), amount);
+        _transferRewardToGauge();
+    }
+
+    function _transferRewardToGauge() internal {
+        uint256 paymentTokenCollectedAmount = IERC20(paymentToken).balanceOf(address(this));
+
+        uint256 leftRewards = IGaugeV2(gauge).left(paymentToken);
+
+        if(paymentTokenCollectedAmount > leftRewards) { // we are sending rewards only if we have more then the current rewards in the gauge
+            _safeApprove(paymentToken, gauge, paymentTokenCollectedAmount);
+            IGaugeV2(gauge).notifyRewardAmount(paymentToken, paymentTokenCollectedAmount);
+        }
+    }
+
+    function _safeTransfer(address token, address to, uint256 value) internal {
+        require(token.code.length > 0);
+        (bool success, bytes memory data) = token.call(
+            abi.encodeWithSelector(IERC20.transfer.selector, to, value)
+        );
+        require(success && (data.length == 0 || abi.decode(data, (bool))));
+    }
+
+    function _safeTransferFrom(
+        address token,
+        address from,
+        address to,
+        uint256 value
+    ) internal {
+        require(token.code.length > 0);
+        (bool success, bytes memory data) = token.call(
+            abi.encodeWithSelector(
+                IERC20.transferFrom.selector,
+                from,
+                to,
+                value
+            )
+        );
+        require(success && (data.length == 0 || abi.decode(data, (bool))));
+    }
+
+    function _safeApprove(
+        address token,
+        address spender,
+        uint256 value
+    ) internal {
+        require(token.code.length > 0);
+        (bool success, bytes memory data) = token.call(
+            abi.encodeWithSelector(IERC20.approve.selector, spender, value)
+        );
+        require(success && (data.length == 0 || abi.decode(data, (bool))));
     }
 }
