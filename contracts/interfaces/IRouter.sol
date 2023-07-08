@@ -14,4 +14,6 @@ interface IRouter {
         address to,
         uint deadline
     ) external returns (uint, uint, uint);
+    function swapExactTokensForTokensSimple(uint amountIn, uint amountOutMin, address tokenFrom, address tokenTo, bool stable, address to, uint deadline) external returns (uint[] memory amounts);
+
 }
