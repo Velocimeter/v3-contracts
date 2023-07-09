@@ -2,11 +2,11 @@
 pragma solidity 0.8.13;
 
 import 'contracts/interfaces/IGaugeFactory.sol';
-import 'contracts/GaugeV2.sol';
+import 'contracts/GaugeV3.sol';
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 import "openzeppelin-contracts/contracts/access/IAccessControl.sol";
 
-contract GaugeFactoryV2 is IGaugeFactory, Ownable {
+contract GaugeFactoryV3 is IGaugeFactory, Ownable {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER");
 
     address public last_gauge;
@@ -14,9 +14,11 @@ contract GaugeFactoryV2 is IGaugeFactory, Ownable {
 
     event OFlowSet(address indexed _oFlow);
     event OFlowUpdatedFor(address indexed _gauge);
+    event OTokenSetFor(address indexed _gauge,address indexed _oToken);
+    event OTokenRemovedFor(address indexed _gauge,address indexed _oToken);
 
     function createGauge(address _pool, address _external_bribe, address _ve, bool isPair, address[] memory allowedRewards) external returns (address) {
-        last_gauge = address(new GaugeV2(_pool, _external_bribe, _ve, msg.sender, oFlow, address(this), isPair, allowedRewards));
+        last_gauge = address(new GaugeV3(_pool, _external_bribe, _ve, msg.sender, oFlow, address(this), isPair, allowedRewards));
         if (oFlow != address(0)) {
             IAccessControl(oFlow).grantRole(MINTER_ROLE, last_gauge);
         }
@@ -29,7 +31,17 @@ contract GaugeFactoryV2 is IGaugeFactory, Ownable {
     }
 
     function updateOFlowFor(address _gauge) external onlyOwner {
-        GaugeV2(_gauge).setOFlow(oFlow);
+        GaugeV3(_gauge).setOFlow(oFlow);
         emit OFlowUpdatedFor(_gauge);
+    }
+
+    function setOTokenFor(address _gauge,address _oToken) external onlyOwner{
+        GaugeV3(_gauge).setOToken(_oToken);
+        emit OTokenSetFor(_gauge,_oToken);
+    }
+
+    function removeOTokenFor(address _gauge,address _oToken) external onlyOwner{
+        GaugeV3(_gauge).removeOToken(_oToken);
+        emit OTokenRemovedFor(_gauge,_oToken);
     }
 }
