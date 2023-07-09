@@ -646,7 +646,7 @@ contract GaugeV3OptionTokenV2Test is BaseTest {
         vm.stopPrank();
 
         vm.startPrank(address(owner)); 
-        gaugeFactory.setOTokenFor(address(gauge), address(oTokenV2));
+        gaugeFactory.addOTokenFor(address(gauge), address(oTokenV2));
         vm.stopPrank();
 
         vm.startPrank(address(owner2));
@@ -678,7 +678,7 @@ contract GaugeV3OptionTokenV2Test is BaseTest {
         FLOW.approve(address(oTokenV2), TOKEN_1);
         // mint Option token to owner 2
         oTokenV2.mint(address(owner2), TOKEN_1);
-        gaugeFactory.setOTokenFor(address(gauge), address(oTokenV2));
+        gaugeFactory.addOTokenFor(address(gauge), address(oTokenV2));
 
         washTrades();
         vm.stopPrank();
