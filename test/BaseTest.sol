@@ -59,6 +59,7 @@ abstract contract BaseTest is Test, TestOwner {
     Pair flowDaiPair;
     OptionToken oFlow;
     OptionTokenV2 oFlowV2;
+    OptionTokenV2 oTokenV2;
 
     function deployOwners() public {
         owner = TestOwner(address(this));
@@ -197,6 +198,26 @@ abstract contract BaseTest is Test, TestOwner {
             _owner,
             _voter,
             _escrow,
+            address(router)
+        );
+    }
+
+    function deployNoFlowOptionTokenV2WithOwner(
+        address _owner,
+        address _gaugeFactory,
+        address _voter
+    ) public {
+        oTokenV2 = new OptionTokenV2(
+            "Option to buy Token",
+            "oToken",
+            _owner,
+            address(DAI),
+            address(FLOW),
+            flowDaiPair,
+            _gaugeFactory,
+            _owner,
+            _voter,
+            address(0),
             address(router)
         );
     }

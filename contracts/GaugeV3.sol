@@ -10,7 +10,7 @@ import 'contracts/interfaces/IVoter.sol';
 import 'contracts/interfaces/IVotingEscrow.sol';
 
 // Gauges are used to incentivize pools, they emit reward tokens over 7 days for staked LP tokens
-contract GaugeV2 is IGauge {
+contract GaugeV3 is IGauge {
 
     address public immutable stake; // the LP token that needs to be staked for rewards
     address public immutable _ve; // the ve token used for gauges
@@ -47,6 +47,7 @@ contract GaugeV2 is IGauge {
 
     address[] public rewards;
     mapping(address => bool) public isReward;
+    mapping(address => bool) public isOToken;
 
     /// @notice A checkpoint for marking balance
     struct Checkpoint {
@@ -87,6 +88,8 @@ contract GaugeV2 is IGauge {
     event NotifyReward(address indexed from, address indexed reward, uint amount);
     event ClaimRewards(address indexed from, address indexed reward, uint amount);
     event OFlowSet(address indexed _oFlow);
+    event OTokenSet(address indexed _oToken);
+    event OTokenRemoved(address indexed _oToken);
 
     constructor(address _stake, address _external_bribe, address  __ve, address _voter, address _oFlow, address _gaugeFactory, bool _forPair, address[] memory _allowedRewardTokens) {
         stake = _stake;
@@ -98,7 +101,7 @@ contract GaugeV2 is IGauge {
         isForPair = _forPair;
         flow = IVotingEscrow(_ve).token();
         _safeApprove(flow, oFlow, type(uint256).max);
-
+        isOToken[_oFlow] = true;
         for (uint i; i < _allowedRewardTokens.length; i++) {
             if (_allowedRewardTokens[i] != address(0)) {
                 isReward[_allowedRewardTokens[i]] = true;
@@ -438,7 +441,7 @@ contract GaugeV2 is IGauge {
     }
 
     function depositWithLock(address account, uint256 amount, uint256 _lockDuration) external lock {
-        require(msg.sender == account || msg.sender == oFlow); // shoutout to dawid.d
+        require(msg.sender == account || isOToken[msg.sender],"Not allowed to deposit with lock"); 
         _deposit(account, amount, 0);
 
         if(block.timestamp >= lockEnd[account]) { // if the current lock is expired relased the tokens from that lock before loking again
@@ -603,7 +606,20 @@ contract GaugeV2 is IGauge {
         require(msg.sender == gaugeFactory, "not gauge factory");
         oFlow = _oFlow;
         _safeApprove(flow, _oFlow, type(uint256).max);
+        isOToken[_oFlow] = true;
         emit OFlowSet(_oFlow);
+    }
+
+    function setOToken(address _oToken) external {
+        require(msg.sender == gaugeFactory, "not gauge factory");
+        isOToken[_oToken] = true;
+        emit OTokenSet(_oToken);
+    }
+
+    function removeOToken(address _oToken) external {
+        require(msg.sender == gaugeFactory, "not gauge factory");
+        isOToken[_oToken] = false;
+        emit OTokenRemoved(_oToken);
     }
 
     function _safeTransfer(address token, address to, uint256 value) internal {
