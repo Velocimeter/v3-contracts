@@ -14,7 +14,7 @@ contract GaugeFactoryV3 is IGaugeFactory, Ownable {
 
     event OFlowSet(address indexed _oFlow);
     event OFlowUpdatedFor(address indexed _gauge);
-    event OTokenSetFor(address indexed _gauge,address indexed _oToken);
+    event OTokenAddedFor(address indexed _gauge,address indexed _oToken);
     event OTokenRemovedFor(address indexed _gauge,address indexed _oToken);
 
     function createGauge(address _pool, address _external_bribe, address _ve, bool isPair, address[] memory allowedRewards) external returns (address) {
@@ -35,9 +35,9 @@ contract GaugeFactoryV3 is IGaugeFactory, Ownable {
         emit OFlowUpdatedFor(_gauge);
     }
 
-    function setOTokenFor(address _gauge,address _oToken) external onlyOwner{
-        GaugeV3(_gauge).setOToken(_oToken);
-        emit OTokenSetFor(_gauge,_oToken);
+    function addOTokenFor(address _gauge,address _oToken) external onlyOwner{
+        GaugeV3(_gauge).addOToken(_oToken);
+        emit OTokenAddedFor(_gauge,_oToken);
     }
 
     function removeOTokenFor(address _gauge,address _oToken) external onlyOwner{

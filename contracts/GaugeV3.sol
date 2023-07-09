@@ -88,7 +88,7 @@ contract GaugeV3 is IGauge {
     event NotifyReward(address indexed from, address indexed reward, uint amount);
     event ClaimRewards(address indexed from, address indexed reward, uint amount);
     event OFlowSet(address indexed _oFlow);
-    event OTokenSet(address indexed _oToken);
+    event OTokenAdded(address indexed _oToken);
     event OTokenRemoved(address indexed _oToken);
 
     constructor(address _stake, address _external_bribe, address  __ve, address _voter, address _oFlow, address _gaugeFactory, bool _forPair, address[] memory _allowedRewardTokens) {
@@ -610,10 +610,10 @@ contract GaugeV3 is IGauge {
         emit OFlowSet(_oFlow);
     }
 
-    function setOToken(address _oToken) external {
+    function addOToken(address _oToken) external {
         require(msg.sender == gaugeFactory, "not gauge factory");
         isOToken[_oToken] = true;
-        emit OTokenSet(_oToken);
+        emit OTokenAdded(_oToken);
     }
 
     function removeOToken(address _oToken) external {
