@@ -19,8 +19,6 @@ contract FvmGauge is IGauge {
     uint public derivedSupply;
     mapping(address => uint) public derivedBalances;
 
-    bool public isForPair;
-
     uint internal constant DURATION = 7 days; // rewards are released over 7 days
     uint internal constant PRECISION = 10 ** 18;
     uint internal constant MAX_REWARD_TOKENS = 4;
@@ -84,11 +82,10 @@ contract FvmGauge is IGauge {
     event ClaimRewards(address indexed from, address indexed reward, uint amount);
     event OFlowSet(address indexed _oFlow);
 
-    constructor(address _stake, address  __ve, address _oFlow, bool _forPair, address[] memory _allowedRewardTokens) {
+    constructor(address _stake, address  __ve, address _oFlow, address[] memory _allowedRewardTokens) {
         stake = _stake;
         _ve = __ve;
         oFlow = _oFlow;
-        isForPair = _forPair;
         flow = IVotingEscrow(_ve).token();
         _safeApprove(flow, oFlow, type(uint256).max);
 
