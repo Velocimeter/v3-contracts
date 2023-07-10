@@ -36,43 +36,40 @@ The Velodrome team engaged with Code 4rena for a security review. The results of
 ## Contracts on Fantom
 
       "contractName": "Flow",
-      "contractAddress": "0xE1689e9AaD6b36D91E357FAf95cd7c2C4C1b5475",
-      
+      "contractAddress": "0x07BB65fAaC502d4996532F834A1B7ba5dC32Ff96",
+
       "contractName": "GaugeFactoryV2",
-      "contractAddress": "0xB9bC49c87920092097e2080a3b91Be674732735F",
-      
+      "contractAddress": "0x8691dc917a50FC0881f9107A5Edf4D2605F041bA",
+
       "contractName": "BribeFactory",
-      "contractAddress": "0x039525b5f1F3aB085BEB522514A7A7b762348531",
-     
+      "contractAddress": "0xe472002ec1de4EB6b14BA4eE66e345485c2E68d7",
+      
       "contractName": "PairFactory",
-      "contractAddress": "0x42a0B204ae55254CdD10c562F9b101248Ea5DE08",
-     
+      "contractAddress": "0x472f3C3c9608fe0aE8d702f3f8A2d12c410C881A",
+      
       "contractName": "Router",
-      "contractAddress": "0x197b8F8185B84112dD95527ce472A55052cEE030",
+      "contractAddress": "0x2E14B53E2cB669f3A974CeaF6C735e134F3Aa9BC",
       
       "contractName": "VelocimeterLibrary",
-      "contractAddress": "0x003b247fC068263BF8b7992dBfa902b827EDB0cF",
-     
+      "contractAddress": "0xF2A542F28061aADf6A510625aCe21dae03085584",
+      
       "contractName": "VotingEscrow",
-      "contractAddress": "0x34172780901eF075C67942392Ab461186d8C8cc5",
+      "contractAddress": "0xAE459eE7377Fb9F67518047BBA5482C2F0963236",
       
       "contractName": "RewardsDistributor",
-      "contractAddress": "0x82D862D11D4Ff392c1BaeF5502DaA57e99A9E339",
-     
+      "contractAddress": "0xE0B708753aab9d2Cc142ea52Cd7CD0c923A3389A",
+      
       "contractName": "Voter",
-      "contractAddress": "0x1E7d4DaFA8E16F90fd5B1220059607fe1f69aA0C",
+      "contractAddress": "0xc9Ea7A2337f27935Cd3ccFB2f725B0428e731FBF",
       
       "contractName": "Minter",
-      "contractAddress": "0xCbC293D3fA882A5740A9fCD4670d69FD3f5Fe788",
+      "contractAddress": "0xAA28F5F63a9DC90640abF7F008726460127a4Da6",
       
       "contractName": "MintTank",
-      "contractAddress": "0xa03360d4841cC8ec726311905E483F1c49d223e3",
-          
+      "contractAddress": "0x14Dc007573Ac5dCC94410bc29DCBb4923e54C69d",
+      
       "contractName": "OptionTokenV2",
-      "contractAddress": "0xfEFBC02930D389E624B56053E345Cd848729BF93",
-     
-      "contractName": "AirdropClaim",
-      "contractAddress": "0xA9f15E51C825410737e9793eaC9091dD22D866DB",
+      "contractAddress": "0xF9EDdca6B1e548B0EC8cDDEc131464F462b8310D",
           
       
 
