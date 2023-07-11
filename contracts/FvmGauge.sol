@@ -540,6 +540,7 @@ contract FvmGauge is IGauge {
         require(token != stake);
         require(amount > 0);
         if (!isReward[token]) {
+            require(msg.sender == IVotingEscrow(_ve).team(), 'only team');
             require(rewards.length < MAX_REWARD_TOKENS, "too many rewards tokens");
         }
         if (rewardRate[token] == 0) _writeRewardPerTokenCheckpoint(token, 0, block.timestamp);
