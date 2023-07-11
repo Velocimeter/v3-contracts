@@ -14,7 +14,7 @@ contract Rebater is Script {
     address constant DUES = 0x83B285E802D76055169B1C5e3bF21702B85b89Cb;
     address constant MPX = 0xDd257d090FA0f9ffB496b790844418593e969ba6;
     address constant BAY = 0xa9D3b1408353d05064d47DAF0Dc98E104eb9c98A;
-    address constant FGHST; 
+    address constant FGHST = 0x13757D72FAc994F9690045150d60929D64575843; 
     address constant LQDR = 0x06917EFCE692CAD37A77a50B9BEEF6f4Cdd36422;
     address constant TAROT = 0x5F21E3cA21fc0C33cfA5FB33fc7031f61e34D256;
     address constant GRAIN = 0xf2671D5c19C479Cd68b1FE6d2f3A1e0CC7Fe4Ad4;
