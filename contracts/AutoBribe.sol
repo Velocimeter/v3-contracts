@@ -3,7 +3,7 @@
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 import "contracts/interfaces/ITurnstile.sol";
 import "contracts/interfaces/IERC20.sol";
-import "contracts/interfaces/IWrappedBribe.sol";
+import "contracts/interfaces/IBribe.sol";
 
 pragma solidity ^0.8.13;
 
@@ -61,7 +61,7 @@ contract AutoBribe is Ownable {
             uint256 bribeAmount = balance(_bribeToken) / weeksLeft;
             uint256 gasReward = bribeAmount / 200;
             _safeTransfer(_bribeToken, msg.sender, gasReward);
-            IWrappedBribe(wBribe).notifyRewardAmount(
+            IBribe(wBribe).notifyRewardAmount(
                 _bribeToken,
                 bribeAmount - gasReward
             );
