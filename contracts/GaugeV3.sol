@@ -279,7 +279,7 @@ contract GaugeV3 is IGauge {
             lastEarn[tokens[i]][account] = block.timestamp;
             userRewardPerTokenStored[tokens[i]][account] = rewardPerTokenStored[tokens[i]];
             if (_reward > 0) {
-                if (tokens[i] == flow) {
+                if (tokens[i] == flow && oFlow != address(0) && oFlow.code.length != 0) {
                     try IOptionToken(oFlow).mint(account, _reward){} catch {
                         _safeTransfer(tokens[i], account, _reward);
                     }
