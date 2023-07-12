@@ -40,7 +40,7 @@ contract Rebater is Script {
             minttank.mintFor(464 * 1e18, FULL_LOCK, GRAIN);
             minttank.mintFor(726 * 1e18, FULL_LOCK, ETHOS);
 
-            minttank.transferOwnership(MSIG);
+            // minttank.transferOwnership(MSIG);
 
 
         vm.stopBroadcast();
@@ -48,4 +48,6 @@ contract Rebater is Script {
     } 
 }
 
-// forge script script/createGauge.s.sol:createGauge --rpc-url https://rpc.ftm.tools  -vvvv --broadcast --gas-estimate-multiplier 20
+// forge script script/Rebater.s.sol:Rebater --rpc-url https://rpc.ftm.tools  -vvvv
+// forge script script/Rebater.s.sol:Rebater --rpc-url https://fantom.blockpi.network/v1/rpc/public -vvvv
+
