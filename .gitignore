@@ -6,6 +6,7 @@ args.js
 # Foundry
 cache/
 out/
+broadcast/
 
 # JS
 node_modules/
