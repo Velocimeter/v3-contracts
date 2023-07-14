@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
-import "contracts/interfaces/ITurnstile.sol";
 import "contracts/interfaces/IERC20.sol";
 import "contracts/interfaces/IBribe.sol";
 
