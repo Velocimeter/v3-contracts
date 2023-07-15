@@ -61,7 +61,7 @@ contract RedeemNftTest is BaseTest {
 
         // Test locked balance and duration
         (int256 amount, uint256 end) = escrow_V2.locked(newTokenId);
-        assertEq(amount, 1e19);
+        assertEq(amount, 1e19 / 1000);
         assertEq(end, lockDuration);
     }
 
@@ -91,7 +91,7 @@ contract RedeemNftTest is BaseTest {
 
         // Test locked balance and duration
         (int256 amount, uint256 end) = escrow_V2.locked(newTokenId);
-        assertEq(amount, 1e19);
+        assertEq(amount, 1e19 / 1000);
         assertEq(end, lockDuration);
     }
 

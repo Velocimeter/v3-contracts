@@ -29,21 +29,21 @@ contract FlowConvertor is Ownable {
     }
 
     /**
-     * @dev Transfers ERC20 v1 from user to contract, and Transfer ERC20 v2 to user, 1 to 1.
+     * @dev Transfers ERC20 v1 from user to contract, and Transfer ERC20 v2 to user, 1000 to 1.
      */
     function redeem(uint256 amount) public {
         require(amount > 0, "you dont have and v1 tokens");
         _safeTransferFrom(v1, _msgSender(), address(this), amount);
-        _safeTransfer(v2, _msgSender(), amount);
+        _safeTransfer(v2, _msgSender(), amount / 1000);
     }
 
     /**
-     * @dev Transfers ERC20 v1 from user to contract, and Transfer ERC20 v2 to an address specified, 1 to 1.
+     * @dev Transfers ERC20 v1 from user to contract, and Transfer ERC20 v2 to an address specified, 1000 to 1.
      */
     function redeemTo(address _to, uint256 amount) public {
         require(amount > 0, "you dont have and v1 tokens");
         _safeTransferFrom(v1, _msgSender(), address(this), amount);
-        _safeTransfer(v2, _to, amount);
+        _safeTransfer(v2, _to, amount / 1000);
     }
 
     /**
@@ -59,7 +59,7 @@ contract FlowConvertor is Ownable {
             tokenId
         );
 
-        uint256 amount = uint256(int256(locked.amount));
+        uint256 amount = uint256(int256(locked.amount)) / 1000;
         _safeApprove(v2, votingEscrowV2, amount);
         newTokenId = IVotingEscrow(votingEscrowV2).create_lock_for(
             amount,
@@ -84,7 +84,7 @@ contract FlowConvertor is Ownable {
             tokenId
         );
 
-        uint256 amount = uint256(int256(locked.amount));
+        uint256 amount = uint256(int256(locked.amount)) / 1000;
         _safeApprove(v2, votingEscrowV2, amount);
         newTokenId = IVotingEscrow(votingEscrowV2).create_lock_for(
             amount,
