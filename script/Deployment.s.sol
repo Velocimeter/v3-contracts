@@ -25,8 +25,16 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 contract Deployment is Script {
     // token addresses
     // TODO: check token address
-    address private constant WCANTO = 0x826551890Dc65655a0Aceca109aB11AbDbD7a07B;
-    address private constant LIQUID_STAKED_CANTO = 0x9F823D534954Fc119E31257b3dDBa0Db9E2Ff4ed;
+    address private constant OLD_FLOW =
+        0xB5b060055F0d1eF5174329913ef861bC3aDdF029;
+    address private constant OLD_SCANTO_FLOW_PAIR =
+        0x754AeD0D7A61dD3B03084d5bB8285D674D663703;
+    address payable private constant OLD_ROUTER =
+        payable(0x8e2e2f70B4bD86F82539187A634FB832398cc771);
+    address private constant WCANTO =
+        0x826551890Dc65655a0Aceca109aB11AbDbD7a07B;
+    address private constant LIQUID_STAKED_CANTO =
+        0x9F823D534954Fc119E31257b3dDBa0Db9E2Ff4ed;
 
     // privileged accounts
     // TODO: change these accounts!
@@ -38,8 +46,6 @@ contract Deployment is Script {
     // TODO: set the following variables
     uint private constant INITIAL_MINT_AMOUNT = 6_000_000e18;
     int128 private constant MAX_LOCK_TIME = 2 * 365 * 86400;
-    uint private constant MINT_TANK_AMOUNT = 1_290_000e18;
-    uint private constant PREMINT_AMOUNT = 690_000e18;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -96,21 +102,34 @@ contract Deployment is Script {
             address(rewardsDistributor)
         );
 
-        // MintTank
-        MintTank mintTank = new MintTank(
-            address(flow),
-            address(votingEscrow),
-            TEAM_MULTI_SIG,
-            uint256(int256(MAX_LOCK_TIME))
+        flow.transfer(
+            address(TEAM_MULTI_SIG),
+            INITIAL_MINT_AMOUNT
         );
 
-        flow.transfer(address(mintTank), MINT_TANK_AMOUNT);
-        flow.transfer(address(TEAM_MULTI_SIG), INITIAL_MINT_AMOUNT - MINT_TANK_AMOUNT - PREMINT_AMOUNT);
-
-        // NOTE: comment out and set pair in OptionToken later
-        // IPair flowWftmPair = IPair(
-        //     pairFactory.createPair(address(flow), LIQUID_STAKED_CANTO, false)
-        // );
+        Flow(OLD_FLOW).approve(OLD_ROUTER, 1e18);
+        uint256[] memory amounts = Router(OLD_ROUTER)
+            .swapExactTokensForTokensSimple(
+                1e18,
+                IPair(OLD_SCANTO_FLOW_PAIR).getAmountOut(1e18, OLD_FLOW),
+                OLD_FLOW,
+                LIQUID_STAKED_CANTO,
+                false,
+                DEPLOYER,
+                block.timestamp
+            );
+        flow.approve(address(router), 1e18);
+        router.addLiquidity(
+            LIQUID_STAKED_CANTO,
+            address(flow),
+            false,
+            amounts[0],
+            1e18 / 1000, // Conversion ratio
+            0,
+            0,
+            DEPLOYER,
+            block.timestamp
+        );
 
         // Option to buy Flow
         OptionTokenV2 oFlow = new OptionTokenV2(
@@ -119,8 +138,9 @@ contract Deployment is Script {
             TEAM_MULTI_SIG, // admin
             LIQUID_STAKED_CANTO, // payment token
             address(flow), // underlying token
-            // TODO: change if want to set beforehand
-            IPair(address(0)), // pair
+            IPair(
+                pairFactory.getPair(address(flow), LIQUID_STAKED_CANTO, false)
+            ), // pair
             address(gaugeFactory), // gauge factory
             TEAM_MULTI_SIG, // treasury
             address(voter),
@@ -129,10 +149,13 @@ contract Deployment is Script {
         );
 
         // NOTE: comment this out to emit liquid FLOW
-        // gaugeFactory.setOFlow(address(oFlow));
+        gaugeFactory.setOFlow(address(oFlow));
 
         // Create gauge for flowWftm pair
-        // voter.createGauge(address(flowWftmPair), 0);
+        voter.createGauge(
+            pairFactory.getPair(address(flow), LIQUID_STAKED_CANTO, false),
+            0
+        );
 
         // Update gauge in Option Token contract
         oFlow.updateGauge();
