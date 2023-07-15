@@ -3,12 +3,14 @@ pragma solidity 0.8.13;
 
 import "./BaseTest.sol";
 import "contracts/FlowConvertor.sol";
+import "contracts/VotingEscrowV2.sol";
 
 contract RedeemNftTest is BaseTest {
     Flow FLOW_V2;
     VotingEscrow escrow;
-    VotingEscrow escrow_V2;
+    VotingEscrowV2 escrow_V2;
     FlowConvertor flowConvertor;
+    int128 public constant NEW_MAX_LOCK_TIME = 26 * 7 * 86400;
 
     function setUp() public {
         deployOwners();
@@ -24,10 +26,11 @@ contract RedeemNftTest is BaseTest {
 
         VeArtProxy artProxy = new VeArtProxy();
         escrow = new VotingEscrow(address(FLOW), address(artProxy), owners[0]);
-        escrow_V2 = new VotingEscrow(
+        escrow_V2 = new VotingEscrowV2(
             address(FLOW_V2),
             address(artProxy),
-            address(owner)
+            address(owner),
+            NEW_MAX_LOCK_TIME
         );
         flowConvertor = new FlowConvertor(
             address(FLOW),
@@ -95,6 +98,16 @@ contract RedeemNftTest is BaseTest {
         assertEq(end, lockDuration);
     }
 
+    function testRedeemNftWithNewShorterMaxLock() public {
+        FLOW.approve(address(escrow), 1e19);
+        uint256 lockDuration = 52 * 7 * 86400; // original max lock
+
+        uint256 tokenId = escrow.create_lock(1e19, lockDuration);
+        escrow.approve(address(flowConvertor), tokenId);
+        uint256 newTokenId = flowConvertor.redeemNft(tokenId);
+        (int256 amount, uint256 end) = escrow_V2.locked(newTokenId);
+        assertEq(end, uint256(int256(NEW_MAX_LOCK_TIME)));
+    }
+
     // TODO: test redeem after few months
-    // TODO: test max lock
 }

@@ -15,6 +15,7 @@ contract FlowConvertor is Ownable {
     address public immutable v2;
     address public immutable votingEscrowV1;
     address public immutable votingEscrowV2;
+    uint256 public immutable MAXTIME;
 
     constructor(
         address _v1,
@@ -26,6 +27,7 @@ contract FlowConvertor is Ownable {
         v2 = _v2;
         votingEscrowV1 = _votingEscrowV1;
         votingEscrowV2 = _votingEscrowV2;
+        MAXTIME = IVotingEscrow(_votingEscrowV2).MAXTIME();
     }
 
     /**
@@ -60,10 +62,11 @@ contract FlowConvertor is Ownable {
         );
 
         uint256 amount = uint256(int256(locked.amount)) / 1000;
+        uint256 lockDuration = locked.end - block.timestamp > MAXTIME? MAXTIME : locked.end - block.timestamp;
         _safeApprove(v2, votingEscrowV2, amount);
         newTokenId = IVotingEscrow(votingEscrowV2).create_lock_for(
             amount,
-            locked.end - block.timestamp,
+            lockDuration,
             msg.sender
         );
     }
@@ -85,10 +88,11 @@ contract FlowConvertor is Ownable {
         );
 
         uint256 amount = uint256(int256(locked.amount)) / 1000;
+        uint256 lockDuration = locked.end - block.timestamp > MAXTIME? MAXTIME : locked.end - block.timestamp;
         _safeApprove(v2, votingEscrowV2, amount);
         newTokenId = IVotingEscrow(votingEscrowV2).create_lock_for(
             amount,
-            locked.end - block.timestamp,
+            lockDuration,
             _to
         );
     }

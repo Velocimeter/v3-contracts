@@ -36,4 +36,5 @@ interface IVotingEscrow {
     function balanceOfNFT(uint) external view returns (uint);
     function totalSupply() external view returns (uint);
     function locked(uint) external view returns (LockedBalance memory);
+    function MAXTIME() external view returns (uint);
 }
