@@ -11,7 +11,7 @@ import {PairFactory} from "../contracts/factories/PairFactory.sol";
 import {Router} from "../contracts/Router.sol";
 import {VelocimeterLibrary} from "../contracts/VelocimeterLibrary.sol";
 import {VeArtProxy} from "../contracts/VeArtProxy.sol";
-import {VotingEscrow} from "../contracts/VotingEscrow.sol";
+import {VotingEscrowV2} from "../contracts/VotingEscrowV2.sol";
 import {RewardsDistributor} from "../contracts/RewardsDistributor.sol";
 import {Voter} from "../contracts/Voter.sol";
 import {Minter} from "../contracts/Minter.sol";
@@ -36,7 +36,7 @@ contract Deployment is Script {
         0xc9c8449259566cdC82f396FeF5E6EA4b5015708A;
     // TODO: set the following variables
     uint private constant INITIAL_MINT_AMOUNT = 6_000_000e18;
-    uint private constant MINT_TANK_MIN_LOCK_TIME = 52 * 7 * 86400;
+    int128 private constant MAX_LOCK_TIME = 52 * 7 * 86400;
     uint private constant MINT_TANK_AMOUNT = 1_290_000e18;
     uint private constant PREMINT_AMOUNT = 690_000e18;
 
@@ -63,11 +63,12 @@ contract Deployment is Script {
         // VelocimeterLibrary
         new VelocimeterLibrary(address(router));
 
-        // VotingEscrow
-        VotingEscrow votingEscrow = new VotingEscrow(
+        // VotingEscrowV2
+        VotingEscrowV2 votingEscrow = new VotingEscrowV2(
             address(flow),
             address(0),
-            TEAM_MULTI_SIG
+            TEAM_MULTI_SIG,
+            MAX_LOCK_TIME
         );
 
         // RewardsDistributor
@@ -99,7 +100,7 @@ contract Deployment is Script {
             address(flow),
             address(votingEscrow),
             TEAM_MULTI_SIG,
-            MINT_TANK_MIN_LOCK_TIME
+            uint256(int256(MAX_LOCK_TIME))
         );
 
         // Premint for Partners
