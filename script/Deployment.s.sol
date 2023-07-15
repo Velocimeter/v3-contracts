@@ -26,6 +26,7 @@ contract Deployment is Script {
     // token addresses
     // TODO: check token address
     address private constant WCANTO = 0x826551890Dc65655a0Aceca109aB11AbDbD7a07B;
+    address private constant LIQUID_STAKED_CANTO = 0x9F823D534954Fc119E31257b3dDBa0Db9E2Ff4ed;
 
     // privileged accounts
     // TODO: change these accounts!
@@ -103,22 +104,12 @@ contract Deployment is Script {
             uint256(int256(MAX_LOCK_TIME))
         );
 
-        // Premint for Partners
-        // TODO: amend amounts
-        flow.approve(address(votingEscrow), PREMINT_AMOUNT);
-        votingEscrow.create_lock_for(240_000e18, 52 * 7 * 86400, 0xcC06464C7bbCF81417c08563dA2E1847c22b703a);
-        votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0x5F21E3cA21fc0C33cfA5FB33fc7031f61e34D256);
-        votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0xB1dD2Fdb023cB54b7cc2a0f5D9e8d47a9F7723ce);
-        votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0x83B285E802D76055169B1C5e3bF21702B85b89Cb);
-        votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0x89955a99552F11487FFdc054a6875DF9446B2902);
-        votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0x06917EFCE692CAD37A77a50B9BEEF6f4Cdd36422);
-
         flow.transfer(address(mintTank), MINT_TANK_AMOUNT);
         flow.transfer(address(TEAM_MULTI_SIG), INITIAL_MINT_AMOUNT - MINT_TANK_AMOUNT - PREMINT_AMOUNT);
 
         // NOTE: comment out and set pair in OptionToken later
         // IPair flowWftmPair = IPair(
-        //     pairFactory.createPair(address(flow), WCANTO, false)
+        //     pairFactory.createPair(address(flow), LIQUID_STAKED_CANTO, false)
         // );
 
         // Option to buy Flow
@@ -126,7 +117,7 @@ contract Deployment is Script {
             "Option to buy FLOW", // name
             "oFLOW", // symbol
             TEAM_MULTI_SIG, // admin
-            WCANTO, // payment token
+            LIQUID_STAKED_CANTO, // payment token
             address(flow), // underlying token
             // TODO: change if want to set beforehand
             IPair(address(0)), // pair
