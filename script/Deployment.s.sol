@@ -25,18 +25,18 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 contract Deployment is Script {
     // token addresses
     // TODO: check token address
-    address private constant WFTM = 0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83;
+    address private constant WCANTO = 0x826551890Dc65655a0Aceca109aB11AbDbD7a07B;
 
     // privileged accounts
     // TODO: change these accounts!
     address private constant TEAM_MULTI_SIG =
-        0x88Dec6df03C2C111Efd4ad89Cef2c0347034AFC0;
-    address private constant TANK = 0xb32d744CAc212cAB825b5Eb9c5ba65d7D1CF3bD8;
+        0x13eeB8EdfF60BbCcB24Ec7Dd5668aa246525Dc51;
+    address private constant TANK = 0x0A868fd1523a1ef58Db1F2D135219F0e30CBf7FB;
     address private constant DEPLOYER =
-        0xc9c8449259566cdC82f396FeF5E6EA4b5015708A;
+        0xD93142ED5B85FcA4550153088750005759CE8318;
     // TODO: set the following variables
     uint private constant INITIAL_MINT_AMOUNT = 6_000_000e18;
-    int128 private constant MAX_LOCK_TIME = 52 * 7 * 86400;
+    int128 private constant MAX_LOCK_TIME = 2 * 365 * 86400;
     uint private constant MINT_TANK_AMOUNT = 1_290_000e18;
     uint private constant PREMINT_AMOUNT = 690_000e18;
 
@@ -58,7 +58,7 @@ contract Deployment is Script {
         PairFactory pairFactory = new PairFactory();
 
         // Router
-        Router router = new Router(address(pairFactory), WFTM);
+        Router router = new Router(address(pairFactory), WCANTO);
 
         // VelocimeterLibrary
         new VelocimeterLibrary(address(router));
@@ -118,7 +118,7 @@ contract Deployment is Script {
 
         // NOTE: comment out and set pair in OptionToken later
         // IPair flowWftmPair = IPair(
-        //     pairFactory.createPair(address(flow), WFTM, false)
+        //     pairFactory.createPair(address(flow), WCANTO, false)
         // );
 
         // Option to buy Flow
@@ -126,7 +126,7 @@ contract Deployment is Script {
             "Option to buy FLOW", // name
             "oFLOW", // symbol
             TEAM_MULTI_SIG, // admin
-            WFTM, // payment token
+            WCANTO, // payment token
             address(flow), // underlying token
             // TODO: change if want to set beforehand
             IPair(address(0)), // pair
@@ -174,7 +174,7 @@ contract Deployment is Script {
         // Initialize tokens for voter
         address[] memory whitelistedTokens = new address[](3);
         whitelistedTokens[0] = address(flow);
-        whitelistedTokens[1] = WFTM;
+        whitelistedTokens[1] = WCANTO;
         whitelistedTokens[2] = address(oFlow);
         voter.initialize(whitelistedTokens, address(minter));
 
