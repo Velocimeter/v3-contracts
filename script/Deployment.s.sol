@@ -5,7 +5,7 @@ pragma solidity 0.8.13;
 import {Script} from "../lib/forge-std/src/Script.sol";
 
 import {Flow} from "../contracts/Flow.sol";
-import {GaugeFactoryV2} from "../contracts/factories/GaugeFactoryV2.sol";
+import {GaugeFactoryV3} from "../contracts/factories/GaugeFactoryV3.sol";
 import {BribeFactory} from "../contracts/factories/BribeFactory.sol";
 import {PairFactory} from "../contracts/factories/PairFactory.sol";
 import {Router} from "../contracts/Router.sol";
@@ -49,7 +49,7 @@ contract Deployment is Script {
         Flow flow = new Flow(DEPLOYER, INITIAL_MINT_AMOUNT);
 
         // Gauge factory
-        GaugeFactoryV2 gaugeFactory = new GaugeFactoryV2();
+        GaugeFactoryV3 gaugeFactory = new GaugeFactoryV3();
 
         // Bribe factory
         BribeFactory bribeFactory = new BribeFactory();
