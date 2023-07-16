@@ -40,6 +40,9 @@ The Velodrome team engaged with Code 4rena for a security review. The results of
 
       "contractName": "GaugeFactoryV2",
       "contractAddress": "0x8691dc917a50FC0881f9107A5Edf4D2605F041bA",
+      
+      "contractName": "GaugeFactoryV3",
+      "contractAddress": "0x75064b08c84f4af71127aaadc0a973e2e6019ef7",
 
       "contractName": "BribeFactory",
       "contractAddress": "0xe472002ec1de4EB6b14BA4eE66e345485c2E68d7",
