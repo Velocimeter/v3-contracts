@@ -44,7 +44,7 @@ contract Deployment is Script {
     address private constant DEPLOYER =
         0xD93142ED5B85FcA4550153088750005759CE8318;
     // TODO: set the following variables
-    uint private constant INITIAL_MINT_AMOUNT = 6_000_000e18;
+    uint private constant INITIAL_MINT_AMOUNT = 551753842114232799703229867 / 1000 + 1;
     int128 private constant MAX_LOCK_TIME = 2 * 365 * 86400;
 
     function run() external {
