@@ -27,6 +27,11 @@ contract MigrateGauge is Script {
         address newGauge = Voter(VoterAddress).createGauge(pool, 1);
         Voter(VoterAddress).setExternalBribeFor(newGauge, external_bribe);
 
+        // bellow is needed to sync the new gauge with the current state of the rewards distrubuted from minter
+        Voter(VoterAddress).updateGauge(newGauge);
+        Voter(VoterAddress).pauseGauge(newGauge);
+        Voter(VoterAddress).restartGauge(newGauge);
+
         vm.stopBroadcast();
     }
 }
