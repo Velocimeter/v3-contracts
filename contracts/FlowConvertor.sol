@@ -15,7 +15,7 @@ contract FlowConvertor is Ownable {
     address public immutable v2;
     address public immutable votingEscrowV1;
     address public immutable votingEscrowV2;
-    uint256 public immutable MAXTIME;
+    uint256 public constant MIN_LOCK_DURATION = 1 weeks;
 
     constructor(
         address _v1,
@@ -27,7 +27,6 @@ contract FlowConvertor is Ownable {
         v2 = _v2;
         votingEscrowV1 = _votingEscrowV1;
         votingEscrowV2 = _votingEscrowV2;
-        MAXTIME = IVotingEscrow(_votingEscrowV2).MAXTIME();
     }
 
     /**
@@ -62,7 +61,10 @@ contract FlowConvertor is Ownable {
         );
 
         uint256 amount = uint256(int256(locked.amount)) / 1000;
-        uint256 lockDuration = locked.end - block.timestamp > MAXTIME? MAXTIME : locked.end - block.timestamp;
+        uint256 lockDuration = (locked.end - block.timestamp) / 2 <
+            MIN_LOCK_DURATION
+            ? MIN_LOCK_DURATION
+            : (locked.end - block.timestamp) / 2;
         _safeApprove(v2, votingEscrowV2, amount);
         newTokenId = IVotingEscrow(votingEscrowV2).create_lock_for(
             amount,
@@ -88,7 +90,10 @@ contract FlowConvertor is Ownable {
         );
 
         uint256 amount = uint256(int256(locked.amount)) / 1000;
-        uint256 lockDuration = locked.end - block.timestamp > MAXTIME? MAXTIME : locked.end - block.timestamp;
+        uint256 lockDuration = (locked.end - block.timestamp) / 2 <
+            MIN_LOCK_DURATION
+            ? MIN_LOCK_DURATION
+            : (locked.end - block.timestamp) / 2;
         _safeApprove(v2, votingEscrowV2, amount);
         newTokenId = IVotingEscrow(votingEscrowV2).create_lock_for(
             amount,

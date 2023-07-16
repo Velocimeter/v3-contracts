@@ -98,15 +98,61 @@ contract RedeemNftTest is BaseTest {
         assertEq(end, lockDuration);
     }
 
-    function testRedeemNftWithNewShorterMaxLock() public {
+    function testRedeemNftWithMoreThanOneWeekLock() public {
         FLOW.approve(address(escrow), 1e19);
-        uint256 lockDuration = 52 * 7 * 86400; // original max lock
+        uint256 lockDuration = 14 * 24 * 3600; // 1 week
 
+        // Balance should be zero before and 1 after creating the lock
+        assertEq(escrow.balanceOf(address(owner)), 0);
         uint256 tokenId = escrow.create_lock(1e19, lockDuration);
+        assertEq(escrow.currentTokenId(), 1);
+        assertEq(escrow.ownerOf(1), address(owner));
+        assertEq(escrow.balanceOf(address(owner)), 1);
+
         escrow.approve(address(flowConvertor), tokenId);
+        assertEq(escrow.balanceOf(address(flowConvertor)), 0);
+        assertEq(escrow_V2.balanceOf(address(owner)), 0);
         uint256 newTokenId = flowConvertor.redeemNft(tokenId);
+        assertEq(escrow.ownerOf(1), address(flowConvertor));
+        assertEq(escrow.balanceOf(address(flowConvertor)), 1);
+        assertEq(escrow_V2.currentTokenId(), 1);
+        assertEq(escrow_V2.ownerOf(1), address(owner));
+        assertEq(escrow_V2.balanceOf(address(owner)), 1);
+
+        // Test locked balance and duration
         (int256 amount, uint256 end) = escrow_V2.locked(newTokenId);
-        assertEq(end, uint256(int256(NEW_MAX_LOCK_TIME)));
+        assertEq(amount, 1e19 / 1000);
+        assertEq(end, lockDuration / 2);
+    }
+
+    function testRedeemNftWithMoreThanOneWeekLockTo() public {
+        FLOW.approve(address(escrow), 1e19);
+        uint256 lockDuration = 14 * 24 * 3600; // 1 week
+
+        // Balance should be zero before and 1 after creating the lock
+        assertEq(escrow.balanceOf(address(owner)), 0);
+        uint256 tokenId = escrow.create_lock(1e19, lockDuration);
+        assertEq(escrow.currentTokenId(), 1);
+        assertEq(escrow.ownerOf(1), address(owner));
+        assertEq(escrow.balanceOf(address(owner)), 1);
+
+        escrow.approve(address(flowConvertor), tokenId);
+        assertEq(escrow.balanceOf(address(flowConvertor)), 0);
+        assertEq(escrow_V2.balanceOf(address(owner)), 0);
+        uint256 newTokenId = flowConvertor.redeemNftTo(
+            address(owner2),
+            tokenId
+        );
+        assertEq(escrow.ownerOf(1), address(flowConvertor));
+        assertEq(escrow.balanceOf(address(flowConvertor)), 1);
+        assertEq(escrow_V2.currentTokenId(), 1);
+        assertEq(escrow_V2.ownerOf(1), address(owner2));
+        assertEq(escrow_V2.balanceOf(address(owner2)), 1);
+
+        // Test locked balance and duration
+        (int256 amount, uint256 end) = escrow_V2.locked(newTokenId);
+        assertEq(amount, 1e19 / 1000);
+        assertEq(end, lockDuration / 2);
     }
 
     // TODO: test redeem after few months
