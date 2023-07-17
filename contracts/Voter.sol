@@ -330,7 +330,11 @@ contract Voter is IVoter {
             require(isWhitelisted[tokenA] && isWhitelisted[tokenB], "!whitelisted");
         }
 
-        address _external_bribe = IBribeFactory(bribefactory).createExternalBribe(allowedRewards);
+        address _external_bribe = IPair(_pool).externalBribe();
+        
+        if(_external_bribe == address(0)) {
+          _external_bribe = IBribeFactory(bribefactory).createExternalBribe(allowedRewards); 
+        }
         address _gauge = IGaugeFactory(_gaugeFactory).createGauge(_pool, _external_bribe, _ve, isPair, allowedRewards);
 
         IERC20(base).approve(_gauge, type(uint).max);
@@ -340,6 +344,9 @@ contract Voter is IVoter {
         isGauge[_gauge] = true;
         isAlive[_gauge] = true;
         _updateFor(_gauge);
+        if(claimable[_gauge] > 0) {
+            claimable[_gauge] = 0;
+        }
         pools.push(_pool);
         if (isPair) {
             IPair(_pool).setHasGauge(true);
