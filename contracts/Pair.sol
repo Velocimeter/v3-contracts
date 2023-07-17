@@ -7,9 +7,11 @@ import 'contracts/interfaces/IPair.sol';
 import 'contracts/interfaces/IPairCallee.sol';
 import 'contracts/interfaces/IPairFactory.sol';
 import 'contracts/interfaces/IBribe.sol';
+import 'contracts/interfaces/ITurnstile.sol';
 
 // The base pair of pools, either stable or volatile
 contract Pair is IPair {
+    address public constant TURNSTILE = 0xEcf044C5B4b867CFda001101c617eCd347095B44;
 
     string public name;
     string public symbol;
@@ -96,6 +98,9 @@ contract Pair is IPair {
         decimals1 = 10**IERC20(_token1).decimals();
 
         observations.push(Observation(block.timestamp, 0, 0));
+
+        uint256 _csrNftId = IPairFactory(msg.sender).csrNftId();
+        ITurnstile(TURNSTILE).assign(_csrNftId);
     }
 
     // simple re-entrancy check

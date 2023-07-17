@@ -33,8 +33,8 @@ contract ExternalBribesTest is BaseTest {
 
         // deployVoter()
         gaugeFactory = new GaugeFactory();
-        bribeFactory = new BribeFactory();
-        voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory));
+        bribeFactory = new BribeFactory(csrNftId);
+        voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory), csrNftId);
 
         escrow.setVoter(address(voter));
         // setVoter on pairFactory. factory defined in BaseTest and we know for sure that it is deployed because of deployPairFactoryAndRouter()
@@ -43,8 +43,8 @@ contract ExternalBribesTest is BaseTest {
         deployOptionTokenWithOwner(address(owner), address(gaugeFactory));
         gaugeFactory.setOFlow(address(oFlow));
 
-        distributor = new RewardsDistributor(address(escrow));
-        minter = new Minter(address(voter), address(escrow), address(distributor));
+        distributor = new RewardsDistributor(address(escrow), csrNftId);
+        minter = new Minter(address(voter), address(escrow), address(distributor), csrNftId);
         distributor.setDepositor(address(minter));
         FLOW.setMinter(address(minter));
         address[] memory tokens = new address[](5);

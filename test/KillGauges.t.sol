@@ -37,12 +37,13 @@ contract KillGaugesTest is BaseTest {
     deployPairFactoryAndRouter();
 
     gaugeFactory = new GaugeFactory();
-    bribeFactory = new BribeFactory();
+    bribeFactory = new BribeFactory(csrNftId);
     voter = new Voter(
       address(escrow),
       address(factory),
       address(gaugeFactory),
-      address(bribeFactory)
+      address(bribeFactory),
+      csrNftId
     );
 
     escrow.setVoter(address(voter));
@@ -51,9 +52,9 @@ contract KillGaugesTest is BaseTest {
     deployPairWithOwner(address(owner));
     deployOptionTokenWithOwner(address(owner), address(gaugeFactory));
     gaugeFactory.setOFlow(address(oFlow));
-    distributor = new RewardsDistributor(address(escrow));
+    distributor = new RewardsDistributor(address(escrow), csrNftId);
 
-    minter = new Minter(address(voter), address(escrow), address(distributor));
+    minter = new Minter(address(voter), address(escrow), address(distributor), csrNftId);
     distributor.setDepositor(address(minter));
     FLOW.setMinter(address(minter));
     address[] memory tokens = new address[](4);

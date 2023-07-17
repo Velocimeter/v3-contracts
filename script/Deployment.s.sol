@@ -25,16 +25,8 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 contract Deployment is Script {
     // token addresses
     // TODO: check token address
-    address private constant OLD_FLOW =
-        0xB5b060055F0d1eF5174329913ef861bC3aDdF029;
-    address private constant OLD_SCANTO_FLOW_PAIR =
-        0x754AeD0D7A61dD3B03084d5bB8285D674D663703;
-    address payable private constant OLD_ROUTER =
-        payable(0x8e2e2f70B4bD86F82539187A634FB832398cc771);
     address private constant WCANTO =
         0x826551890Dc65655a0Aceca109aB11AbDbD7a07B;
-    address private constant LIQUID_STAKED_CANTO =
-        0x9F823D534954Fc119E31257b3dDBa0Db9E2Ff4ed;
 
     // privileged accounts
     // TODO: change these accounts!
@@ -44,7 +36,8 @@ contract Deployment is Script {
     address private constant DEPLOYER =
         0xD93142ED5B85FcA4550153088750005759CE8318;
     // TODO: set the following variables
-    uint private constant INITIAL_MINT_AMOUNT = 551753842114232799703229867 / 1000 + 1;
+    uint private constant INITIAL_MINT_AMOUNT =
+        551753842114232799703229867 / uint(1000) + 1;
     int128 private constant MAX_LOCK_TIME = 2 * 365 * 86400;
 
     function run() external {
@@ -53,19 +46,20 @@ contract Deployment is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // Flow token
-        Flow flow = new Flow(DEPLOYER, INITIAL_MINT_AMOUNT);
+        Flow flow = new Flow(DEPLOYER, INITIAL_MINT_AMOUNT, TEAM_MULTI_SIG);
+        uint256 csrNftId = flow.csrNftId();
 
         // Gauge factory
-        GaugeFactoryV3 gaugeFactory = new GaugeFactoryV3();
+        GaugeFactoryV3 gaugeFactory = new GaugeFactoryV3(csrNftId);
 
         // Bribe factory
-        BribeFactory bribeFactory = new BribeFactory();
+        BribeFactory bribeFactory = new BribeFactory(csrNftId);
 
         // Pair factory
-        PairFactory pairFactory = new PairFactory();
+        PairFactory pairFactory = new PairFactory(csrNftId);
 
         // Router
-        Router router = new Router(address(pairFactory), WCANTO);
+        Router router = new Router(address(pairFactory), WCANTO, csrNftId);
 
         // VelocimeterLibrary
         new VelocimeterLibrary(address(router));
@@ -75,12 +69,14 @@ contract Deployment is Script {
             address(flow),
             address(0),
             TEAM_MULTI_SIG,
-            MAX_LOCK_TIME
+            MAX_LOCK_TIME,
+            csrNftId
         );
 
         // RewardsDistributor
         RewardsDistributor rewardsDistributor = new RewardsDistributor(
-            address(votingEscrow)
+            address(votingEscrow),
+            csrNftId
         );
 
         // Voter
@@ -88,7 +84,8 @@ contract Deployment is Script {
             address(votingEscrow),
             address(pairFactory),
             address(gaugeFactory),
-            address(bribeFactory)
+            address(bribeFactory),
+            csrNftId
         );
 
         // Set voter
@@ -99,66 +96,14 @@ contract Deployment is Script {
         Minter minter = new Minter(
             address(voter),
             address(votingEscrow),
-            address(rewardsDistributor)
+            address(rewardsDistributor),
+            csrNftId
         );
 
         flow.transfer(
             address(TEAM_MULTI_SIG),
-            INITIAL_MINT_AMOUNT
+            INITIAL_MINT_AMOUNT - 1e18 / 1000
         );
-
-        Flow(OLD_FLOW).approve(OLD_ROUTER, 1e18);
-        uint256[] memory amounts = Router(OLD_ROUTER)
-            .swapExactTokensForTokensSimple(
-                1e18,
-                IPair(OLD_SCANTO_FLOW_PAIR).getAmountOut(1e18, OLD_FLOW),
-                OLD_FLOW,
-                LIQUID_STAKED_CANTO,
-                false,
-                DEPLOYER,
-                block.timestamp
-            );
-        flow.approve(address(router), 1e18);
-        router.addLiquidity(
-            LIQUID_STAKED_CANTO,
-            address(flow),
-            false,
-            amounts[0],
-            1e18 / 1000, // Conversion ratio
-            0,
-            0,
-            DEPLOYER,
-            block.timestamp
-        );
-
-        // Option to buy Flow
-        OptionTokenV2 oFlow = new OptionTokenV2(
-            "Option to buy FLOW", // name
-            "oFLOW", // symbol
-            TEAM_MULTI_SIG, // admin
-            LIQUID_STAKED_CANTO, // payment token
-            address(flow), // underlying token
-            IPair(
-                pairFactory.getPair(address(flow), LIQUID_STAKED_CANTO, false)
-            ), // pair
-            address(gaugeFactory), // gauge factory
-            TEAM_MULTI_SIG, // treasury
-            address(voter),
-            address(votingEscrow),
-            address(router)
-        );
-
-        // NOTE: comment this out to emit liquid FLOW
-        gaugeFactory.setOFlow(address(oFlow));
-
-        // Create gauge for flowWftm pair
-        voter.createGauge(
-            pairFactory.getPair(address(flow), LIQUID_STAKED_CANTO, false),
-            0
-        );
-
-        // Update gauge in Option Token contract
-        oFlow.updateGauge();
 
         // Set flow minter to contract
         flow.setMinter(address(minter));
@@ -184,13 +129,6 @@ contract Deployment is Script {
 
         // Set rewards distributor's depositor to minter contract
         rewardsDistributor.setDepositor(address(minter));
-
-        // Initialize tokens for voter
-        address[] memory whitelistedTokens = new address[](3);
-        whitelistedTokens[0] = address(flow);
-        whitelistedTokens[1] = WCANTO;
-        whitelistedTokens[2] = address(oFlow);
-        voter.initialize(whitelistedTokens, address(minter));
 
         vm.stopBroadcast();
     }

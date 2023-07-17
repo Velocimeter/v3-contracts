@@ -255,8 +255,8 @@ contract PairTest is BaseTest {
 
     function deployVoter() public {
         gaugeFactory = new GaugeFactory();
-        bribeFactory = new BribeFactory();
-        voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory));
+        bribeFactory = new BribeFactory(csrNftId);
+        voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory), csrNftId);
 
         escrow.setVoter(address(voter));
         factory.setVoter(address(voter));
@@ -266,9 +266,9 @@ contract PairTest is BaseTest {
     function deployMinter() public {
         routerAddLiquidity();
 
-        distributor = new RewardsDistributor(address(escrow));
+        distributor = new RewardsDistributor(address(escrow), csrNftId);
 
-        minter = new Minter(address(voter), address(escrow), address(distributor));
+        minter = new Minter(address(voter), address(escrow), address(distributor), csrNftId);
         distributor.setDepositor(address(minter));
         FLOW.setMinter(address(minter));
         address[] memory tokens = new address[](5);

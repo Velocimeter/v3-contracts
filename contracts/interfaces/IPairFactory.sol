@@ -11,4 +11,5 @@ interface IPairFactory {
     function createPair(address tokenA, address tokenB, bool stable) external returns (address pair);
     function voter() external view returns (address);
     function tank() external view returns (address);
+    function csrNftId() external view returns (uint256);
 }

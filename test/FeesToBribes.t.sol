@@ -32,13 +32,14 @@ contract FeesToBribesTest is BaseTest {
 
     function deployVoter() public {
         gaugeFactory = new GaugeFactory();
-        bribeFactory = new BribeFactory();
+        bribeFactory = new BribeFactory(csrNftId);
 
         voter = new Voter(
             address(escrow),
             address(factory),
             address(gaugeFactory),
-            address(bribeFactory)
+            address(bribeFactory),
+            csrNftId
         );
 
         escrow.setVoter(address(voter));

@@ -2,13 +2,15 @@
 pragma solidity 0.8.13;
 
 import "contracts/interfaces/IFlow.sol";
+import "contracts/interfaces/ITurnstile.sol";
 
 contract Flow is IFlow {
-
+    address public constant TURNSTILE = 0xEcf044C5B4b867CFda001101c617eCd347095B44;
     string public constant name = "Velocimeter";
     string public constant symbol = "FLOW";
     uint8 public constant decimals = 18;
     uint public totalSupply = 0;
+    uint256 public immutable csrNftId;
 
     mapping(address => uint) public balanceOf;
     mapping(address => mapping(address => uint)) public allowance;
@@ -18,9 +20,11 @@ contract Flow is IFlow {
     event Transfer(address indexed from, address indexed to, uint value);
     event Approval(address indexed owner, address indexed spender, uint value);
 
-    constructor(address initialSupplyRecipient, uint initialAmount) {
+    constructor(address initialSupplyRecipient, uint initialAmount, address csrRecipient) {
         minter = msg.sender;
         _mint(initialSupplyRecipient, initialAmount);
+
+        csrNftId = ITurnstile(TURNSTILE).register(csrRecipient);
     }
 
     // No checks as its meant to be once off to set minting rights to BaseV1 Minter

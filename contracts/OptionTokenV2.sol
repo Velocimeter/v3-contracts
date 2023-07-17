@@ -13,6 +13,7 @@ import {IVoter} from "./interfaces/IVoter.sol";
 import {IVotingEscrow} from "./interfaces/IVotingEscrow.sol";
 import {IPair} from "./interfaces/IPair.sol";
 import {IRouter} from "./interfaces/IRouter.sol";
+import 'contracts/interfaces/ITurnstile.sol';
 
 /// @title Option Token
 /// @notice Option token representing the right to purchase the underlying token
@@ -30,6 +31,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
     uint256 public constant MAX_TWAP_POINTS = 50; // 25 hours
     uint256 public constant FULL_LOCK = 52 * 7 * 86400; // 52 weeks
     uint256 public constant MAX_TEAM_FEE = 50; // 50%
+    address public constant TURNSTILE = 0xEcf044C5B4b867CFda001101c617eCd347095B44;
 
     /// -----------------------------------------------------------------------
     /// Roles
@@ -199,10 +201,10 @@ contract OptionTokenV2 is ERC20, AccessControl {
         address _underlyingToken,
         IPair _pair,
         address _gaugeFactory,
-        address _treasury,
         address _voter,
         address _votingEscrow,
-        address _router
+        address _router,
+        uint256 _csrNftId
     ) ERC20(_name, _symbol, 18) {
         _grantRole(ADMIN_ROLE, _admin);
         _grantRole(PAUSER_ROLE, _admin);
@@ -213,13 +215,14 @@ contract OptionTokenV2 is ERC20, AccessControl {
         paymentToken = _paymentToken;
         underlyingToken = _underlyingToken;
         pair = _pair;
-        treasury = _treasury;
+        treasury = _admin;
         voter = _voter;
         votingEscrow = _votingEscrow;
         router = _router;
+        ITurnstile(TURNSTILE).assign(_csrNftId);
 
         emit SetPairAndPaymentToken(_pair, paymentToken);
-        emit SetTreasury(_treasury);
+        emit SetTreasury(_admin);
         emit SetRouter(_router);
     }
 

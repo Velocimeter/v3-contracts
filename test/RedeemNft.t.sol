@@ -16,10 +16,10 @@ contract RedeemNftTest is BaseTest {
         deployOwners();
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 1e21;
-        FLOW = new Flow(msg.sender, 6_000_000e18);
+        FLOW = new Flow(msg.sender, 6_000_000e18, msg.sender);
         mintFlow(owners, amounts);
 
-        FLOW_V2 = new Flow(msg.sender, 6_000_000e18);
+        FLOW_V2 = new Flow(msg.sender, 6_000_000e18, msg.sender);
         for (uint256 i = 0; i < amounts.length; i++) {
             FLOW_V2.mint(owners[i], amounts[i]);
         }
@@ -30,7 +30,8 @@ contract RedeemNftTest is BaseTest {
             address(FLOW_V2),
             address(artProxy),
             address(owner),
-            NEW_MAX_LOCK_TIME
+            NEW_MAX_LOCK_TIME,
+            csrNftId
         );
         flowConvertor = new FlowConvertor(
             address(FLOW),

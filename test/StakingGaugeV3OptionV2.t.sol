@@ -51,7 +51,7 @@ contract StakingGaugeV3OptionV2 is BaseTest {
     function deployFactory(bool oFlowSet) public {
         createLock3();
 
-        gaugeFactory = new GaugeFactoryV3();
+        gaugeFactory = new GaugeFactoryV3(csrNftId);
         deployOptionTokenV2WithOwner(address(owner), address(gaugeFactory), address(voter), address(escrow));
         if (oFlowSet) {
             gaugeFactory.setOFlow(address(oFlowV2));

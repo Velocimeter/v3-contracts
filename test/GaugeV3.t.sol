@@ -25,9 +25,9 @@ contract GaugeV3Test is BaseTest {
 
         deployPairFactoryAndRouter();
 
-        gaugeFactory = new GaugeFactoryV3();
-        bribeFactory = new BribeFactory();
-        voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory));
+        gaugeFactory = new GaugeFactoryV3(csrNftId);
+        bribeFactory = new BribeFactory(csrNftId);
+        voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory), csrNftId);
         factory.setVoter(address(voter));
 
         address[] memory tokens = new address[](4);

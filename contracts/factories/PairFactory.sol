@@ -5,8 +5,11 @@ import 'contracts/interfaces/IPairFactory.sol';
 import 'contracts/interfaces/IVoter.sol';
 import 'contracts/Pair.sol';
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
+import 'contracts/interfaces/ITurnstile.sol';
 
 contract PairFactory is IPairFactory, Ownable {
+    address public constant TURNSTILE = 0xEcf044C5B4b867CFda001101c617eCd347095B44;
+    uint256 public immutable csrNftId;
 
     bool public isPaused;
     uint256 public stableFee;
@@ -32,10 +35,12 @@ contract PairFactory is IPairFactory, Ownable {
 
     event FeeSet(address indexed setter, bool stable, uint256 fee);
 
-    constructor() {
+    constructor(uint256 _csrNftId) {
         stableFee = 3; // 0.03%
         volatileFee = 25; // 0.25%
         deployer = msg.sender;
+        ITurnstile(TURNSTILE).assign(_csrNftId);
+        csrNftId = _csrNftId;
     }
 
     function setVoter(address _voter) external {

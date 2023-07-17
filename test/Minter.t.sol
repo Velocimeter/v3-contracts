@@ -26,8 +26,8 @@ contract MinterTest is BaseTest {
         deployPairFactoryAndRouter();
 
         gaugeFactory = new GaugeFactory();
-        bribeFactory = new BribeFactory();
-        voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory));
+        bribeFactory = new BribeFactory(csrNftId);
+        voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory), csrNftId);
 
         factory.setVoter(address(voter));
         deployPairWithOwner(address(owner));
@@ -40,10 +40,10 @@ contract MinterTest is BaseTest {
         voter.initialize(tokens, address(owner));
         FLOW.approve(address(escrow), TOKEN_1);
         escrow.create_lock(TOKEN_1, FIFTY_TWO_WEEKS);
-        distributor = new RewardsDistributor(address(escrow));
+        distributor = new RewardsDistributor(address(escrow), csrNftId);
         escrow.setVoter(address(voter));
 
-        minter = new Minter(address(voter), address(escrow), address(distributor));
+        minter = new Minter(address(voter), address(escrow), address(distributor), csrNftId);
         distributor.setDepositor(address(minter));
         FLOW.setMinter(address(minter));
 

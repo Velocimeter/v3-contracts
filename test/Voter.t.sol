@@ -40,13 +40,14 @@ contract VoterTest is BaseTest {
 
     function deployVoter() public {
         gaugeFactory = new GaugeFactory();
-        bribeFactory = new BribeFactory();
+        bribeFactory = new BribeFactory(csrNftId);
 
         voter = new Voter(
             address(escrow),
             address(factory),
             address(gaugeFactory),
-            address(bribeFactory)
+            address(bribeFactory),
+            csrNftId
         );
 
         escrow.setVoter(address(voter));
@@ -216,7 +217,8 @@ contract VoterTest is BaseTest {
         rewards[1] = address(FRAX);
         ExternalBribe newExternalBribe = new ExternalBribe(
             address(voter),
-            rewards
+            rewards,
+            csrNftId
         );
         vm.expectEmit(true, true, false, true);
         emit ExternalBribeSet(address(this), gaugeAddress, address(newExternalBribe));
@@ -268,7 +270,8 @@ contract VoterTest is BaseTest {
         rewards[1] = address(FRAX);
         ExternalBribe newExternalBribe = new ExternalBribe(
             address(voter),
-            rewards
+            rewards,
+            csrNftId
         );
 
         vm.startPrank(address(0x03));

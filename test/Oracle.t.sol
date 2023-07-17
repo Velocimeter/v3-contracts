@@ -11,8 +11,8 @@ contract OracleTest is BaseTest {
 
     function deployVoter() public {
         gaugeFactory = new GaugeFactory();
-        bribeFactory = new BribeFactory();
-        voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory));
+        bribeFactory = new BribeFactory(csrNftId);
+        voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory), csrNftId);
 
         escrow.setVoter(address(voter));
         factory.setVoter(address(voter));

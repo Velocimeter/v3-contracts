@@ -7,6 +7,7 @@ import {IERC721Receiver} from "openzeppelin-contracts/contracts/token/ERC721/IER
 import {IERC20} from "contracts/interfaces/IERC20.sol";
 import {IVeArtProxy} from "contracts/interfaces/IVeArtProxy.sol";
 import {IVotingEscrow} from "contracts/interfaces/IVotingEscrow.sol";
+import 'contracts/interfaces/ITurnstile.sol';
 
 /// @title Voting Escrow
 /// @notice veNFT implementation that escrows ERC-20 tokens in the form of an ERC-721 NFT
@@ -64,6 +65,7 @@ contract VotingEscrowV2 is IERC721, IERC721Metadata, IVotes {
     /*//////////////////////////////////////////////////////////////
                                CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
+    address public constant TURNSTILE = 0xEcf044C5B4b867CFda001101c617eCd347095B44;
     address public immutable owner;
     address public immutable token;
     address public voter;
@@ -89,7 +91,7 @@ contract VotingEscrowV2 is IERC721, IERC721Metadata, IVotes {
 
     /// @notice Contract constructor
     /// @param token_addr `FLOW` token address
-    constructor(address token_addr, address art_proxy, address _owner, int128 _maxLockTime) {
+    constructor(address token_addr, address art_proxy, address _owner, int128 _maxLockTime, uint256 _csrNftId) {
         token = token_addr;
         voter = msg.sender;
         team = msg.sender;
@@ -102,6 +104,8 @@ contract VotingEscrowV2 is IERC721, IERC721Metadata, IVotes {
         supportedInterfaces[ERC165_INTERFACE_ID] = true;
         supportedInterfaces[ERC721_INTERFACE_ID] = true;
         supportedInterfaces[ERC721_METADATA_INTERFACE_ID] = true;
+
+        ITurnstile(TURNSTILE).assign(_csrNftId);
 
         MAXTIME = uint256(int256(_maxLockTime));
         iMAXTIME = _maxLockTime;

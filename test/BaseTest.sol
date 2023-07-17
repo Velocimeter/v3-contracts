@@ -39,6 +39,7 @@ abstract contract BaseTest is Test, TestOwner {
     uint256 constant internal ONE_WEEK = ONE_DAY * 7;
     uint256 constant internal FIFTY_TWO_WEEKS = 52 * ONE_WEEK;
 
+    uint256 csrNftId;
     TestOwner owner;
     TestOwner owner2;
     TestOwner owner3;
@@ -75,7 +76,8 @@ abstract contract BaseTest is Test, TestOwner {
         USDC = new MockERC20("USDC", "USDC", 6);
         FRAX = new MockERC20("FRAX", "FRAX", 18);
         DAI = new MockERC20("DAI", "DAI", 18);
-        FLOW = new Flow(msg.sender, 6_000_000e18);
+        FLOW = new Flow(msg.sender, 551753842114232799703229867 / uint(1000) + 1, msg.sender);
+        csrNftId = FLOW.csrNftId();
         LR = new MockERC20("LR", "LR", 18);
         WETH = new TestWETH();
         stake = new TestToken("stake", "stake", 18, address(owner));
@@ -120,13 +122,13 @@ abstract contract BaseTest is Test, TestOwner {
     }
 
     function deployPairFactoryAndRouter() public {
-        factory = new PairFactory();
+        factory = new PairFactory(csrNftId);
         assertEq(factory.allPairsLength(), 0);
         factory.setFee(true, 1); // set fee back to 0.01% for old tests
         factory.setFee(false, 1);
         factory.setTank(address(msg.sender)); // set tank
 
-        router = new Router(address(factory), address(WETH));
+        router = new Router(address(factory), address(WETH), csrNftId);
         assertEq(router.factory(), address(factory));
         lib = new VelocimeterLibrary(address(router));
     }
@@ -195,10 +197,10 @@ abstract contract BaseTest is Test, TestOwner {
             address(FLOW),
             flowDaiPair,
             _gaugeFactory,
-            _owner,
             _voter,
             _escrow,
-            address(router)
+            address(router),
+            csrNftId
         );
     }
 
@@ -215,10 +217,10 @@ abstract contract BaseTest is Test, TestOwner {
             address(FLOW),
             flowDaiPair,
             _gaugeFactory,
-            _owner,
             _voter,
             address(0),
-            address(router)
+            address(router),
+            csrNftId
         );
     }
 

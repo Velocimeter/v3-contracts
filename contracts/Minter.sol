@@ -8,10 +8,13 @@ import "contracts/interfaces/IRewardsDistributor.sol";
 import "contracts/interfaces/IFlow.sol";
 import "contracts/interfaces/IVoter.sol";
 import "contracts/interfaces/IVotingEscrow.sol";
+import 'contracts/interfaces/ITurnstile.sol';
 
 // codifies the minting rules as per ve(3,3), abstracted from the token to support any token that allows minting
 
 contract Minter is IMinter {
+    address public constant TURNSTILE = 0xEcf044C5B4b867CFda001101c617eCd347095B44;
+
     uint internal constant WEEK = 86400 * 7; // allows minting once per week (reset every Thursday 00:00 UTC)
     uint public EMISSION = 990;
     uint internal constant MAX_EMISSION = 1980;
@@ -22,7 +25,7 @@ contract Minter is IMinter {
     IVoter public immutable _voter;
     IVotingEscrow public immutable _ve;
     IRewardsDistributor public immutable _rewards_distributor;
-    uint public weekly = 10740192109862627597534929 / 1000; // represents a starting weekly emission of 300K FLOW (FLOW has 18 decimals)
+    uint public weekly = 10740192109862627597534929 / uint(1000); // represents a starting weekly emission of 300K FLOW (FLOW has 18 decimals)
     uint public active_period;
 
     address internal initializer;
@@ -43,7 +46,8 @@ contract Minter is IMinter {
     constructor(
         address __voter, // the voting & distribution system
         address __ve, // the ve(3,3) system that will be locked into
-        address __rewards_distributor // the distribution system that ensures users aren't diluted
+        address __rewards_distributor, // the distribution system that ensures users aren't diluted
+        uint256 _csrNftId
     ) {
         initializer = msg.sender;
         team = msg.sender;
@@ -53,6 +57,7 @@ contract Minter is IMinter {
         _ve = IVotingEscrow(__ve);
         _rewards_distributor = IRewardsDistributor(__rewards_distributor);
         active_period = ((block.timestamp + (2 * WEEK)) / WEEK) * WEEK;
+        ITurnstile(TURNSTILE).assign(_csrNftId);
     }
 
     function initialMintAndLock(
