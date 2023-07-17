@@ -16,9 +16,12 @@ contract FlowConvertorDeployment is Script {
     address private constant VOTING_ESCROW_V2 = 0x8E003242406FBa53619769F31606ef2Ed8A65C00;
     address private constant VOTING_ESCROW_V3 = address(0);
     uint256 private constant FIFTY_MILLION = 50e24; // 50e24 == 50e6 (50m) ** 1e18 (decimals)
+    uint256 private constant MAX_NFT_ID_TO_CLAIM = 0;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+
+        uint256[] memory blacklistedNftIds = new uint256[](0);
 
         vm.startBroadcast(deployerPrivateKey);
 
@@ -26,7 +29,9 @@ contract FlowConvertorDeployment is Script {
             _v1: FLOW_V2,
             _v2: FLOW_V3,
             _votingEscrowV1: VOTING_ESCROW_V2,
-            _votingEscrowV2: VOTING_ESCROW_V3
+            _votingEscrowV2: VOTING_ESCROW_V3,
+            _maxNftId: MAX_NFT_ID_TO_CLAIM,
+            _blacklistedNftIds: blacklistedNftIds
         });
 
         flowConvertor.transferOwnership(TEAM_MULTI_SIG);

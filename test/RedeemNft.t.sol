@@ -33,11 +33,15 @@ contract RedeemNftTest is BaseTest {
             NEW_MAX_LOCK_TIME,
             csrNftId
         );
+
+        uint256[] memory blacklistedNftIds = new uint256[](0);
         flowConvertor = new FlowConvertor(
             address(FLOW),
             address(FLOW_V2),
             address(escrow),
-            address(escrow_V2)
+            address(escrow_V2),
+            3,
+            blacklistedNftIds
         );
         FLOW_V2.transfer(address(flowConvertor), amounts[0] / 2);
     }
