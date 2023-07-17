@@ -15,18 +15,21 @@ contract FlowConvertor is Ownable {
     address public immutable v2;
     address public immutable votingEscrowV1;
     address public immutable votingEscrowV2;
+    uint256 public immutable maxNftId;
     uint256 public constant MIN_LOCK_DURATION = 1 weeks;
 
     constructor(
         address _v1,
         address _v2,
         address _votingEscrowV1,
-        address _votingEscrowV2
+        address _votingEscrowV2,
+        uint256 _maxNftId
     ) {
         v1 = _v1;
         v2 = _v2;
         votingEscrowV1 = _votingEscrowV1;
         votingEscrowV2 = _votingEscrowV2;
+        maxNftId = _maxNftId;
     }
 
     /**
@@ -51,6 +54,7 @@ contract FlowConvertor is Ownable {
      * @dev Transfers V1 NFT from user to contract, and create NFT v2 to user, 1 to 1.
      */
     function redeemNft(uint256 tokenId) public returns (uint256 newTokenId) {
+        require(tokenId <= maxNftId, "exceed maxNftId");
         IVotingEscrow.LockedBalance memory locked = IVotingEscrow(
             votingEscrowV1
         ).locked(tokenId);
@@ -80,6 +84,7 @@ contract FlowConvertor is Ownable {
         address _to,
         uint256 tokenId
     ) public returns (uint256 newTokenId) {
+        require(tokenId <= maxNftId, "exceed maxNftId");
         IVotingEscrow.LockedBalance memory locked = IVotingEscrow(
             votingEscrowV1
         ).locked(tokenId);
