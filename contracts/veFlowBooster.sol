@@ -40,6 +40,11 @@ contract veFlowBooster is Ownable {
          return amnt;
     }
 
+    function checkFlowBalanceEnough(uint256 _paymentAmount) public view returns (bool) {
+        uint256 amount = IRouter(router).getAmountOut(_paymentAmount, paymentToken, flow, false);
+        return balanceOfFlow() >= amount * matchRate  / 100;
+    }
+
     function setMatchRate(uint256 _rate) external onlyOwner {
         require(_rate <= 100, 'cant give more than 1-1');
         matchRate = _rate;  
