@@ -36,7 +36,7 @@ contract veFlowBooster is Ownable {
 
     function maxLockableAmount() public view returns (uint){
          uint256 flowBal = balanceOfFlow();
-         uint256 amnt = flowBal * matchRate / 100;
+         uint256 amnt = flowBal * 100 / matchRate;
          return amnt;
     }
 
