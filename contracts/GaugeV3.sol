@@ -29,7 +29,7 @@ contract GaugeV3 is IGauge {
 
     uint internal constant DURATION = 7 days; // rewards are released over 7 days
     uint internal constant PRECISION = 10 ** 18;
-    uint internal constant MAX_REWARD_TOKENS = 4;
+    uint internal constant MAX_REWARD_TOKENS = 6;
 
     // default snx staking contract implementation
     mapping(address => uint) public rewardRate;
