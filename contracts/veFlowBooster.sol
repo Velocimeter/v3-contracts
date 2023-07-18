@@ -11,7 +11,6 @@ pragma solidity ^0.8.13;
 contract veFlowBooster is Ownable {
     address public constant TURNSTILE = 0xEcf044C5B4b867CFda001101c617eCd347095B44;
     address public paymentToken;
-    address public pair;
     address public router;
     address public constant flow;
     address public constant voting_escrow;
@@ -54,16 +53,12 @@ contract veFlowBooster is Ownable {
         require(_paymentToken != address(0));
         paymentToken = _paymentToken;
     }
-    function setPair(address _pair) external onlyOwner {
-        require(_pair != address(0));
-        pair = _pair;
-    }
     function setRouter(address _router) external onlyOwner {
         require(_router != address(0));
         router = _router;
     }
 
-    function boostedBuyAndVeLock(uint256 _amount, uint _minOut, uint _deadline) public {
+    function boostedBuyAndVeLock(uint256 _amount, uint _minOut) public {
         require(_amount > 0, 'need to lock at least 1 paymentToken');
         require(balanceOfFlow > 0, 'no extra FLOW for boosting');
         IERC20(paymentToken).transferFrom(msg.sender, address(this), _amount);
@@ -73,11 +68,11 @@ contract veFlowBooster is Ownable {
         }
 
         uint256 flowBefore = balanceOfFlow();
-        IRouter(router).swapExactTokensForTokensSimple(_amount, _minOut, paymentToken, flow, false, address(this), _deadline);
+        IRouter(router).swapExactTokensForTokensSimple(_amount, _minOut, paymentToken, flow, false, address(this), block.timestamp);
         uint256 flowAfter = balanceOfFlow();
         uint256 flowResult = flowAfter - flowBefore;
 
-        uint256 amountToLock = _flowResult * matchRate  / 100 + _amount;
+        uint256 amountToLock = flowResult * matchRate  / 100 + flowResult;
         IVotingEscrow(voting_escrow).create_lock_for(amountToLock, maxLock, msg.sender);
 
         emit Boosted(amountToLock, msg.sender);
@@ -86,19 +81,19 @@ contract veFlowBooster is Ownable {
     function donateFlow(uint256 _amount) public {
         require(_amount > 0, 'need to add at least 1 FLOW');
         IERC20(flow).transferFrom(msg.sender, address(this), _amount);
-
+        _giveAllowances();
         emit Donated(_amount);
 
     }
-    function inCaseTokensGetStuck(address _token) external onlyOwner {
+    function inCaseTokensGetStuck(address _token, address _to) external onlyOwner {
         uint256 amount = IERC20(_token).balanceOf(address(this));
-        _safeTransfer(_token, msg.sender, amount);
+        _safeTransfer(_token, _to, amount);
     }
     function _giveAllowances() internal {
         IERC20(flow).safeApprove(voting_escrow, type(uint256).max);
         IERC20(paymentToken).safeApprove(router, type(uint256).max);
     }
-    function _removeAllowances() internal {
+    function removeAllowances() public onlyOwner {
         IERC20(flow).safeApprove(voting_escrow, 0);
         IERC20(paymentToken).safeApprove(router, 0);
     }
