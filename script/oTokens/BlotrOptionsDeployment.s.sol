@@ -2,9 +2,9 @@
 pragma solidity 0.8.13;
 
 // Scripting tool
-import {Script} from "../lib/forge-std/src/Script.sol";
-import {OptionTokenV2} from "../contracts/OptionTokenV2.sol";
-import {IPair} from "../contracts/interfaces/IPair.sol";
+import {Script} from "../../lib/forge-std/src/Script.sol";
+import {OptionTokenV2} from "../../contracts/OptionTokenV2.sol";
+import {IPair} from "../../contracts/interfaces/IPair.sol";
 
 contract BlotrOptionsDeployment is Script {
     // TODO: set variables
@@ -60,6 +60,8 @@ contract BlotrOptionsDeployment is Script {
 
         oBLOTR.setLockDurationForMinLpDiscount(604800);
         oBLOTR.setLockDurationForMaxLpDiscount(5260000);
+
+        oBLOTR.updateGauge();
         
         vm.stopBroadcast();
     }
