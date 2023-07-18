@@ -70,7 +70,6 @@ The Velodrome team engaged with Code 4rena for a security review. The results of
       
       "contractName": "OptionTokenV2",
       "contractAddress": "0xF9EDdca6B1e548B0EC8cDDEc131464F462b8310D",
-      
           
       
 

@@ -232,3 +232,4 @@ contract AutoBribe is Ownable {
         require(success && (data.length == 0 || abi.decode(data, (bool))));
     }
 }
+

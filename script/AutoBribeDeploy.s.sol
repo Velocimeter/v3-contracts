@@ -12,7 +12,7 @@ contract AutoBribeDeploy is Script {
     address private constant EOA = 0xcC06464C7bbCF81417c08563dA2E1847c22b703a;
 
     // xx_wrapped_bribe contracts
-    address private constant skull_wftm = 0x53b063a0D87119A9e397ff6910EBd3c7e2Ad06E9;
+    address private constant skull_wftm = 0x53b063a0D87119A9e397ff6910EBd3c7e2Ad06E9; // deployed at 0xaBAFBFb0f35e05B82E85d8B53d66EB7889a2e56c
 
 
     //TODO: these should be set BEFORE run()
@@ -31,12 +31,13 @@ contract AutoBribeDeploy is Script {
             name
         );
 
-        // autoBribe.initProject(PROJECT);
+        autoBribe.initProject(PROJECT);
         // autoBribe.transferOwnership(TEAM_MULTI_SIG);
 
         vm.stopBroadcast();
     }
 }
 
+// forge script script/AutoBribeDeploy.s.sol:AutoBribeDeploy --rpc-url https://fantom.blockpi.network/v1/rpc/public --verify --verifier-url https://api.ftmscan.com/api --etherscan-api-key X74XSCKQQ8UCZ1VQSV6GHC516S3E4UKDU3
 
 
