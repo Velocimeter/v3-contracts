@@ -78,7 +78,7 @@ contract veFlowBooster is Ownable {
         uint256 flowResult = flowAfter - flowBefore;
 
         uint256 amountToLock = _flowResult * matchRate  / 100 + _amount;
-        IVotingEscrow(voting_escrow).create_lock_for(amountToLock, FOUR_YEARS, msg.sender);
+        IVotingEscrow(voting_escrow).create_lock_for(amountToLock, maxLock, msg.sender);
 
         emit Boosted(amountToLock, msg.sender);
     }
