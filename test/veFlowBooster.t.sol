@@ -67,7 +67,7 @@ contract veFlowBoosterTest is BaseTest {
         
         (int128 amount,uint256 duration) =  escrow.locked(maxNFT + 1);
 
-        assertEq(daiBalanceAfter - daiBalanceAfter, TOKEN_1);
+        assertEq(daiBalanceAfter - daiBalanceBefore, TOKEN_1);
         assertEq(amount,999933331111037034);
         assertEq(duration,9676800);
     }
