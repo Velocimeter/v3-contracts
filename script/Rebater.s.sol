@@ -23,6 +23,7 @@ contract Rebater is Script {
     address constant MintTankAddy = 0x14Dc007573Ac5dCC94410bc29DCBb4923e54C69d;
     uint256 constant FULL_LOCK = 52 * 7 * 86400;
     address constant MSIG = 0x88Dec6df03C2C111Efd4ad89Cef2c0347034AFC0;
+    address constant PVOP = 0xcC06464C7bbCF81417c08563dA2E1847c22b703a;
 
 
     function run () external {
