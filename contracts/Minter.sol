@@ -25,7 +25,7 @@ contract Minter is IMinter {
     IVoter public immutable _voter;
     IVotingEscrow public immutable _ve;
     IRewardsDistributor public immutable _rewards_distributor;
-    uint public weekly = 10740192109862627597534929 / uint(1000); // represents a starting weekly emission of 300K FLOW (FLOW has 18 decimals)
+    uint public weekly = 10632790188764001321559579 / uint(1000); // represents a starting weekly emission of 300K FLOW (FLOW has 18 decimals)
     uint public active_period;
 
     address internal initializer;
