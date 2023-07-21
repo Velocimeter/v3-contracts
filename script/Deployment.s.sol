@@ -107,9 +107,6 @@ contract Deployment is Script {
         // Transfer pairfactory ownership to MSIG (team)
         pairFactory.transferOwnership(TEAM_MULTI_SIG);
 
-        // Transfer gaugefactory ownership to MSIG (team)
-        gaugeFactory.transferOwnership(TEAM_MULTI_SIG);
-
         // Set voter's emergency council
         voter.setEmergencyCouncil(TEAM_MULTI_SIG);
 
