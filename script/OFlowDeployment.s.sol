@@ -6,7 +6,7 @@ import {Script} from "../lib/forge-std/src/Script.sol";
 import {IFlow} from "../contracts/interfaces/IFlow.sol";
 import {IPair} from "../contracts/interfaces/IPair.sol";
 import {Flow} from "../contracts/Flow.sol";
-import {OptionTokenV2} from "../contracts/OptionTokenV2.sol";
+import {OptionTokenV3} from "../contracts/OptionTokenV3.sol";
 import {GaugeFactoryV3} from "../contracts/factories/GaugeFactoryV3.sol";
 import {BribeFactory} from "../contracts/factories/BribeFactory.sol";
 import {PairFactory} from "../contracts/factories/PairFactory.sol";
@@ -55,7 +55,7 @@ contract OFlowDeployment is Script {
         );
 
         // Option to buy Flow
-        OptionTokenV2 oFlow = new OptionTokenV2(
+        OptionTokenV3 oFlow = new OptionTokenV3(
             "Option to buy FLOW", // name
             "oFLOW", // symbol
             TEAM_MULTI_SIG, // admin

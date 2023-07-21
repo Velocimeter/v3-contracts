@@ -144,7 +144,7 @@ contract OptionTokenV3 is ERC20, AccessControl {
     uint256 public  minLPDiscount = 80; //  User pays 80%
 
     /// @notice the discount given during exercising. 30 = user pays 30%
-    uint256 public discount = 90; // User pays 90%
+    uint256 public discount = 99; // User pays 90%
 
     /// @notice the discount for locking to veFLOW
     uint256 public veDiscount = 10; // User pays 10%
