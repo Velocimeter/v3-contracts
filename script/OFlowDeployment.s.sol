@@ -3,6 +3,7 @@ pragma solidity 0.8.13;
 
 // Scripting tool
 import {Script} from "../lib/forge-std/src/Script.sol";
+import {IERC20} from "../contracts/interfaces/IERC20.sol";
 import {IFlow} from "../contracts/interfaces/IFlow.sol";
 import {IPair} from "../contracts/interfaces/IPair.sol";
 import {Flow} from "../contracts/Flow.sol";
@@ -57,6 +58,7 @@ contract OFlowDeployment is Script {
                 DEPLOYER,
                 block.timestamp
             );
+        IERC20().approve(LIQUID_STAKED_CANTO, amounts[0]);
         Flow(NEW_FLOW).approve(NEW_ROUTER, 1e18 / 1000);
         Router(NEW_ROUTER).addLiquidity(
             LIQUID_STAKED_CANTO,
