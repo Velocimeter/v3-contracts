@@ -21,7 +21,7 @@ import {IRouter} from "./interfaces/IRouter.sol";
 /// @dev Assumes the underlying token and the payment token both use 18 decimals and revert on
 // failure to transfer.
 
-contract OptionTokenV2 is ERC20, AccessControl {
+contract OptionTokenV3 is ERC20, AccessControl {
     /// -----------------------------------------------------------------------
     /// Constants
     /// -----------------------------------------------------------------------
@@ -29,7 +29,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
     uint256 public constant MIN_DISCOUNT = 0; // 0%
     uint256 public constant MAX_TWAP_POINTS = 50; // 25 hours
     uint256 public constant FULL_LOCK = 52 * 7 * 86400; // 52 weeks
-    uint256 public constant MAX_TEAM_FEE = 50; // 50%
+    uint256 public constant MAX_FEES = 50; // 50%
 
     /// -----------------------------------------------------------------------
     /// Roles
@@ -54,7 +54,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
     error OptionToken_SlippageTooHigh();
     error OptionToken_InvalidDiscount();
     error OptionToken_InvalidLockDuration();
-    error OptionToken_InvalidTeamFee();
+    error OptionToken_InvalidFee();
     error OptionToken_Paused();
     error OptionToken_InvalidTwapPoints();
     error OptionToken_IncorrectPairToken();
@@ -88,8 +88,8 @@ contract OptionTokenV2 is ERC20, AccessControl {
         address indexed newPaymentToken
     );
     event SetGauge(address indexed newGauge);
-    event SetTreasury(address indexed newTreasury);
-    event SetTeamFee(uint256 newFee);
+    event SetTreasury(address indexed newTreasury,address indexed newVMTreasury);
+    event SetFees(uint256 newTeamFee,uint256 newVMFee);
     event SetRouter(address indexed newRouter);
     event SetDiscount(uint256 discount);
     event SetVeDiscount(uint256 veDiscount);
@@ -136,6 +136,9 @@ contract OptionTokenV2 is ERC20, AccessControl {
     /// @notice The treasury address which receives tokens paid during redemption
     address public treasury;
 
+    /// @notice The VM address which receives tokens paid during redemption
+    address public vmTreasury;
+
     /// @notice the discount given during exercising with locking to the LP
     uint256 public  maxLPDiscount = 20; //  User pays 20%
     uint256 public  minLPDiscount = 80; //  User pays 80%
@@ -153,7 +156,10 @@ contract OptionTokenV2 is ERC20, AccessControl {
     uint256 public lockDurationForMinLpDiscount = 7 * 86400; // 1 week
 
     /// @notice
-    uint256 public teamFee = 10; // 10%
+    uint256 public teamFee = 5; // 5%
+
+    /// @notice
+    uint256 public vmFee = 5; // 5%
 
     /// @notice controls the duration of the twap used to calculate the strike price
     // each point represents 30 minutes. 4 points = 2 hours
@@ -214,12 +220,13 @@ contract OptionTokenV2 is ERC20, AccessControl {
         underlyingToken = _underlyingToken;
         pair = _pair;
         treasury = _treasury;
+        vmTreasury = _treasury;
         voter = _voter;
         votingEscrow = _votingEscrow;
         router = _router;
 
         emit SetPairAndPaymentToken(_pair, paymentToken);
-        emit SetTreasury(_treasury);
+        emit SetTreasury(_treasury,_treasury);
         emit SetRouter(_router);
     }
 
@@ -413,9 +420,10 @@ contract OptionTokenV2 is ERC20, AccessControl {
 
     /// @notice Sets the treasury address. Only callable by the admin.
     /// @param _treasury The new treasury address
-    function setTreasury(address _treasury) external onlyAdmin {
+    function setTreasury(address _treasury,address _vmTreasury) external onlyAdmin {
         treasury = _treasury;
-        emit SetTreasury(_treasury);
+        vmTreasury = _vmTreasury;
+        emit SetTreasury(_treasury,_vmTreasury);
     }
 
     /// @notice Sets the router address. Only callable by the admin.
@@ -427,11 +435,14 @@ contract OptionTokenV2 is ERC20, AccessControl {
 
     /// @notice Sets the team fee. Only callable by the admin.
     /// @param _fee The new team fee.
-    function setTeamFee(uint256 _fee) external onlyAdmin {
-        if (_fee > MAX_TEAM_FEE) revert OptionToken_InvalidTeamFee();
+    /// @param _vmFee The new vm fee.
+    function setFees(uint256 _fee,uint256 _vmFee) external onlyAdmin {
+        if (_fee + _vmFee > MAX_FEES) revert OptionToken_InvalidFee();
         teamFee = _fee;
-        emit SetTeamFee(_fee);
+        vmFee = _vmFee;
+        emit SetFees(_fee,_vmFee);
     }
+
 
     /// @notice Sets the discount amount. Only callable by the admin.
     /// @param _discount The new discount amount.
@@ -553,7 +564,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
             revert OptionToken_SlippageTooHigh();
 
         // transfer team fee to treasury and notify reward amount in gauge
-        uint256 gaugeRewardAmount = _takeTeamFee(paymentToken, paymentAmount);
+        uint256 gaugeRewardAmount = _takeFees(paymentToken, paymentAmount);
         _usePaymentAsGaugeReward(gaugeRewardAmount);
 
         // send underlying tokens to recipient
@@ -576,7 +587,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
             revert OptionToken_SlippageTooHigh();
 
         // transfer team fee to treasury and notify reward amount in gauge
-        uint256 gaugeRewardAmount = _takeTeamFee(paymentToken, paymentAmount);
+        uint256 gaugeRewardAmount = _takeFees(paymentToken, paymentAmount);
         _usePaymentAsGaugeReward(gaugeRewardAmount);
 
         // lock underlying tokens to veFLOW
@@ -607,7 +618,7 @@ contract OptionTokenV2 is ERC20, AccessControl {
             revert OptionToken_SlippageTooHigh();
           
         // Take team fee
-        uint256 paymentGaugeRewardAmount = _takeTeamFee(
+        uint256 paymentGaugeRewardAmount = _takeFees(
             paymentToken,
             paymentAmount
         );
@@ -654,13 +665,15 @@ contract OptionTokenV2 is ERC20, AccessControl {
         );
     }
 
-    function _takeTeamFee(
+    function _takeFees(
         address token,
         uint256 paymentAmount
     ) internal returns (uint256 remaining) {
         uint256 _teamFee = (paymentAmount * teamFee) / 100;
+        uint256 _vmFee = (paymentAmount * vmFee) / 100;
         _safeTransferFrom(token, msg.sender, treasury, _teamFee);
-        remaining = paymentAmount - _teamFee;
+        _safeTransferFrom(token, msg.sender, vmTreasury, _vmFee);
+        remaining = paymentAmount - _teamFee - _vmFee;
     }
 
     function _usePaymentAsGaugeReward(uint256 amount) internal {

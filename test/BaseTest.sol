@@ -11,6 +11,7 @@ import "contracts/Gauge.sol";
 import "contracts/Minter.sol";
 import "contracts/OptionToken.sol";
 import "contracts/OptionTokenV2.sol";
+import "contracts/OptionTokenV3.sol";
 import "contracts/Pair.sol";
 import "contracts/RewardsDistributor.sol";
 import "contracts/Router.sol";
@@ -60,6 +61,7 @@ abstract contract BaseTest is Test, TestOwner {
     Pair flowDaiPair;
     OptionToken oFlow;
     OptionTokenV2 oFlowV2;
+    OptionTokenV3 oFlowV3;
     OptionTokenV2 oTokenV2;
 
     function deployOwners() public {
@@ -201,6 +203,27 @@ abstract contract BaseTest is Test, TestOwner {
             _escrow,
             address(router),
             csrNftId
+        );
+    }
+
+    function deployOptionTokenV3WithOwner(
+        address _owner,
+        address _gaugeFactory,
+        address _voter,
+        address _escrow
+    ) public {
+        oFlowV3 = new OptionTokenV3(
+            "Option to buy FLOW",
+            "oFLOW",
+            _owner,
+            address(DAI),
+            address(FLOW),
+            flowDaiPair,
+            _gaugeFactory,
+            _owner,
+            _voter,
+            _escrow,
+            address(router)
         );
     }
 
