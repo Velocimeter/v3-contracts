@@ -33,6 +33,44 @@ Deployment contains 3 steps:
 
 The Velodrome team engaged with Code 4rena for a security review. The results of that audit are available [here](https://code4rena.com/reports/2022-05-velodrome/). Our up-to-date security findings are located on our website [here](https://docs.velodrome.finance/security).
 
+## Contracts on Mantle
+
+      "contractName": "Flow",
+      "contractAddress": "0x861A6Fc736Cbb12ad57477B535B829239c8347d7",
+      
+      "contractName": "GaugeFactoryV3",
+      "contractAddress": "0xf19d2e09223b6d0c2f82A84cEF85E951245Ce567",
+
+      "contractName": "BribeFactory",
+      "contractAddress": "0xdDF154447923C74071Fb8E6C6Fe73d211a6633f6",
+      
+      "contractName": "PairFactory",
+      "contractAddress": "0x99F9a4A96549342546f9DAE5B2738EDDcD43Bf4C",
+      
+      "contractName": "Router",
+      "contractAddress": "0xCe30506F6c1Cea34aC704f93d51d55058791E497",
+      
+      "contractName": "VelocimeterLibrary",
+      "contractAddress": "0x1D821307a623dCbFcFb65E62A96eb804baDdaF68",
+      
+      "contractName": "VotingEscrow",
+      "contractAddress": "0xA906901429F62708A587EA1fC5Fef6C850AA5F9b",
+      
+      "contractName": "RewardsDistributor",
+      "contractAddress": "0x64c6F1CFDaa58c4572ddcA9043B8A95d0D75D411",
+      
+      "contractName": "Voter",
+      "contractAddress": "0x2215aB2e64490bC8E9308d0371e708845a796A29",
+      
+      "contractName": "Minter",
+      "contractAddress": "0xb074FeF76F0b5B544e4337226d4f9eB54E46ee3F",
+      
+      "contractName": "MintTank",
+      "contractAddress": "0xDDEc6bB36d26fE1AD9ca7D6FadEEeA306E2a7170",
+      
+      "contractName": "OptionTokenV3",
+      "contractAddress": "0x3b19B8EC75BBf85848d133F1a47710EeEd57Bd90",
+
 ## Contracts on Fantom
 
       "contractName": "Flow",
