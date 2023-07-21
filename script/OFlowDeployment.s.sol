@@ -86,11 +86,12 @@ contract OFlowDeployment is Script {
             LIQUID_STAKED_CANTO, // payment token
             NEW_FLOW, // underlying token
             IPair(pair), // pair
+            TEAM_MULTI_SIG,
+            TEAM_MULTI_SIG,
             NEW_GAUGE_FACTORY, // gauge factory
             NEW_VOTER,
             NEW_VOTING_ESCROW,
             NEW_ROUTER,
-            Flow(NEW_FLOW).csrNftId()
         );
 
         GaugeFactoryV3(NEW_GAUGE_FACTORY).setOFlow(address(oFlow));
