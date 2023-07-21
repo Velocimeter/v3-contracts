@@ -6,8 +6,8 @@ import "contracts/interfaces/ITurnstile.sol";
 
 contract Flow is IFlow {
     address public constant TURNSTILE = 0xEcf044C5B4b867CFda001101c617eCd347095B44;
-    string public constant name = "Velocimeter";
-    string public constant symbol = "FLOW";
+    string public constant name = "CantoVelociMeter";
+    string public constant symbol = "CVM";
     uint8 public constant decimals = 18;
     uint public totalSupply = 0;
     uint256 public immutable csrNftId;
