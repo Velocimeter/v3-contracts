@@ -87,7 +87,6 @@ contract OFlowDeployment is Script {
             NEW_FLOW, // underlying token
             IPair(pair), // pair
             TEAM_MULTI_SIG,
-            TEAM_MULTI_SIG,
             NEW_GAUGE_FACTORY, // gauge factory
             NEW_VOTER,
             NEW_VOTING_ESCROW,
