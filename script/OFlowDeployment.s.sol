@@ -7,7 +7,7 @@ import {IERC20} from "../contracts/interfaces/IERC20.sol";
 import {IFlow} from "../contracts/interfaces/IFlow.sol";
 import {IPair} from "../contracts/interfaces/IPair.sol";
 import {Flow} from "../contracts/Flow.sol";
-import {OptionTokenV2} from "../contracts/OptionTokenV2.sol";
+import {OptionTokenV3} from "../contracts/OptionTokenV3.sol";
 import {GaugeFactoryV3} from "../contracts/factories/GaugeFactoryV3.sol";
 import {BribeFactory} from "../contracts/factories/BribeFactory.sol";
 import {PairFactory} from "../contracts/factories/PairFactory.sol";
@@ -56,7 +56,7 @@ contract OFlowDeployment is Script {
                 LIQUID_STAKED_CANTO,
                 false,
                 DEPLOYER,
-                block.timestamp
+                block.timestamp + 1000
             );
         IERC20().approve(LIQUID_STAKED_CANTO, amounts[0]);
         Flow(NEW_FLOW).approve(NEW_ROUTER, 1e18 / 1000);
@@ -79,9 +79,9 @@ contract OFlowDeployment is Script {
         );
 
         // Option to buy Flow
-        OptionTokenV2 oFlow = new OptionTokenV2(
-            "Option to buy FLOW", // name
-            "oFLOW", // symbol
+        OptionTokenV3 oFlow = new OptionTokenV3(
+            "Option to buy CVM", // name
+            "oCVM", // symbol
             TEAM_MULTI_SIG, // admin
             LIQUID_STAKED_CANTO, // payment token
             NEW_FLOW, // underlying token
@@ -98,17 +98,17 @@ contract OFlowDeployment is Script {
         // Transfer gaugefactory ownership to MSIG (team)
         GaugeFactoryV3(NEW_GAUGE_FACTORY).transferOwnership(TEAM_MULTI_SIG);
 
-        // Create gauge for flowWftm pair
-        Voter(NEW_VOTER).createGauge(pair, 0);
-
-        // Update gauge in Option Token contract
-        oFlow.updateGauge();
-
         address[] memory whitelistedTokens = new address[](3);
         whitelistedTokens[0] = NEW_FLOW;
         whitelistedTokens[1] = WCANTO;
         whitelistedTokens[2] = address(oFlow);
         Voter(NEW_VOTER).initialize(whitelistedTokens, NEW_MINTER);
+
+        // Create gauge for flowWftm pair
+        Voter(NEW_VOTER).createGauge(pair, 0);
+
+        // Update gauge in Option Token contract
+        oFlow.updateGauge();
 
         vm.stopBroadcast();
     }
