@@ -25,7 +25,7 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 contract Deployment is Script {
     // token addresses
     // TODO: check token address
-    address private constant WFTM = 0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83;
+    address private constant WFTM = 0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8;
 
     // privileged accounts
     // TODO: change these accounts!
@@ -37,8 +37,6 @@ contract Deployment is Script {
     // TODO: set the following variables
     uint private constant INITIAL_MINT_AMOUNT = 6_000_000e18;
     uint private constant MINT_TANK_MIN_LOCK_TIME = 52 * 7 * 86400;
-    uint private constant MINT_TANK_AMOUNT = 1_290_000e18;
-    uint private constant PREMINT_AMOUNT = 690_000e18;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -58,7 +56,7 @@ contract Deployment is Script {
         PairFactory pairFactory = new PairFactory();
 
         // Router
-        Router router = new Router(address(pairFactory), WFTM);
+        Router router = new Router(address(pairFactory), WMNT);
 
         // VelocimeterLibrary
         new VelocimeterLibrary(address(router));
@@ -102,16 +100,7 @@ contract Deployment is Script {
             MINT_TANK_MIN_LOCK_TIME
         );
 
-        flow.approve(address(votingEscrow), PREMINT_AMOUNT);
-        votingEscrow.create_lock_for(240_000e18, 52 * 7 * 86400, 0xcC06464C7bbCF81417c08563dA2E1847c22b703a);
-        votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0x5F21E3cA21fc0C33cfA5FB33fc7031f61e34D256);
-        votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0xB1dD2Fdb023cB54b7cc2a0f5D9e8d47a9F7723ce);
-        votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0x83B285E802D76055169B1C5e3bF21702B85b89Cb);
-        votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0x89955a99552F11487FFdc054a6875DF9446B2902);
-        votingEscrow.create_lock_for(90_000e18, 52 * 7 * 86400, 0x06917EFCE692CAD37A77a50B9BEEF6f4Cdd36422);
-
-        flow.transfer(address(mintTank), MINT_TANK_AMOUNT);
-        flow.transfer(address(TEAM_MULTI_SIG), INITIAL_MINT_AMOUNT - MINT_TANK_AMOUNT - PREMINT_AMOUNT);
+        flow.transfer(address(TEAM_MULTI_SIG), INITIAL_MINT_AMOUNT);
 
         // NOTE: comment out and set pair in OptionToken later
         // IPair flowWftmPair = IPair(
@@ -123,7 +112,7 @@ contract Deployment is Script {
             "Option to buy FVM", // name
             "oFVM", // symbol
             TEAM_MULTI_SIG, // admin
-            WFTM, // payment token
+            WMNT, // payment token
             address(flow), // underlying token
             // TODO: change if want to set beforehand
             IPair(address(0)), // pair
@@ -141,7 +130,7 @@ contract Deployment is Script {
         // voter.createGauge(address(flowWftmPair), 0);
 
         // Update gauge in Option Token contract
-        oFlow.updateGauge();
+        // oFlow.updateGauge();
 
         // Set flow minter to contract
         flow.setMinter(address(minter));
@@ -171,7 +160,7 @@ contract Deployment is Script {
         // Initialize tokens for voter
         address[] memory whitelistedTokens = new address[](3);
         whitelistedTokens[0] = address(flow);
-        whitelistedTokens[1] = WFTM;
+        whitelistedTokens[1] = WMNT;
         whitelistedTokens[2] = address(oFlow);
         voter.initialize(whitelistedTokens, address(minter));
 
