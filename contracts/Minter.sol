@@ -14,8 +14,8 @@ import "contracts/interfaces/IVotingEscrow.sol";
 contract Minter is IMinter {
     uint internal constant WEEK = 86400 * 7; // allows minting once per week (reset every Thursday 00:00 UTC)
     uint public EMISSION = 990;
-    uint internal constant MAX_EMISSION = 1980;
-    uint internal constant MIN_EMISSION = 500; // at most 1/2 of previous epoch
+    uint internal constant MAX_EMISSION = 6000;
+    uint internal constant MIN_EMISSION = 250; // at most 1/2 of previous epoch
     uint internal constant TAIL_EMISSION = 2;
     uint internal constant PRECISION = 1000;
     IFlow public immutable _flow;
