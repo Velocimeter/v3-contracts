@@ -54,8 +54,8 @@ contract OFlowDeployment is Script {
 
         // Option to buy Flow
         OptionTokenV3 oFlow = new OptionTokenV3(
-            "Option to buy FLOW", // name
-            "oFLOW", // symbol
+            "Option to buy MVM", // name
+            "oMVM", // symbol
             TEAM_MULTI_SIG, // admin
             WMNT, // payment token
             NEW_FLOW, // underlying token
