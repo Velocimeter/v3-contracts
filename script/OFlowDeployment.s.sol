@@ -72,7 +72,7 @@ contract OFlowDeployment is Script {
         GaugeFactoryV3(NEW_GAUGE_FACTORY).setOFlow(address(oFlow));
 
         // Transfer gaugefactory ownership to MSIG (team)
-        gaugeFactory.transferOwnership(TEAM_MULTI_SIG);
+        GaugeFactoryV3(NEW_GAUGE_FACTORY).transferOwnership(TEAM_MULTI_SIG);
 
         // Create gauge for flowWftm pair
         Voter(NEW_VOTER).createGauge(pair, 0);
