@@ -22,13 +22,13 @@ contract OFlowDeployment is Script {
 
     // TODO: Fill the address
     address private constant WMNT = 0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8;
-    address private constant NEW_FLOW = address(0);
-    address private constant NEW_PAIR_FACTORY = address(0);
-    address private constant NEW_GAUGE_FACTORY = address(0);
-    address private constant NEW_VOTER = address(0);
-    address private constant NEW_VOTING_ESCROW = address(0);
-    address payable private constant NEW_ROUTER = payable(address(0));
-    address private constant NEW_MINTER = address(0);
+    address private constant NEW_FLOW = 0x861A6Fc736Cbb12ad57477B535B829239c8347d7;
+    address private constant NEW_PAIR_FACTORY = 0x99F9a4A96549342546f9DAE5B2738EDDcD43Bf4C;
+    address private constant NEW_GAUGE_FACTORY = 0xf19d2e09223b6d0c2f82A84cEF85E951245Ce567;
+    address private constant NEW_VOTER = 0x2215aB2e64490bC8E9308d0371e708845a796A29;
+    address private constant NEW_VOTING_ESCROW = 0xA906901429F62708A587EA1fC5Fef6C850AA5F9b;
+    address payable private constant NEW_ROUTER = payable(0xCe30506F6c1Cea34aC704f93d51d55058791E497);
+    address private constant NEW_MINTER = 0xb074FeF76F0b5B544e4337226d4f9eB54E46ee3F;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -43,7 +43,7 @@ contract OFlowDeployment is Script {
             0, // Conversion ratio
             0,
             DEPLOYER,
-            block.timestamp
+            block.timestamp + 1000
         );
 
         address pair = PairFactory(NEW_PAIR_FACTORY).getPair(
@@ -72,17 +72,17 @@ contract OFlowDeployment is Script {
         // Transfer gaugefactory ownership to MSIG (team)
         GaugeFactoryV3(NEW_GAUGE_FACTORY).transferOwnership(TEAM_MULTI_SIG);
 
-        // Create gauge for flowWftm pair
-        Voter(NEW_VOTER).createGauge(pair, 0);
-
-        // Update gauge in Option Token contract
-        oFlow.updateGauge();
-
         address[] memory whitelistedTokens = new address[](3);
         whitelistedTokens[0] = NEW_FLOW;
         whitelistedTokens[1] = WMNT;
         whitelistedTokens[2] = address(oFlow);
         Voter(NEW_VOTER).initialize(whitelistedTokens, NEW_MINTER);
+
+        // Create gauge for flowWftm pair
+        Voter(NEW_VOTER).createGauge(pair, 0);
+
+        // Update gauge in Option Token contract
+        oFlow.updateGauge();
 
         vm.stopBroadcast();
     }
