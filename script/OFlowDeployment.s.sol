@@ -36,13 +36,11 @@ contract OFlowDeployment is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         Flow(NEW_FLOW).approve(NEW_ROUTER, 1e18);
-        Router(NEW_ROUTER).addLiquidity(
-            WMNT,
+        Router(NEW_ROUTER).addLiquidityETH{value: 1e18}(
             NEW_FLOW,
             false,
             1e18,
-            1e18, // Conversion ratio
-            0,
+            0, // Conversion ratio
             0,
             DEPLOYER,
             block.timestamp
