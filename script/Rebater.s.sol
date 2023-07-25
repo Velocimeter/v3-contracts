@@ -37,20 +37,19 @@ contract Rebater is Script {
 
             MintTank minttank = MintTank(MintTankAddy);
 
-            minttank.mintFor(3349 * 1e18, FULL_LOCK, MPX);
-            minttank.mintFor(2792 * 1e18, FULL_LOCK, DEUS);
-            minttank.mintFor(1872 * 1e18, FULL_LOCK, LQDR);
-            minttank.mintFor(1661 * 1e18, FULL_LOCK, TAROT);
-            minttank.mintFor(1021 * 1e18, FULL_LOCK, SCREAM);
-            minttank.mintFor(961 * 1e18, FULL_LOCK, BAY);
-            minttank.mintFor(771 * 1e18, FULL_LOCK, ETHOS);
-            minttank.mintFor(193 * 1e18, FULL_LOCK, FUCKMULTI);
-            minttank.mintFor(504 * 1e18, FULL_LOCK, GRAIN);
-            minttank.mintFor(503 * 1e18, FULL_LOCK, FRAX);
-            minttank.mintFor(67 * 1e18, FULL_LOCK, XEX);
-            minttank.mintFor(215 * 1e18, FULL_LOCK, BLOTR);
+            minttank.mintFor(60000 * 1e18, FULL_LOCK, MPX);
+            minttank.mintFor(60000 * 1e18, FULL_LOCK, DEUS);
+            minttank.mintFor(60000 * 1e18, FULL_LOCK, LQDR);
+            minttank.mintFor(60000 * 1e18, FULL_LOCK, SCREAM);
 
-
+            // minttank.mintFor(1661 * 1e18, FULL_LOCK, TAROT);
+            // minttank.mintFor(961 * 1e18, FULL_LOCK, BAY);
+            // minttank.mintFor(771 * 1e18, FULL_LOCK, ETHOS);
+            // minttank.mintFor(193 * 1e18, FULL_LOCK, FUCKMULTI);
+            // minttank.mintFor(504 * 1e18, FULL_LOCK, GRAIN);
+            // minttank.mintFor(503 * 1e18, FULL_LOCK, FRAX);
+            // minttank.mintFor(67 * 1e18, FULL_LOCK, XEX);
+            // minttank.mintFor(215 * 1e18, FULL_LOCK, BLOTR);
 
             // minttank.transferOwnership(MSIG);
 
