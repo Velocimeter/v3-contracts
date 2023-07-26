@@ -34,10 +34,10 @@ contract Deployment is Script {
         0x13eeB8EdfF60BbCcB24Ec7Dd5668aa246525Dc51;
     address private constant TANK = 0x0A868fd1523a1ef58Db1F2D135219F0e30CBf7FB;
     address private constant DEPLOYER =
-        0xD93142ED5B85FcA4550153088750005759CE8318;
+        0x560361d945A7F16Fb5Ea219AE06d2C47bB6ccb53;
     // TODO: set the following variables
     uint private constant INITIAL_MINT_AMOUNT =
-        (551753842114232799703229867 + 10632790188764001321559579) /
+        (564186852951191807807800273 + 10632790188764001321559579) /
             uint(1000) +
             1;
     int128 private constant MAX_LOCK_TIME = 2 * 365 * 86400;
@@ -114,7 +114,6 @@ contract Deployment is Script {
         pairFactory.setTank(TANK);
 
         // Set minter and voting escrow's team
-        votingEscrow.setTeam(TEAM_MULTI_SIG);
         minter.setTeam(TEAM_MULTI_SIG);
 
         // Transfer pairfactory ownership to MSIG (team)

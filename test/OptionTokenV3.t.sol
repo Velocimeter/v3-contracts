@@ -63,13 +63,13 @@ contract OptionTokenV3Test is BaseTest {
         mintFlow(owners, amounts);
 
         gaugeFactory = new GaugeFactoryV2();
-        bribeFactory = new BribeFactory();
+        bribeFactory = new BribeFactory(csrNftId);
         VeArtProxy artProxy = new VeArtProxy();
         
         escrow = new VotingEscrow(address(FLOW), address(artProxy), owners[0]);
         
         deployPairFactoryAndRouter();
-        voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory));
+        voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory), csrNftId);
         factory.setVoter(address(voter));
         flowDaiPair = Pair(
             factory.createPair(address(FLOW), address(DAI), false)
