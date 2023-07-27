@@ -11,7 +11,7 @@ contract FlowConvertorDeployment is Script {
         0x13eeB8EdfF60BbCcB24Ec7Dd5668aa246525Dc51;
     // TODO: Fill the address
     address private constant FLOW_V2 =
-        0x78e489523291581205Ea3fA16a69689EcA79757A;
+        0xB5b060055F0d1eF5174329913ef861bC3aDdF029;
     address private constant FLOW_V3 = 0xbAD86785eB08fe9d0948B7D9d24523000A177cD0;
     address private constant VOTING_ESCROW_V2 = 0x8E003242406FBa53619769F31606ef2Ed8A65C00;
     address private constant VOTING_ESCROW_V3 = 0xA1B589FB7e04d19CEC391834131158f7F9d2D168;
