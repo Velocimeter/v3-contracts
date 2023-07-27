@@ -15,7 +15,7 @@ contract FlowConvertorDeployment is Script {
     address private constant FLOW_V3 = 0xbAD86785eB08fe9d0948B7D9d24523000A177cD0;
     address private constant VOTING_ESCROW_V2 = 0x8E003242406FBa53619769F31606ef2Ed8A65C00;
     address private constant VOTING_ESCROW_V3 = 0xA1B589FB7e04d19CEC391834131158f7F9d2D168;
-    uint256 private constant MAX_NFT_ID_TO_CLAIM = 788;
+    uint256 private constant MAX_NFT_ID_TO_CLAIM = 1227;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
