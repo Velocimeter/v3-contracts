@@ -31,31 +31,59 @@ contract Rebater is Script {
     address constant MSIG = 0x88Dec6df03C2C111Efd4ad89Cef2c0347034AFC0;
     address constant PVOP = 0xcC06464C7bbCF81417c08563dA2E1847c22b703a;
 
+    // contribs addresses
+    address constant Panxcake	=	0x620675E061ab980EDf7dE559211E4aF5dec41210;
+    address constant h1kupz	=	0x714C8A1DB40eedc9240AF30bB25D5440796536aa;
+    address constant Zozzle	=	0x5ca642d0138f8fa36f4ec6311190825392246AdA;
+    address constant MasserEffect	=	0x486A0e4897018B286b7b2bfe63476AaD1437A040;
+    address constant Strawberryking	=	0xC9eebecb1d0AfF4fb2B9978516E075A33639892C;
+    address constant shatterproof	=	0x7c22953Bf2245A8298baf26D586Bd4b08a87caaa;
+    address constant AdalheidisUwu	=	0x787B25B31BC3756dACA7ED27BeA723D6f43D0f99;
+    address constant OxPonci	=	0x5fA275BA9F04BDC906084478Dbf41CBE29388C5d;
+
 
     function run () external {
         uint256 votePrivateKey = vm.envUint("VOTE_PRIVATE_KEY");
         vm.startBroadcast(votePrivateKey);
 
-            MintTank minttank = MintTank(MintTankAddy);
 
-            minttank.mintFor(60000 * 1e18, FULL_LOCK, MPX);
-            minttank.mintFor(60000 * 1e18, FULL_LOCK, DEUS);
-            minttank.mintFor(60000 * 1e18, FULL_LOCK, LQDR);
-            minttank.mintFor(60000 * 1e18, FULL_LOCK, SCREAM);
-
-            // minttank.mintFor(1661 * 1e18, FULL_LOCK, TAROT);
-            // minttank.mintFor(961 * 1e18, FULL_LOCK, BAY);
-            // minttank.mintFor(771 * 1e18, FULL_LOCK, ETHOS);
-            // minttank.mintFor(193 * 1e18, FULL_LOCK, FUCKMULTI);
-            // minttank.mintFor(504 * 1e18, FULL_LOCK, GRAIN);
-            // minttank.mintFor(503 * 1e18, FULL_LOCK, FRAX);
-            // minttank.mintFor(67 * 1e18, FULL_LOCK, XEX);
-            // minttank.mintFor(215 * 1e18, FULL_LOCK, BLOTR);
+            // CHOSE ONE
+            mintForRebate();
+            // mintForCoorApe();
 
             // minttank.transferOwnership(MSIG);
 
-
         vm.stopBroadcast();
+
+        function mintForRebate() private {
+            MintTank minttank = MintTank(MintTankAddy);
+
+            minttank.mintFor(845 * 1e18, FULL_LOCK, MPX);
+            minttank.mintFor(587 * 1e18, FULL_LOCK, DEUS);
+            minttank.mintFor(543 * 1e18, FULL_LOCK, LQDR);
+            minttank.mintFor(536 * 1e18, FULL_LOCK, SCREAM);
+            minttank.mintFor(275 * 1e18, FULL_LOCK, BAY);
+            minttank.mintFor(260 * 1e18, FULL_LOCK, TAROT);
+            minttank.mintFor(88 * 1e18, FULL_LOCK, ETHOS);
+            minttank.mintFor(131 * 1e18, FULL_LOCK, FUCKMULTI);
+            minttank.mintFor(46 * 1e18, FULL_LOCK, XEX);
+            minttank.mintFor(201 * 1e18, FULL_LOCK, FRAX);
+            minttank.mintFor(67 * 1e18, FULL_LOCK, GRAIN);
+
+        }
+
+        function mintForCoorApe() private {
+            MintTank minttank = MintTank(MintTankAddy);
+
+            minttank.mintFor(	3123	*1e18, FULL_LOCK,	Panxcake			);
+            minttank.mintFor(	2199	*1e18, FULL_LOCK,	h1kupz			);
+            minttank.mintFor(	1952	*1e18, FULL_LOCK,	Zozzle			);
+            minttank.mintFor(	1849	*1e18, FULL_LOCK,	MasserEffect			);
+            minttank.mintFor(	1767	*1e18, FULL_LOCK,	Strawberryking			);
+            minttank.mintFor(	1500	*1e18, FULL_LOCK,	shatterproof			);
+            minttank.mintFor(	1459	*1e18, FULL_LOCK,	AdalheidisUwu			);
+            minttank.mintFor(	1151	*1e18, FULL_LOCK,	OxPonci			);
+        }
 
     } 
 }
