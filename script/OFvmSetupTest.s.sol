@@ -5,22 +5,22 @@ pragma solidity 0.8.13;
 import {Script} from "../lib/forge-std/src/Script.sol";
 import "forge-std/console2.sol";
 import {Voter} from "../contracts/Voter.sol";
-import {OptionTokenV2} from "../contracts/OptionTokenV2.sol";
-import {GaugeV2} from "../contracts/GaugeV2.sol";
-import {GaugeFactoryV2} from "../contracts/factories/GaugeFactoryV2.sol";
+import {OptionTokenV3} from "../contracts/OptionTokenV3.sol";
+import {GaugeV3} from "../contracts/GaugeV3.sol";
+import {GaugeFactoryV3} from "../contracts/factories/GaugeFactoryV3.sol";
 
 contract OFvmSetupTest is Script {
-     address private constant VoterAddress = 0xc9Ea7A2337f27935Cd3ccFB2f725B0428e731FBF;
-     address private constant oFVM = 0xF9EDdca6B1e548B0EC8cDDEc131464F462b8310D;
+     address private constant VoterAddress = 0xd5FA5bfd83ea4A088a3A28E12AD6494750aC7B8c;
+     address private constant oFVM = 0x5C2a258A169Fd683e784686E606E33f6D8c31b9a;
      address[] OTokenGauges;
      address[] NormalGauges;
     
     function run() external {
          console2.log("GaugeFactory check");
          address gaugeFactoryAddress =  Voter(VoterAddress).gaugeFactories(0);
-         bytes32 oTokenMinterRole = OptionTokenV2(oFVM).MINTER_ROLE();
-         bool oTokenSet =  GaugeFactoryV2(gaugeFactoryAddress).oFlow() == oFVM;
-         GaugeFactoryV2(gaugeFactoryAddress).oFlow;
+         bytes32 oTokenMinterRole = OptionTokenV3(oFVM).MINTER_ROLE();
+         bool oTokenSet =  GaugeFactoryV3(gaugeFactoryAddress).oFlow() == oFVM;
+         GaugeFactoryV3(gaugeFactoryAddress).oFlow;
          console2.log(gaugeFactoryAddress);
          console2.log("oTokenSet");
          console2.log(oTokenSet);
@@ -31,10 +31,10 @@ contract OFvmSetupTest is Script {
            address gaugeAddress = Voter(VoterAddress).gauges(poolAddress);
            if(gaugeAddress != address(0x0)) {
                 console2.log(gaugeAddress);
-                bool oTokenSetGauge =  GaugeV2(gaugeAddress).oFlow() == oFVM;
+                bool oTokenSetGauge =  GaugeV3(gaugeAddress).oFlow() == oFVM;
                 console2.log("oTokenSet");
                 console2.log(oTokenSetGauge);
-                bool oTokenMinterRole =  OptionTokenV2(oFVM).hasRole(oTokenMinterRole, gaugeAddress);
+                bool oTokenMinterRole =  OptionTokenV3(oFVM).hasRole(oTokenMinterRole, gaugeAddress);
                 console2.log("oToken Minter Role");
                 console2.log(oTokenMinterRole);
                 console2.log("--------");
