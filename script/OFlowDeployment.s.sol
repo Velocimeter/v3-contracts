@@ -16,19 +16,19 @@ import {Voter} from "../contracts/Voter.sol";
 
 contract OFlowDeployment is Script {
     address private constant TEAM_MULTI_SIG =
-        0x28b0e8a22eF14d2721C89Db8560fe67167b71313;
+        0xfA89A4C7F79Dc4111c116a0f01061F4a7D9fAb73;
     address private constant DEPLOYER =
-        0x6E0AFB1912d4Cc8edD87E2672bA32952c6BB85C3;
+        0xe0F7921414e79fE4459148d2e38fb68C9186DECC;
 
     // TODO: Fill the address
-    address private constant WMNT = 0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8;
-    address private constant NEW_FLOW = 0x861A6Fc736Cbb12ad57477B535B829239c8347d7;
-    address private constant NEW_PAIR_FACTORY = 0x99F9a4A96549342546f9DAE5B2738EDDcD43Bf4C;
-    address private constant NEW_GAUGE_FACTORY = 0xf19d2e09223b6d0c2f82A84cEF85E951245Ce567;
-    address private constant NEW_VOTER = 0x2215aB2e64490bC8E9308d0371e708845a796A29;
-    address private constant NEW_VOTING_ESCROW = 0xA906901429F62708A587EA1fC5Fef6C850AA5F9b;
-    address payable private constant NEW_ROUTER = payable(0xCe30506F6c1Cea34aC704f93d51d55058791E497);
-    address private constant NEW_MINTER = 0xb074FeF76F0b5B544e4337226d4f9eB54E46ee3F;
+    address private constant WETH = 0x4200000000000000000000000000000000000006;
+    address private constant NEW_FLOW = 0xd386a121991E51Eab5e3433Bf5B1cF4C8884b47a;
+    address private constant NEW_PAIR_FACTORY = 0xe21Aac7F113Bd5DC2389e4d8a8db854a87fD6951;
+    address private constant NEW_GAUGE_FACTORY = 0x96600B4293DA981554805cCbAB88B48B4C54fAA8;
+    address private constant NEW_VOTER = 0xab9B68c9e53c94D7c0949FB909E80e4a29F9134A;
+    address private constant NEW_VOTING_ESCROW = 0x91F85d68B413dE823684c891db515B0390a02512;
+    address payable private constant NEW_ROUTER = payable(0xE11b93B61f6291d35c5a2beA0A9fF169080160cF);
+    address private constant NEW_MINTER = 0x2F54d40E246eaBA24301dD4480fCCF36B856D578;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -36,7 +36,7 @@ contract OFlowDeployment is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         Flow(NEW_FLOW).approve(NEW_ROUTER, 1e18);
-        Router(NEW_ROUTER).addLiquidityETH{value: 1e18}(
+        Router(NEW_ROUTER).addLiquidityETH{value: 5e14}(
             NEW_FLOW,
             false,
             1e18,
@@ -48,16 +48,16 @@ contract OFlowDeployment is Script {
 
         address pair = PairFactory(NEW_PAIR_FACTORY).getPair(
             NEW_FLOW,
-            WMNT,
+            WETH,
             false
         );
 
         // Option to buy Flow
         OptionTokenV3 oFlow = new OptionTokenV3(
-            "Option to buy MVM", // name
-            "oMVM", // symbol
+            "Option to buy BVM", // name
+            "oBVM", // symbol
             TEAM_MULTI_SIG, // admin
-            WMNT, // payment token
+            WETH, // payment token
             NEW_FLOW, // underlying token
             IPair(pair), // pair
             NEW_GAUGE_FACTORY, // gauge factory,
@@ -74,7 +74,7 @@ contract OFlowDeployment is Script {
 
         address[] memory whitelistedTokens = new address[](3);
         whitelistedTokens[0] = NEW_FLOW;
-        whitelistedTokens[1] = WMNT;
+        whitelistedTokens[1] = WETH;
         whitelistedTokens[2] = address(oFlow);
         Voter(NEW_VOTER).initialize(whitelistedTokens, NEW_MINTER);
 

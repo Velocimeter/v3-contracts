@@ -15,9 +15,6 @@ import {VotingEscrow} from "../contracts/VotingEscrow.sol";
 import {RewardsDistributor} from "../contracts/RewardsDistributor.sol";
 import {Voter} from "../contracts/Voter.sol";
 import {Minter} from "../contracts/Minter.sol";
-import {MintTank} from "../contracts/MintTank.sol";
-import {AirdropClaim} from "../contracts/AirdropClaim.sol";
-import {OptionTokenV2} from "../contracts/OptionTokenV2.sol";
 import {IERC20} from "../contracts/interfaces/IERC20.sol";
 import {IPair} from "../contracts/interfaces/IPair.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
@@ -25,18 +22,17 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 contract Deployment is Script {
     // token addresses
     // TODO: check token address
-    address private constant WMNT = 0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8;
+    address private constant WETH = 0x4200000000000000000000000000000000000006;
 
     // privileged accounts
     // TODO: change these accounts!
     address private constant TEAM_MULTI_SIG =
-        0x28b0e8a22eF14d2721C89Db8560fe67167b71313;
-    address private constant TANK = 0x28b0e8a22eF14d2721C89Db8560fe67167b71313;
+        0xfA89A4C7F79Dc4111c116a0f01061F4a7D9fAb73;
+    address private constant TANK = 0xfA89A4C7F79Dc4111c116a0f01061F4a7D9fAb73;
     address private constant DEPLOYER =
-        0x6E0AFB1912d4Cc8edD87E2672bA32952c6BB85C3;
+        0xe0F7921414e79fE4459148d2e38fb68C9186DECC;
     // TODO: set the following variables
     uint private constant INITIAL_MINT_AMOUNT = 6_000_000e18;
-    uint private constant MINT_TANK_MIN_LOCK_TIME = 52 * 7 * 86400;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -56,7 +52,7 @@ contract Deployment is Script {
         PairFactory pairFactory = new PairFactory();
 
         // Router
-        Router router = new Router(address(pairFactory), WMNT);
+        Router router = new Router(address(pairFactory), WETH);
 
         // VelocimeterLibrary
         new VelocimeterLibrary(address(router));
