@@ -3,10 +3,11 @@
 pragma solidity 0.8.13;
 
 import "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+
 import "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import "openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 
-import "./interfaces/IVotingEscrow.sol";
+import "./interfaces/IOptionToken.sol";
 
 contract AirdropClaim is ReentrancyGuard {
 
@@ -24,7 +25,7 @@ contract AirdropClaim is ReentrancyGuard {
     
     address public owner;
     address public msig;
-    address public ve;
+    address public optionToken;
     IERC20 public token;
 
     
@@ -45,10 +46,10 @@ contract AirdropClaim is ReentrancyGuard {
     event AirdropSet(uint walletAdded, uint walletTotal, uint veCHRAdded, uint veCHRTotal);
 
 
-    constructor(address _token, address _ve, address _msig) {
+    constructor(address _token, address _optionToken, address _msig) {
         owner = msg.sender;
         token = IERC20(_token);
-        ve = _ve;
+        optionToken = _optionToken;
         msig = _msig;
     }
 
@@ -88,6 +89,7 @@ contract AirdropClaim is ReentrancyGuard {
         for (uint i = 0; i < _who.length; i++) {
             claimableAmount[_who[i]] += _amount[i];
             _totalToReceive += _amount[i];
+            userClaimed[_who[i]] = false;
         }
         totalToReceive += _totalToReceive;
         totalWalletsIncluded += _who.length;
@@ -104,11 +106,10 @@ contract AirdropClaim is ReentrancyGuard {
 
         uint amount = claimableAmount[msg.sender];
         claimableAmount[msg.sender] = 0;
-        token.approve(ve, 0);
-        token.approve(ve, amount);
-        _tokenId = IVotingEscrow(ve).create_lock_for(amount, LOCK, msg.sender);
-        require(_tokenId != 0);
-        require(IVotingEscrow(ve).ownerOf(_tokenId) == msg.sender, 'wrong ve mint'); 
+        token.approve(optionToken, 0);
+        token.approve(optionToken, amount);
+
+        IOptionToken(optionToken).mint(msg.sender, amount);
 
         userClaimed[msg.sender] = true;
         totalWalletsClaimed += 1;
