@@ -90,8 +90,10 @@ contract ExerciseVaultTest is BaseTest {
 
         exerciseVault = new ExerciseVault(address(router));
         exerciseVault.addOToken(address(oFlowV3));
-        DAI.transfer(address(exerciseVault), TOKEN_1 *100);
+        DAI.approve(address(exerciseVault), TOKEN_1 *100);
+        exerciseVault.donatePaymentToken(address(DAI), TOKEN_1 *100);
     }
+    
     function washTrades() public {
         FLOW.approve(address(router), TOKEN_100K);
         DAI.approve(address(router), TOKEN_100K);
@@ -158,24 +160,27 @@ contract ExerciseVaultTest is BaseTest {
         vm.startPrank(address(owner));
 
         FLOW.approve(address(oFlowV3), TOKEN_1);
-        oFlowV3.mint(address(owner), TOKEN_1);
+        oFlowV3.mint(address(owner2), TOKEN_1);
 
         washTrades();
+
+        vm.startPrank(address(owner2));
         
         oFlowV3.approve(address(exerciseVault), TOKEN_1);
 
         uint256 daiBalanceBefore = DAI.balanceOf(address(exerciseVault));
-        uint256 daiBalanceBeforeOwner = DAI.balanceOf(address(owner));
+        uint256 daiBalanceBeforeOwner2 = DAI.balanceOf(address(owner2));
 
+        assertEq(exerciseVault.getAmountOfPaymentTokensAfterExercise(address(oFlowV3),address(FLOW),address(DAI),TOKEN_1),189903102678420429);
         exerciseVault.exercise(address(oFlowV3), TOKEN_1,0);
 
-        uint256 daiBalanceAfter = DAI.balanceOf(address(exerciseVault));
-        uint256 daiBalanceAftereOwner = DAI.balanceOf(address(owner));
-        
         vm.stopPrank();
-
+        
+        uint256 daiBalanceAfter = DAI.balanceOf(address(exerciseVault));
+        uint256 daiBalanceAftereOwner2 = DAI.balanceOf(address(owner2));
+        
         assertEq(daiBalanceAfter - daiBalanceBefore,9994900140969496);
-        assertEq(daiBalanceAftereOwner - daiBalanceBeforeOwner,269902302806385353);
+        assertEq(daiBalanceAftereOwner2 - daiBalanceBeforeOwner2,189903102678420429);
     }
 
     function testOnlyOwneCanTakeTokensBack() public {

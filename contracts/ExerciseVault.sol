@@ -11,16 +11,25 @@ import "contracts/interfaces/IOptionToken.sol";
 contract ExerciseVault is Ownable {
      event OTokenAdded(address indexed _oToken);
      event OTokenRemoved(address indexed _oToken);
+     event Donated(uint256 indexed _timestamp, address indexed _paymentToken,uint256 _amount);
      event Exercise(address indexed _oToken,address indexed _from,uint256 _amount,uint256 _profit);
 
      address public router;
      
      mapping(address => bool) public isOToken;
      
-     uint256 public fee = 50; // 5%
+     uint256 public fee = 500; // 5%
 
      constructor(address _router) {
         router = _router;
+     }
+
+     function getAmountOfPaymentTokensAfterExercise(address _oToken,address _underlyingToken,address _paymentToken,uint256 _amount) public view returns (uint256) {
+         uint256 price = IOptionToken(_oToken).getDiscountedPrice(_amount);
+         uint256 amoutAfterSell = IRouter(router).getAmountOut(_amount, _underlyingToken, _paymentToken, false);
+         uint256 profit = amoutAfterSell - price;
+         uint256 fee = (profit * fee ) / 10000;
+         return profit - fee;
      }
 
      function exercise(address _oToken,uint256 _amount,uint _minOut) external {
@@ -48,20 +57,26 @@ contract ExerciseVault is Ownable {
         uint256 ammountToSell = underlyingTokenBalanceAfter - underlyingTokenBalanceBefore;
 
         IERC20(underlyingToken).approve(router, ammountToSell);
-        IRouter(router).swapExactTokensForTokensSimple(ammountToSell, _minOut, underlyingToken, paymentToken, false, address(this), block.timestamp); // TODO slipage
+        IRouter(router).swapExactTokensForTokensSimple(ammountToSell, _minOut, underlyingToken, paymentToken, false, address(this), block.timestamp);
 
         uint256 paymentTokenBalanceAfter = IERC20(paymentToken).balanceOf(address(this));
 
         require(paymentTokenBalanceAfter > paymentTokenBalanceBefore,"Not profitable excercise");
 
         uint256 profit =  paymentTokenBalanceAfter - paymentTokenBalanceBefore;
-        uint256 fee = (profit * fee ) / 1000;
+        uint256 fee = (profit * fee ) / 10000;
         uint256 profitAfterFee = profit - fee;
 
         IERC20(paymentToken).transfer(msg.sender, profitAfterFee);
 
         emit Exercise(_oToken,msg.sender,_amount,profitAfterFee);
      }
+
+     function donatePaymentToken(address _paymentToken,uint256 _amount) public {
+        require(_amount > 0, 'need to add at least 1');
+        IERC20(_paymentToken).transferFrom(msg.sender, address(this), _amount);
+        emit Donated(block.timestamp,_paymentToken, _amount);
+    }
 
      function inCaseTokensGetStuck(address _token, address _to) external onlyOwner {
         uint256 amount = IERC20(_token).balanceOf(address(this));
