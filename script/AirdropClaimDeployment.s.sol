@@ -8,9 +8,9 @@ import {AirdropClaim} from "../contracts/AirdropClaim.sol";
 
 contract AirdropClaimDeployment is Script {
     // TODO: set variables
-    address private constant FLOW = 0x07BB65fAaC502d4996532F834A1B7ba5dC32Ff96;
-    address private constant VOTING_ESCROW = 0xAE459eE7377Fb9F67518047BBA5482C2F0963236;
-    address private constant TEAM_MULTI_SIG = 0x88Dec6df03C2C111Efd4ad89Cef2c0347034AFC0;
+    address private constant BVM = 0xd386a121991E51Eab5e3433Bf5B1cF4C8884b47a;
+    address private constant OBVM = 0x762eb51D2e779EeEc9B239FFB0B2eC8262848f3E;
+    address private constant TEAM_MULTI_SIG = 0xfA89A4C7F79Dc4111c116a0f01061F4a7D9fAb73;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -19,12 +19,12 @@ contract AirdropClaimDeployment is Script {
 
         // AirdropClaim
         AirdropClaim airdropClaim = new AirdropClaim(
-            FLOW,
-            VOTING_ESCROW,
+            BVM,
+            OBVM,
             TEAM_MULTI_SIG
         );
 
-        airdropClaim.setOwner(TEAM_MULTI_SIG);
+        //airdropClaim.setOwner(TEAM_MULTI_SIG);
 
         vm.stopBroadcast();
     }
