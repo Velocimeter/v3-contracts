@@ -462,6 +462,10 @@ contract GaugeV4 is IGauge {
         _deposit(msg.sender, amount, tokenId);
     }
 
+    function depositFor(address account, uint amount, uint tokenId) public lock { 
+        _deposit(account, amount, tokenId);
+    }
+
     function _deposit(address account, uint amount, uint tokenId) private {
         require(amount > 0);
         _updateRewardForAllTokens();
