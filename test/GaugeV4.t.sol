@@ -1,14 +1,14 @@
 pragma solidity 0.8.13;
 
 import "./BaseTest.sol";
-import "contracts/factories/GaugeFactoryV3.sol";
+import "contracts/factories/GaugeFactoryV4.sol";
 
-contract GaugeV3Test is BaseTest {
+contract GaugeV4Test is BaseTest {
     VotingEscrow escrow;
-    GaugeFactoryV3 gaugeFactory;
+    GaugeFactoryV4 gaugeFactory;
     BribeFactory bribeFactory;
     Voter voter;
-    GaugeV3 gauge;
+    GaugeV4 gauge;
 
     function setUp() public {
         deployOwners();
@@ -25,7 +25,7 @@ contract GaugeV3Test is BaseTest {
 
         deployPairFactoryAndRouter();
 
-        gaugeFactory = new GaugeFactoryV3();
+        gaugeFactory = new GaugeFactoryV4();
         bribeFactory = new BribeFactory();
         voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory));
         factory.setVoter(address(voter));
@@ -53,77 +53,32 @@ contract GaugeV3Test is BaseTest {
 
         pair = Pair(address1);
         address gaugeAddress = voter.createGauge(address(pair), 0);
-        gauge = GaugeV3(gaugeAddress);
+        gauge = GaugeV4(gaugeAddress);
         
         oFlowV2.setGauge(address(gauge));
         
     }
 
-    function testGaugeLock() public {
+    function testGaugeDepositFor() public {
         vm.startPrank(address(owner));
         washTrades();
         flowDaiPair.approve(address(gauge),1000);
 
-        uint256 lpBalanceBefore = flowDaiPair.balanceOf(address(owner));
-        gauge.depositWithLock(address(owner), 1, 7 * 86400);
+        uint256 lpBalanceBeforeOwner1 = flowDaiPair.balanceOf(address(owner));
+        uint256 lpBalanceBeforeOwner2 = flowDaiPair.balanceOf(address(owner2));
+        gauge.depositFor(address(owner2), 1, 0);
+        assertEq(gauge.balanceOf(address(owner2)), 1);
+        vm.stopPrank();
         vm.warp(block.timestamp + 7 * 86400 + 1);
+        vm.startPrank(address(owner2));
         gauge.withdraw(1);
-        uint256 lpBalanceAfter = flowDaiPair.balanceOf(address(owner));
+        uint256 lpBalanceAfterOwner1 = flowDaiPair.balanceOf(address(owner));
+        uint256 lpBalanceAfterOwner2 = flowDaiPair.balanceOf(address(owner2));
         vm.stopPrank();
 
-        assertEq(gauge.balanceWithLock(address(owner)),0);
-        assertEq(lpBalanceBefore - lpBalanceAfter, 0);
-    }
-
-    function testGaugeWithdrawWithLock() public {
-        vm.startPrank(address(owner));
-        washTrades();
-        flowDaiPair.approve(address(gauge),1000);
-
-        uint256 lpBalanceBefore = flowDaiPair.balanceOf(address(owner));
-        gauge.depositWithLock(address(owner), 1, 7 * 86400);
-        vm.expectRevert("The lock didn't expire");
-        gauge.withdraw(1);
-        uint256 lpBalanceAfter = flowDaiPair.balanceOf(address(owner));
-        vm.stopPrank();
-
-        assertEq(gauge.balanceWithLock(address(owner)),1);
-        assertEq(lpBalanceBefore - lpBalanceAfter, 1);
-    }
-
-    function testGaugeLockAfterExpire() public {
-        vm.startPrank(address(owner));
-        washTrades();
-        flowDaiPair.approve(address(gauge),1000);
-
-        uint256 lpBalanceBefore = flowDaiPair.balanceOf(address(owner));
-        gauge.depositWithLock(address(owner), 1, 7 * 86400);
-        vm.warp(block.timestamp + 7 * 86400 + 1);
-        gauge.depositWithLock(address(owner), 2, 7 * 86400);
-        gauge.withdraw(1);
-        uint256 lpBalanceAfter = flowDaiPair.balanceOf(address(owner));
-        vm.stopPrank();
-
-        assertEq(gauge.lockEnd(address(owner)),block.timestamp +  7 * 86400);
-        assertEq(gauge.balanceWithLock(address(owner)),2);
-        assertEq(lpBalanceBefore - lpBalanceAfter, 2);
-    }
-
-    function testGaugeLockExtendLock() public {
-        vm.startPrank(address(owner));
-        washTrades();
-        flowDaiPair.approve(address(gauge),1000);
-
-        uint256 lpBalanceBefore = flowDaiPair.balanceOf(address(owner));
-        gauge.depositWithLock(address(owner), 1, 14 * 86400);
-        vm.warp(block.timestamp + 7 * 86400 + 1);
-        gauge.depositWithLock(address(owner), 2, 8 * 86400);
-        uint256 lpBalanceAfter = flowDaiPair.balanceOf(address(owner));
-        vm.stopPrank();
-
-        assertEq(gauge.lockEnd(address(owner)),block.timestamp +  8 * 86400);
-        assertEq(gauge.balanceWithLock(address(owner)),3);
-        assertEq(lpBalanceBefore - lpBalanceAfter, 3);
+        assertEq(gauge.balanceOf(address(owner2)),0);
+        assertEq(lpBalanceBeforeOwner1 - lpBalanceAfterOwner1, 1);
+        assertEq(lpBalanceAfterOwner2 - lpBalanceBeforeOwner2, 1);
     }
 
     function washTrades() public {
