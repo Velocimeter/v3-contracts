@@ -47,8 +47,8 @@ contract Rebater is Script {
             MintTank minttank = MintTank(MintTankAddy);
 
             minttank.mintFor(126 * 1e18, FULL_LOCK, MPX);
-            minttank.mintFor(45 * 1e18, FULL_LOCK, OVERNIGHT);
-            minttank.mintFor(334 * 1e18, FULL_LOCK, SMOOTH);
+            minttank.mintFor(334 * 1e18, FULL_LOCK, OVERNIGHT);
+            minttank.mintFor(45 * 1e18, FULL_LOCK, SMOOTH);
 
         }
 
