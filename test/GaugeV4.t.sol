@@ -66,7 +66,7 @@ contract GaugeV4Test is BaseTest {
 
         uint256 lpBalanceBeforeOwner1 = flowDaiPair.balanceOf(address(owner));
         uint256 lpBalanceBeforeOwner2 = flowDaiPair.balanceOf(address(owner2));
-        gauge.depositFor(address(owner2), 1, 0);
+        gauge.depositFor(address(owner2), 1);
         assertEq(gauge.balanceOf(address(owner2)), 1);
         vm.stopPrank();
         vm.warp(block.timestamp + 7 * 86400 + 1);
