@@ -67,12 +67,12 @@ contract Rebater is Script {
             minttank.mintFor(223 * 1e18, FULL_LOCK, BAY);
             minttank.mintFor(825 * 1e18, FULL_LOCK, TAROT);
             minttank.mintFor(300 * 1e18, FULL_LOCK, ETHOS);
-            minttank.mintFor(149 * 1e18, FULL_LOCK, FUCKMULTI);
+            // minttank.mintFor(149 * 1e18, FULL_LOCK, FUCKMULTI);
             // minttank.mintFor(83 * 1e18, FULL_LOCK, XEX);
             minttank.mintFor(145 * 1e18, FULL_LOCK, FRAX);
             minttank.mintFor(221 * 1e18, FULL_LOCK, GRAIN);
             minttank.mintFor(1888 * 1e18, FULL_LOCK, FBOMB);
-            minttank.mintFor(1181 * 1e18, FULL_LOCK, COMB);
+            minttank.mintFor(231 * 1e18, FULL_LOCK, COMB);
             minttank.mintFor(253 * 1e18, FULL_LOCK, SCANTO);
 
         }
