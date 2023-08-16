@@ -24,8 +24,9 @@ contract Rebater is Script {
     address constant XEX = 0x89DdBAcc77A14D505101CE669a683e1B01781701;
     address constant BLOTR = 0x58328aE00df6017Dbe83c5F59CaB96430E6926Ae; 
     address constant FBOMB = 0x28aa4F9ffe21365473B64C161b566C3CdeAD0108;
-
+    address constant COMB = 0x092cC0BF1b4b0947962d6aC96d0Bb8bC21533406;
     address constant FGHST = 0x13757D72FAc994F9690045150d60929D64575843; 
+    address constant SCANTO = 0x58328aE00df6017Dbe83c5F59CaB96430E6926Ae; 
 
     address constant MintTankAddy = 0x14Dc007573Ac5dCC94410bc29DCBb4923e54C69d;
     uint256 constant FULL_LOCK = 52 * 7 * 86400;
@@ -59,18 +60,20 @@ contract Rebater is Script {
         function mintForRebate() private {
             MintTank minttank = MintTank(MintTankAddy);
 
-            minttank.mintFor(2038 * 1e18, FULL_LOCK, MPX);
-            minttank.mintFor(1250 * 1e18, FULL_LOCK, DEUS);
-            minttank.mintFor(881 * 1e18, FULL_LOCK, LQDR);
-            minttank.mintFor(685 * 1e18, FULL_LOCK, SCREAM);
-            minttank.mintFor(425 * 1e18, FULL_LOCK, BAY);
-            minttank.mintFor(647 * 1e18, FULL_LOCK, TAROT);
-            minttank.mintFor(394 * 1e18, FULL_LOCK, ETHOS);
+            minttank.mintFor(3041 * 1e18, FULL_LOCK, MPX);
+            minttank.mintFor(2041 * 1e18, FULL_LOCK, DEUS);
+            minttank.mintFor(667 * 1e18, FULL_LOCK, LQDR);
+            minttank.mintFor(1434 * 1e18, FULL_LOCK, SCREAM);
+            minttank.mintFor(223 * 1e18, FULL_LOCK, BAY);
+            minttank.mintFor(825 * 1e18, FULL_LOCK, TAROT);
+            minttank.mintFor(300 * 1e18, FULL_LOCK, ETHOS);
             minttank.mintFor(149 * 1e18, FULL_LOCK, FUCKMULTI);
-            minttank.mintFor(83 * 1e18, FULL_LOCK, XEX);
-            minttank.mintFor(370 * 1e18, FULL_LOCK, FRAX);
-            minttank.mintFor(106 * 1e18, FULL_LOCK, GRAIN);
-            minttank.mintFor(1181 * 1e18, FULL_LOCK, FBOMB);
+            // minttank.mintFor(83 * 1e18, FULL_LOCK, XEX);
+            minttank.mintFor(145 * 1e18, FULL_LOCK, FRAX);
+            minttank.mintFor(221 * 1e18, FULL_LOCK, GRAIN);
+            minttank.mintFor(1888 * 1e18, FULL_LOCK, FBOMB);
+            minttank.mintFor(1181 * 1e18, FULL_LOCK, COMB);
+            minttank.mintFor(253 * 1e18, FULL_LOCK, SCANTO);
 
         }
 
