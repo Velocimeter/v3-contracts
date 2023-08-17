@@ -7,7 +7,7 @@ import {IFlow} from "../contracts/interfaces/IFlow.sol";
 import {IPair} from "../contracts/interfaces/IPair.sol";
 import {Flow} from "../contracts/Flow.sol";
 import {OptionTokenV3} from "../contracts/OptionTokenV3.sol";
-import {GaugeFactoryV3} from "../contracts/factories/GaugeFactoryV3.sol";
+import {GaugeFactoryV4} from "../contracts/factories/GaugeFactoryV4.sol";
 import {BribeFactory} from "../contracts/factories/BribeFactory.sol";
 import {PairFactory} from "../contracts/factories/PairFactory.sol";
 import {Router} from "../contracts/Router.sol";
@@ -16,19 +16,19 @@ import {Voter} from "../contracts/Voter.sol";
 
 contract OFlowDeployment is Script {
     address private constant TEAM_MULTI_SIG =
-        0xfA89A4C7F79Dc4111c116a0f01061F4a7D9fAb73;
+        0x5b86A94b14Df577cCf2eA19d4f28560161B77715;
     address private constant DEPLOYER =
-        0xe0F7921414e79fE4459148d2e38fb68C9186DECC;
+        0x4b1B2F1438C7beD2D3e5eA1Da5b8d14BE8c06fF2;
 
     // TODO: Fill the address
-    address private constant WETH = 0x4200000000000000000000000000000000000006;
-    address private constant NEW_FLOW = 0xd386a121991E51Eab5e3433Bf5B1cF4C8884b47a;
-    address private constant NEW_PAIR_FACTORY = 0xe21Aac7F113Bd5DC2389e4d8a8db854a87fD6951;
-    address private constant NEW_GAUGE_FACTORY = 0x96600B4293DA981554805cCbAB88B48B4C54fAA8;
-    address private constant NEW_VOTER = 0xab9B68c9e53c94D7c0949FB909E80e4a29F9134A;
-    address private constant NEW_VOTING_ESCROW = 0x91F85d68B413dE823684c891db515B0390a02512;
-    address payable private constant NEW_ROUTER = payable(0xE11b93B61f6291d35c5a2beA0A9fF169080160cF);
-    address private constant NEW_MINTER = 0x2F54d40E246eaBA24301dD4480fCCF36B856D578;
+    address private constant WETH = 0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d;
+    address private constant NEW_FLOW = 0xE2244F3c62F4b313Cf9C5371c19E9ec9c89b8641;
+    address private constant NEW_PAIR_FACTORY = 0x6738fF9bCE566b4F80bB604e18b9bA3B0daE60cA;
+    address private constant NEW_GAUGE_FACTORY = 0x0f789dCcf70C4609BbC05491F0fF1c974037DC60;
+    address private constant NEW_VOTER = 0x34bAa0b40dc2Bd98c9fdDd5121Ba1bB855870338;
+    address private constant NEW_VOTING_ESCROW = 0x762D6b449fFaC41DFDA9C9f3a22004F496cE7c80;
+    address payable private constant NEW_ROUTER = payable(0x91aC12C15B8e9ac90d1585c7A586555d167cAb5B);
+    address private constant NEW_MINTER = 0x68793d678B58a12166d6b1B604E5a148D963d3B4;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -36,7 +36,7 @@ contract OFlowDeployment is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         Flow(NEW_FLOW).approve(NEW_ROUTER, 1e18);
-        Router(NEW_ROUTER).addLiquidityETH{value: 5e14}(
+        Router(NEW_ROUTER).addLiquidityETH{value: 1e18}(
             NEW_FLOW,
             false,
             1e18,
@@ -54,8 +54,8 @@ contract OFlowDeployment is Script {
 
         // Option to buy Flow
         OptionTokenV3 oFlow = new OptionTokenV3(
-            "Option to buy BVM", // name
-            "oBVM", // symbol
+            "Option to buy GVM", // name
+            "oGVM", // symbol
             TEAM_MULTI_SIG, // admin
             WETH, // payment token
             NEW_FLOW, // underlying token
@@ -67,10 +67,10 @@ contract OFlowDeployment is Script {
             NEW_ROUTER
         );
 
-        GaugeFactoryV3(NEW_GAUGE_FACTORY).setOFlow(address(oFlow));
+        GaugeFactoryV4(NEW_GAUGE_FACTORY).setOFlow(address(oFlow));
 
         // Transfer gaugefactory ownership to MSIG (team)
-        GaugeFactoryV3(NEW_GAUGE_FACTORY).transferOwnership(TEAM_MULTI_SIG);
+        GaugeFactoryV4(NEW_GAUGE_FACTORY).transferOwnership(TEAM_MULTI_SIG);
 
         address[] memory whitelistedTokens = new address[](3);
         whitelistedTokens[0] = NEW_FLOW;

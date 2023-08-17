@@ -5,7 +5,7 @@ pragma solidity 0.8.13;
 import {Script} from "../lib/forge-std/src/Script.sol";
 
 import {Flow} from "../contracts/Flow.sol";
-import {GaugeFactoryV3} from "../contracts/factories/GaugeFactoryV3.sol";
+import {GaugeFactoryV4} from "../contracts/factories/GaugeFactoryV4.sol";
 import {BribeFactory} from "../contracts/factories/BribeFactory.sol";
 import {PairFactory} from "../contracts/factories/PairFactory.sol";
 import {Router} from "../contracts/Router.sol";
@@ -30,7 +30,7 @@ contract Deployment is Script {
         0x5b86A94b14Df577cCf2eA19d4f28560161B77715;
     address private constant TANK = 0x5b86A94b14Df577cCf2eA19d4f28560161B77715;
     address private constant DEPLOYER =
-        0xC5037bf0A31062aC92975f5FDfDd4b8d8A4be76B;
+        0x4b1B2F1438C7beD2D3e5eA1Da5b8d14BE8c06fF2;
     // TODO: set the following variables
     uint private constant INITIAL_MINT_AMOUNT = 6_000_000e18;
 
@@ -43,7 +43,7 @@ contract Deployment is Script {
         Flow flow = new Flow(DEPLOYER, INITIAL_MINT_AMOUNT);
 
         // Gauge factory
-        GaugeFactoryV3 gaugeFactory = new GaugeFactoryV3();
+        GaugeFactoryV4 gaugeFactory = new GaugeFactoryV4();
 
         // Bribe factory
         BribeFactory bribeFactory = new BribeFactory();
