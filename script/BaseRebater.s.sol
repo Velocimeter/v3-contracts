@@ -46,7 +46,7 @@ contract Rebater is Script {
 
             // CHOSE ONE
             mintForRebate();
-            // mintForCoorApe();
+            mintForCoorApe();
 
             // minttank.transferOwnership(MSIG);
 
