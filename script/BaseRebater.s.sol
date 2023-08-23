@@ -18,6 +18,7 @@ contract Rebater is Script {
     address constant YFX = 0xc6493626be58dc647a5103970da5bcf9f7fdbfd2;
     address constant BASIN = 0x6fe9a453fa576991b564b40f153f18e2f17a0796;
     address constant UNIDEX = 0x2E5d207a4C0F7e7C52F6622DCC6EB44bC0fE1A13;
+    address constant MAGNATE = 0x5BD22e42B020DDB8D385855C9823aa5a8a451060;
 
     address constant MintTankAddy = 0x9B5EC2ddCb1BeeBEA5FFe94e6449b4eC56294cBa;
     uint256 constant FULL_LOCK = 52 * 7 * 86400;
@@ -38,6 +39,15 @@ contract Rebater is Script {
     address constant DavidXYZ = 0xf6301e682769a8b3ecdce94b2419ba40a958d17e;
     address constant chip = 0xfb1329fc9e6b07e684cec845da7f6f3aadc8e7b4;
     address constant wig = 0x5e552e0a1f107b225116b525f0fbfe887d332068;
+
+    // team addys
+    address constant t0rbik = 0x0b776552c1aef1dc33005dd25acda22493b6615d;
+    address constant ceazor = 0x06b16991b53632c2362267579ae7c4863c72fdb8;
+    address constant dunks = 0xa3082df7a11071db5ed0e02d48bca5f471ddbaf4;
+    address constant motto = 0x78e801136f77805239a7f533521a7a5570f572c8;
+    address constant dawid = 0xf5FCd7cA5f838d5997cC20D202fd24603d57Fee2;
+    address constant saturn = 0xa7228c62842c2099301a1759313cf52b803c2cd6;
+
 
     function run () external {
         uint256 votePrivateKey = vm.envUint("VOTE_PRIVATE_KEY");
@@ -62,6 +72,7 @@ contract Rebater is Script {
             minttank.mintFor(126 * 1e18, FULL_LOCK, UNIDEX);
             minttank.mintFor(120 * 1e18, FULL_LOCK, MPX);
             minttank.mintFor(43 * 1e18, FULL_LOCK, SMOOTH);
+            minttank.mintFor(15000 * 1e18, FULL_LOCK, MAGNATE);
 
         }
 
@@ -81,6 +92,17 @@ contract Rebater is Script {
             minttank.mintFor(	517	*1e18, FULL_LOCK,	Flowers			);
             minttank.mintFor(	485	*1e18, FULL_LOCK,	chip			);
             // minttank.mintFor(	498	*1e18, FULL_LOCK,	DavidXYZ			);
+        }
+
+        function mintTeam() private {
+            MintTank minttank = MintTank(MintTankAddy);
+
+            minttank.mintFor(	50000	*1e18, FULL_LOCK,	t0rbik			);
+            minttank.mintFor(	50000	*1e18, FULL_LOCK,	ceazor			);
+            minttank.mintFor(	50000	*1e18, FULL_LOCK,	dunks			);
+            minttank.mintFor(	50000	*1e18, FULL_LOCK,	motto			);
+            minttank.mintFor(	50000	*1e18, FULL_LOCK,	dawid			);
+            minttank.mintFor(	50000	*1e18, FULL_LOCK,	saturn			);
         }
 
     } 
