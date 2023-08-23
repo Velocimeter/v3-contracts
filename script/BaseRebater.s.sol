@@ -80,7 +80,7 @@ contract Rebater is Script {
             minttank.mintFor(	634	*1e18, FULL_LOCK,	jamesDigital			);
             minttank.mintFor(	517	*1e18, FULL_LOCK,	Flowers			);
             minttank.mintFor(	485	*1e18, FULL_LOCK,	chip			);
-            minttank.mintFor(	498	*1e18, FULL_LOCK,	DavidXYZ			);
+            // minttank.mintFor(	498	*1e18, FULL_LOCK,	DavidXYZ			);
         }
 
     } 
