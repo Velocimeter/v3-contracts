@@ -8,11 +8,11 @@ import {veFlowBooster} from "../contracts/veFlowBooster.sol";
 
 contract veFlowBoosterDeployment is Script {
     // TODO: set variables
-    address private constant FVM = 0x07BB65fAaC502d4996532F834A1B7ba5dC32Ff96;
-    address private constant WFTM = 0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83;
-    address private constant TEAM_MULTI_SIG = 0x88Dec6df03C2C111Efd4ad89Cef2c0347034AFC0;
-    address private constant Router = 0x2E14B53E2cB669f3A974CeaF6C735e134F3Aa9BC;
-    address private constant VotingEscrow = 0xAE459eE7377Fb9F67518047BBA5482C2F0963236;
+    address private constant GVM = 0xE2244F3c62F4b313Cf9C5371c19E9ec9c89b8641;
+    address private constant WFTM = 0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d;
+    address private constant TEAM_MULTI_SIG = 0x5b86A94b14Df577cCf2eA19d4f28560161B77715;
+    address private constant Router = 0x91aC12C15B8e9ac90d1585c7A586555d167cAb5B;
+    address private constant VotingEscrow = 0x762D6b449fFaC41DFDA9C9f3a22004F496cE7c80;
 
     uint256 public constant FULL_LOCK = 52 * 7 * 86400; // 52 weeks
     
