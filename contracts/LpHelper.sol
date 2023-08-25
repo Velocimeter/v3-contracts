@@ -17,7 +17,12 @@ contract LpHelper is Ownable {
 
     error LpHelper_Paused();
 
-    event LiquidityAdded(address indexed _pair, address indexed _for, uint256 _lpAmount, bool _depositedInGauge);
+    event LiquidityAdded(
+        address indexed _pair,
+        address indexed _for,
+        uint256 _lpAmount,
+        bool _depositedInGauge
+    );
     event PairFactorySet(address indexed _pairFactory);
     event RouterSet(address indexed _router);
     event PauseStateChanged(bool isPaused);
@@ -34,7 +39,7 @@ contract LpHelper is Ownable {
         _transferOwnership(_team);
     }
 
-    function addLiquidityAndDepositForInGauge(
+    function depositAndStakeInGaugeFor(
         address account,
         address tokenA,
         address tokenB,
@@ -42,8 +47,12 @@ contract LpHelper is Ownable {
         uint amountADesired,
         uint amountBDesired,
         uint amountAMin,
-        uint amountBMin
-    ) external returns (bool depositedInGauge, uint256 lpAmount) {
+        uint amountBMin,
+        uint deadline
+    )
+        external
+        returns (address _pair, bool _depositedInGauge, uint256 _lpAmount)
+    {
         if (isPaused) revert LpHelper_Paused();
 
         _safeTransferFrom(tokenA, msg.sender, address(this), amountADesired);
@@ -51,7 +60,7 @@ contract LpHelper is Ownable {
 
         _safeApprove(tokenA, router, amountADesired);
         _safeApprove(tokenB, router, amountBDesired);
-        (, , lpAmount) = IRouter(router).addLiquidity(
+        (, , _lpAmount) = IRouter(router).addLiquidity(
             tokenA,
             tokenB,
             stable,
@@ -60,23 +69,20 @@ contract LpHelper is Ownable {
             amountAMin,
             amountBMin,
             address(this),
-            block.timestamp
+            deadline
         );
 
         // Check gauge for this pair
-        address _pair = IPairFactory(pairFactory).getPair(
-            tokenA,
-            tokenB,
-            stable
-        );
+        _pair = IPairFactory(pairFactory).getPair(tokenA, tokenB, stable);
         address _gauge = IVoter(voter).gauges(_pair);
         // DepositFor user
         if (_gauge != address(0)) {
-            IGaugeV4(_gauge).depositFor(account, lpAmount);
-            depositedInGauge = true;
+            _safeApprove(_pair, _gauge, _lpAmount);
+            IGaugeV4(_gauge).depositFor(account, _lpAmount);
+            _depositedInGauge = true;
         }
 
-        emit LiquidityAdded(_pair, account, lpAmount, depositedInGauge);
+        emit LiquidityAdded(_pair, account, _lpAmount, _depositedInGauge);
     }
 
     function setRouter(address _router) external onlyOwner {
