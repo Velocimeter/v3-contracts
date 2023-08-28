@@ -12,4 +12,7 @@ interface IVoter {
     function notifyRewardAmount(uint amount) external;
     function distribute(address _gauge) external;
     function gauges(address) external view returns (address);
+    function external_bribes(address) external view returns (address);
+    function isAlive(address) external view returns (bool);
+ 
 }
