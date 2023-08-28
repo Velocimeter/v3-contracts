@@ -136,4 +136,12 @@ contract LpHelper is Ownable {
         );
         require(success && (data.length == 0 || abi.decode(data, (bool))));
     }
+
+    function inCaseTokensGetStuck(
+        address _token,
+        address _to
+    ) external onlyOwner {
+        uint256 amount = IERC20(_token).balanceOf(address(this));
+        IERC20(_token).transfer(_to, amount);
+    }
 }
