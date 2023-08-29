@@ -25,15 +25,15 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 contract Deployment is Script {
     // token addresses
     // TODO: check token address
-    address private constant WMNT = 0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8;
+    address private constant WMNT = 0x2C6db4f138A1336dB50Ab698cA70Cf99a37e1198;
 
     // privileged accounts
     // TODO: change these accounts!
     address private constant TEAM_MULTI_SIG =
-        0x28b0e8a22eF14d2721C89Db8560fe67167b71313;
-    address private constant TANK = 0x28b0e8a22eF14d2721C89Db8560fe67167b71313;
+        0x651B44Da48fF3c4B5449fDcDB25bc3FA4C5cC905;
+    address private constant TANK = 0x651B44Da48fF3c4B5449fDcDB25bc3FA4C5cC905;
     address private constant DEPLOYER =
-        0x6E0AFB1912d4Cc8edD87E2672bA32952c6BB85C3;
+        0x651B44Da48fF3c4B5449fDcDB25bc3FA4C5cC905;
     // TODO: set the following variables
     uint private constant INITIAL_MINT_AMOUNT = 6_000_000e18;
     uint private constant MINT_TANK_MIN_LOCK_TIME = 52 * 7 * 86400;
@@ -92,7 +92,7 @@ contract Deployment is Script {
             address(rewardsDistributor)
         );
 
-        flow.transfer(address(TEAM_MULTI_SIG), INITIAL_MINT_AMOUNT - 1e18);
+        // flow.transfer(address(TEAM_MULTI_SIG), INITIAL_MINT_AMOUNT - 1e18);
 
         // Set flow minter to contract
         flow.setMinter(address(minter));
