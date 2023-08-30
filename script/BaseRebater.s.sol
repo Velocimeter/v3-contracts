@@ -21,6 +21,7 @@ contract Rebater is Script {
     // address constant MAGNATE = 0x5BD22e42B020DDB8D385855C9823aa5a8a451060;
     address const ADAM = 0xb1305AEF1cc4750431d0A11AE66e2dD28B2EB656;
     address const TITI = 0x8d1337ec8D89F5F39E17bb7DF8e50157d358e423;
+    address const OGUS = 0x3808107710dE74cC83E3C165a28Bb3A2779742e9;
 
     address constant MintTankAddy = 0x9B5EC2ddCb1BeeBEA5FFe94e6449b4eC56294cBa;
     uint256 constant FULL_LOCK = 52 * 7 * 86400;
