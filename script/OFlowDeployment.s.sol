@@ -36,7 +36,7 @@ contract OFlowDeployment is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         Flow(NEW_FLOW).approve(NEW_ROUTER, 1e18);
-        Router(NEW_ROUTER).addLiquidityETH{value: 1e18}(
+        Router(NEW_ROUTER).addLiquidityETH{value: 5e14}(
             NEW_FLOW,
             false,
             1e18,
