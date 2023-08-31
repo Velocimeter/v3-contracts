@@ -83,25 +83,34 @@ contract veBribeBooster is Ownable {
 
         address bribeGauge = IVoter(voter).external_bribes(gauge);
         
+        uint256 balanceBefore = IERC20(_bribeToken).balanceOf(address(this));
         IERC20(_bribeToken).transferFrom(msg.sender, address(this), _amount);
+        uint256 balanceAfter = IERC20(_bribeToken).balanceOf(address(this));
 
-        uint256 bribeValue = getTokenValueInFlow(_amount,_bribeToken);
+        uint256 amountTransferred = balanceAfter - balanceBefore;
+
+        uint256 bribeValue = getTokenValueInFlow(amountTransferred,_bribeToken);
         
-        IERC20(_bribeToken).approve(bribeGauge, _amount);
+        IERC20(_bribeToken).approve(bribeGauge, amountTransferred);
 
         IBribe(bribeGauge).notifyRewardAmount(
                 _bribeToken,
-                _amount
+                amountTransferred
         );
 
         uint256 amountToLock = bribeValue * matchRate[_bribeToken]  / 100 ;
 
-        require(maxCap[_bribeToken] > amountToLock, "maxCap reached");
+        require(maxCap[_bribeToken] >= amountToLock, "maxCap reached");
         maxCap[_bribeToken] -= amountToLock;
         
         IVotingEscrow(voting_escrow).create_lock_for(amountToLock, maxLock, msg.sender);
 
         emit Boosted(block.timestamp, amountToLock, bribeValue ,msg.sender);
+    }
+
+    function getBribeMatch(uint256 _amount,address _bribeToken)  public view returns (uint256) {
+            uint256 bribeValue = getTokenValueInFlow(_amount,_bribeToken);
+            return bribeValue * matchRate[_bribeToken]  / 100 ;
     }
 
     function getTokenValueInFlow(uint256 _amount,address _token) public view returns (uint256) {
@@ -130,6 +139,13 @@ contract veBribeBooster is Ownable {
     }
     function removeAllowances() public onlyOwner {
         IERC20(flow).approve(voting_escrow, 0);
+    }
+
+
+    /// @notice Sets the twap points. to control the length of our twap
+    /// @param _twapPoints The new twap points.
+    function setTwapPoints(uint256 _twapPoints) external onlyOwner {
+        twapPoints = _twapPoints;
     }
 
     /// @notice Returns the average price in payment tokens over 2 hours for a given amount of underlying tokens
