@@ -16,19 +16,19 @@ import {Voter} from "../contracts/Voter.sol";
 
 contract OFlowDeployment is Script {
     address private constant TEAM_MULTI_SIG =
-        0x5b86A94b14Df577cCf2eA19d4f28560161B77715;
+        0xEe35accF2F94c403B9fFA507D796d1D1994BD870;
     address private constant DEPLOYER =
-        0x4b1B2F1438C7beD2D3e5eA1Da5b8d14BE8c06fF2;
+        0xEe35accF2F94c403B9fFA507D796d1D1994BD870;
 
     // TODO: Fill the address
-    address private constant WETH = 0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d;
-    address private constant NEW_FLOW = 0xE2244F3c62F4b313Cf9C5371c19E9ec9c89b8641;
-    address private constant NEW_PAIR_FACTORY = 0x6738fF9bCE566b4F80bB604e18b9bA3B0daE60cA;
-    address private constant NEW_GAUGE_FACTORY = 0x0f789dCcf70C4609BbC05491F0fF1c974037DC60;
-    address private constant NEW_VOTER = 0x34bAa0b40dc2Bd98c9fdDd5121Ba1bB855870338;
-    address private constant NEW_VOTING_ESCROW = 0x762D6b449fFaC41DFDA9C9f3a22004F496cE7c80;
-    address payable private constant NEW_ROUTER = payable(0x91aC12C15B8e9ac90d1585c7A586555d167cAb5B);
-    address private constant NEW_MINTER = 0x68793d678B58a12166d6b1B604E5a148D963d3B4;
+    address private constant WETH = 0x5300000000000000000000000000000000000004;
+    address private constant NEW_FLOW = 0x5fC02571D53A9B71cE8F5063307367d6fD2caf85;
+    address private constant NEW_PAIR_FACTORY = 0x83A7d44861f28940D9c5Fa22ce1b91CFb66dAb6B;
+    address private constant NEW_GAUGE_FACTORY = 0xeE807d924B15c84a8dE3490a5b6273f43dd0Fc56;
+    address private constant NEW_VOTER = 0xE9B9A807C465904612B72a130E2D9662DDE230FB;
+    address private constant NEW_VOTING_ESCROW = 0x917383C52e4357965e99e411a39cbD240f4C9061;
+    address payable private constant NEW_ROUTER = payable(0xda88794Bd073de116a842e5a4add523Cd76C9E73);
+    address private constant NEW_MINTER = 0x4F298C2aE633113Ae9DA926a5794f8163081F500;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");

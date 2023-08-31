@@ -22,15 +22,15 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 contract Deployment is Script {
     // token addresses
     // TODO: check token address
-    address private constant WETH = 0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d;
+    address private constant WETH = 0x5300000000000000000000000000000000000004;
 
     // privileged accounts
     // TODO: change these accounts!
     address private constant TEAM_MULTI_SIG =
-        0x5b86A94b14Df577cCf2eA19d4f28560161B77715;
-    address private constant TANK = 0x5b86A94b14Df577cCf2eA19d4f28560161B77715;
+        0xEe35accF2F94c403B9fFA507D796d1D1994BD870;
+    address private constant TANK = 0xEe35accF2F94c403B9fFA507D796d1D1994BD870;
     address private constant DEPLOYER =
-        0x4b1B2F1438C7beD2D3e5eA1Da5b8d14BE8c06fF2;
+        0xEe35accF2F94c403B9fFA507D796d1D1994BD870;
     // TODO: set the following variables
     uint private constant INITIAL_MINT_AMOUNT = 6_000_000e18;
 
