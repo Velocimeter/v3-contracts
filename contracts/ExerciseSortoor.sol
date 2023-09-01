@@ -49,12 +49,15 @@ contract ExerciseSortoor is Ownable{
     }
     function disperse() public {
         uint256 wftmBal = balanceOfWFTM();
-        uint256 wftmToSwap = wftmBal * ratio / 100;
-        IRouter(router).swapExactTokensForTokensSimple(wftmToSwap, 1, wFTM, FVM, false, address(this), block.timestamp);
-        uint256 wftmBalNow = balanceOfWFTM();
-        IERC20(wFTM).transfer(treasury, wftmBalNow);
-        uint256 FVMBal = balanceOfFVM();
-        IVeFlowBooster(veBooster).donateFlow(FVMBal);        
+        if (ratio > 0) {
+            uint256 wftmToSwap = wftmBal * ratio / 100;
+            IRouter(router).swapExactTokensForTokensSimple(wftmToSwap, 1, wFTM, FVM, false, address(this), block.timestamp);
+            uint256 wftmBal = balanceOfWFTM();
+            uint256 FVMBal = balanceOfFVM();
+            IVeFlowBooster(veBooster).donateFlow(FVMBal);
+        }        
+        IERC20(wFTM).transfer(treasury, wftmBal);
+        
     }
 
 // Admin Safety Functions
