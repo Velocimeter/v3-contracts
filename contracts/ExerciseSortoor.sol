@@ -38,7 +38,6 @@ contract ExerciseSortoor is Ownable{
         router = _router;
     }
     function setRatio(uint256 _ratio) external onlyOwner {
-        require (_treasury != 0); //<-------------?????
         ratio = _ratio;
     }
 // Public Functions
