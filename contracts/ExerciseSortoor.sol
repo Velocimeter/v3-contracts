@@ -5,7 +5,7 @@ import 'openzeppelin-contracts/contracts/utils/math/Math.sol';
 import 'contracts/interfaces/IERC20.sol';
 import 'contracts/interfaces/IRouter.sol';
 import 'contracts/interfaces/IVeFlowBooster.sol';
-import 'openzepplin-contracts/contracts/access/Ownable.sol';
+import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 // Bribes pay out rewards for a given pool based on the votes that were received from the user (goes hand in hand with Voter.vote())
 contract ExerciseSortoor is Ownable{
@@ -26,15 +26,15 @@ contract ExerciseSortoor is Ownable{
 
 // ADMINS Set Functions
     function setTreasury(address _treasury) external onlyOwner {
-        require (_treasury != 0);
-        treasury = _treasry;
+        require (_treasury != address(0));
+        treasury = _treasury;
     }
     function setVeBooster(address _booster) external onlyOwner {
-        require (_booster != 0);
+        require (_booster != address(0));
         veBooster = _booster;
     }
     function setRouter(address _router) external onlyOwner {
-        require (_router != 0);
+        require (_router != address(0));
         router = _router;
     }
     function setRatio(uint256 _ratio) external onlyOwner {
@@ -52,7 +52,7 @@ contract ExerciseSortoor is Ownable{
         if (ratio > 0) {
             uint256 wftmToSwap = wftmBal * ratio / 100;
             IRouter(router).swapExactTokensForTokensSimple(wftmToSwap, 1, wFTM, FVM, false, address(this), block.timestamp);
-            uint256 wftmBal = balanceOfWFTM();
+            wftmBal = balanceOfWFTM();
             uint256 FVMBal = balanceOfFVM();
             IVeFlowBooster(veBooster).donateFlow(FVMBal);
         }        
@@ -65,7 +65,7 @@ contract ExerciseSortoor is Ownable{
         uint256 amount = IERC20(_token).balanceOf(address(this));
         IERC20(_token).transfer(_to, amount);
     }
-    function giveAllowances() external onlyOwner {
+    function giveAllowances() public onlyOwner {
         IERC20(FVM).approve(veBooster, type(uint256).max);
         IERC20(wFTM).approve(router, type(uint256).max);
     }
