@@ -9,6 +9,7 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 import {IERC20} from "./interfaces/IERC20.sol";
 import {IFlow} from "./interfaces/IFlow.sol";
 import {IGaugeV2} from "./interfaces/IGaugeV2.sol";
+import {IOptionTokenNotify} from "./interfaces/IOptionTokenNotify.sol";
 import {IVoter} from "./interfaces/IVoter.sol";
 import {IVotingEscrow} from "./interfaces/IVotingEscrow.sol";
 import {IPair} from "./interfaces/IPair.sol";
@@ -88,7 +89,7 @@ contract OptionTokenV4 is ERC20, AccessControl {
         address indexed newPaymentToken
     );
     event SetGauge(address indexed newGauge);
-    event SetTreasury(address indexed newTreasury,address indexed newVMTreasury);
+    event AddTreasury(address indexed newTreasury,uint256 fee,bool notify);
     event SetFees(uint256 newTeamFee,uint256 newVMFee);
     event SetRouter(address indexed newRouter);
     event SetDiscount(uint256 discount);
@@ -133,12 +134,6 @@ contract OptionTokenV4 is ERC20, AccessControl {
     /// @notice The guage contract for the pair
     address public gauge;
 
-    /// @notice The treasury address which receives tokens paid during redemption
-    address public treasury;
-
-    /// @notice The VM address which receives tokens paid during redemption
-    address public vmTreasury;
-
     /// @notice the discount given during exercising with locking to the LP
     uint256 public  maxLPDiscount = 20; //  User pays 20%
     uint256 public  minLPDiscount = 80; //  User pays 80%
@@ -155,18 +150,21 @@ contract OptionTokenV4 is ERC20, AccessControl {
     // @notice the lock duration for max discount to create locked LP
     uint256 public lockDurationForMinLpDiscount = 7 * 86400; // 1 week
 
-    /// @notice
-    uint256 public teamFee = 5; // 5%
-
-    /// @notice
-    uint256 public vmFee = 5; // 5%
-
     /// @notice controls the duration of the twap used to calculate the strike price
     // each point represents 30 minutes. 4 points = 2 hours
     uint256 public twapPoints = 4;
 
     /// @notice Is excersizing options currently paused
     bool public isPaused;
+
+
+    struct TreasuryConfig {
+        address treasury;
+        uint256 fee;
+        bool notify;
+    }
+
+    TreasuryConfig[] public treasurys;
 
     /// -----------------------------------------------------------------------
     /// Modifiers
@@ -219,14 +217,14 @@ contract OptionTokenV4 is ERC20, AccessControl {
         paymentToken = _paymentToken;
         underlyingToken = _underlyingToken;
         pair = _pair;
-        treasury = _treasury;
-        vmTreasury = _treasury;
         voter = _voter;
         votingEscrow = _votingEscrow;
         router = _router;
 
+        treasurys.push(TreasuryConfig(_treasury,5,false));
+
         emit SetPairAndPaymentToken(_pair, paymentToken);
-        emit SetTreasury(_treasury,_treasury);
+        emit AddTreasury(_treasury,5,false);
         emit SetRouter(_router);
     }
 
@@ -420,27 +418,31 @@ contract OptionTokenV4 is ERC20, AccessControl {
 
     /// @notice Sets the treasury address. Only callable by the admin.
     /// @param _treasury The new treasury address
-    function setTreasury(address _treasury,address _vmTreasury) external onlyAdmin {
-        treasury = _treasury;
-        vmTreasury = _vmTreasury;
-        emit SetTreasury(_treasury,_vmTreasury);
+    function addTreasury(TreasuryConfig calldata _treasury) external onlyAdmin {
+        require(_treasury.treasury != address(0), 'addr 0');
+        treasurys.push(_treasury);
+
+        emit AddTreasury(_treasury.treasury, _treasury.fee, _treasury.notify);
     }
+
+    function replaceTreasury(TreasuryConfig calldata _treasury,uint256 _pos) external onlyAdmin{
+        require(_treasury.treasury != address(0), 'addr 0');
+        require(_pos < treasurys.length, '_pos out of range');
+        treasurys[_pos] = _treasury;
+    }
+
+    function removeTreasury(uint256 _pos) external onlyAdmin { 
+        require(_pos < treasurys.length, '_pos out of range');
+        treasurys[_pos] = treasurys[treasurys.length - 1];
+        treasurys.pop();
+    }
+
 
     /// @notice Sets the router address. Only callable by the admin.
     /// @param _router The new router address
     function setRouter(address _router) external onlyAdmin {
         router = _router;
         emit SetRouter(_router);
-    }
-
-    /// @notice Sets the team fee. Only callable by the admin.
-    /// @param _fee The new team fee.
-    /// @param _vmFee The new vm fee.
-    function setFees(uint256 _fee,uint256 _vmFee) external onlyAdmin {
-        if (_fee + _vmFee > MAX_FEES) revert OptionToken_InvalidFee();
-        teamFee = _fee;
-        vmFee = _vmFee;
-        emit SetFees(_fee,_vmFee);
     }
 
 
@@ -669,11 +671,16 @@ contract OptionTokenV4 is ERC20, AccessControl {
         address token,
         uint256 paymentAmount
     ) internal returns (uint256 remaining) {
-        uint256 _teamFee = (paymentAmount * teamFee) / 100;
-        uint256 _vmFee = (paymentAmount * vmFee) / 100;
-        _safeTransferFrom(token, msg.sender, treasury, _teamFee);
-        _safeTransferFrom(token, msg.sender, vmTreasury, _vmFee);
-        remaining = paymentAmount - _teamFee - _vmFee;
+        remaining = paymentAmount;
+        for (uint i; i < treasurys.length; i++) {
+            uint256 _fee = (paymentAmount * treasurys[i].fee) / 100;
+            _safeTransferFrom(token, msg.sender, treasurys[i].treasury, _fee);
+            remaining = remaining - _fee;
+
+            if(treasurys[i].notify) {
+                IOptionTokenNotify(treasurys[i].treasury).notify(_fee);
+            }
+        }
     }
 
     function _usePaymentAsGaugeReward(uint256 amount) internal {
