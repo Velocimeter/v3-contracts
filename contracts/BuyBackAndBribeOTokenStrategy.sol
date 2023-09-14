@@ -91,10 +91,12 @@ contract BuyBackAndBribeOTokenStrategy is Ownable{
     }
     function giveAllowances() public onlyOwner {
         IERC20(optionToken).approve(bribeGauge, type(uint256).max);
+        IERC20(underlyingToken).approve(optionToken, type(uint256).max);
         IERC20(paymentToken).approve(router, type(uint256).max);
     }
     function removeAllowances() external onlyOwner {
         IERC20(optionToken).approve(bribeGauge, 0);
+        IERC20(underlyingToken).approve(optionToken, 0);
         IERC20(paymentToken).approve(router, 0);
     }
 }
