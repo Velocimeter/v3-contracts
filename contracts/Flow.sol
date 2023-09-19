@@ -5,8 +5,8 @@ import "contracts/interfaces/IFlow.sol";
 
 contract Flow is IFlow {
 
-    string public constant name = "BasedVelocimeter";
-    string public constant symbol = "BVM";
+    string public constant name = "GnosisVelocimeter";
+    string public constant symbol = "GVM";
     uint8 public constant decimals = 18;
     uint public totalSupply = 0;
 

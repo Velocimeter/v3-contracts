@@ -5,7 +5,7 @@ pragma solidity 0.8.13;
 import {Script} from "../lib/forge-std/src/Script.sol";
 
 import {Flow} from "../contracts/Flow.sol";
-import {GaugeFactoryV3} from "../contracts/factories/GaugeFactoryV3.sol";
+import {GaugeFactoryV4} from "../contracts/factories/GaugeFactoryV4.sol";
 import {BribeFactory} from "../contracts/factories/BribeFactory.sol";
 import {PairFactory} from "../contracts/factories/PairFactory.sol";
 import {Router} from "../contracts/Router.sol";
@@ -22,15 +22,15 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 contract Deployment is Script {
     // token addresses
     // TODO: check token address
-    address private constant WETH = 0x4200000000000000000000000000000000000006;
+    address private constant WETH = 0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d;
 
     // privileged accounts
     // TODO: change these accounts!
     address private constant TEAM_MULTI_SIG =
-        0xfA89A4C7F79Dc4111c116a0f01061F4a7D9fAb73;
-    address private constant TANK = 0xfA89A4C7F79Dc4111c116a0f01061F4a7D9fAb73;
+        0x5b86A94b14Df577cCf2eA19d4f28560161B77715;
+    address private constant TANK = 0x5b86A94b14Df577cCf2eA19d4f28560161B77715;
     address private constant DEPLOYER =
-        0xe0F7921414e79fE4459148d2e38fb68C9186DECC;
+        0x4b1B2F1438C7beD2D3e5eA1Da5b8d14BE8c06fF2;
     // TODO: set the following variables
     uint private constant INITIAL_MINT_AMOUNT = 6_000_000e18;
 
@@ -43,7 +43,7 @@ contract Deployment is Script {
         Flow flow = new Flow(DEPLOYER, INITIAL_MINT_AMOUNT);
 
         // Gauge factory
-        GaugeFactoryV3 gaugeFactory = new GaugeFactoryV3();
+        GaugeFactoryV4 gaugeFactory = new GaugeFactoryV4();
 
         // Bribe factory
         BribeFactory bribeFactory = new BribeFactory();
