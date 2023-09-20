@@ -9,10 +9,11 @@ import "contracts/interfaces/IPair.sol";
 import "contracts/interfaces/IOptionToken.sol";
 import "contracts/interfaces/IBribe.sol";
 import "contracts/interfaces/IGaugeV2.sol";
+import "contracts/interfaces/IProxyGaugeNotify.sol";
 
 pragma solidity ^0.8.13;
 
-contract veMastaBooster is Ownable {
+contract veMastaBooster is Ownable,IProxyGaugeNotify {
     address public paymentToken;
     address public optionToken;
     address public router;
@@ -49,7 +50,7 @@ contract veMastaBooster is Ownable {
         optionToken = _optionToken;
         voter = _voter;
         lockDuration = _lockDuration;
-        _giveAllowances();
+        giveAllowances();
     }
 //VIEW FUNCTIONS
     function balanceOfFlow() public view returns (uint){
@@ -100,10 +101,9 @@ contract veMastaBooster is Ownable {
 
         
 //PUBLIC FUNCTIONS       
-    function donateFlow(uint256 _amount) public {
+    function notifyRewardAmount(uint256 _amount) external {
         require(_amount > 0, 'need to add at least 1 FLOW');
         IERC20(flow).transferFrom(msg.sender, address(this), _amount);
-        _giveAllowances();
         emit Donated(block.timestamp, _amount);
     }
 
@@ -247,7 +247,7 @@ contract veMastaBooster is Ownable {
         uint256 amount = IERC20(_token).balanceOf(address(this));
         IERC20(_token).transfer(_to, amount);
     }
-    function _giveAllowances() public onlyOwner {
+    function giveAllowances() public onlyOwner {
         IERC20(flow).approve(voting_escrow, type(uint256).max);
         IERC20(flow).approve(router, type(uint256).max);
         IERC20(paymentToken).approve(router, type(uint256).max);
