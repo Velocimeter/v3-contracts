@@ -34,7 +34,7 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
     bool public boostBribePaused;
 
     event Boosted(uint256 indexed _timestamp, uint256 _totalLocked, address _locker);
-    event Donated(uint256 indexed _timestamp, uint256 _amount);
+    event RewardsAdded(uint256 indexed _timestamp, uint256 _amount);
     event MatchRateChanged(uint256 indexed _timestamp, string _type, uint256 _newRate);
     event Pausings(uint256 indexed _timestamp, string _type, bool _paused);
 
@@ -104,7 +104,7 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
     function notifyRewardAmount(uint256 _amount) external {
         require(_amount > 0, 'need to add at least 1 FLOW');
         IERC20(flow).transferFrom(msg.sender, address(this), _amount);
-        emit Donated(block.timestamp, _amount);
+        emit RewardsAdded(block.timestamp, _amount);
     }
 
 
