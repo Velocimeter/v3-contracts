@@ -149,7 +149,8 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
         uint256 flowAfter = balanceOfFlow();
         uint256 flowResult = flowAfter - flowBefore;
 
-        uint256 amountToLock = flowResult * lpMatchRate  / 100 + flowResult;
+        (uint256 flowReserve, uint256 paymentReserve) = IRouter(router).getReserves(flow, paymentToken, false);
+        uint256 amountToLock = (toLP * flowReserve) / paymentReserve;
 
         IRouter(router).addLiquidity(flow, paymentToken, false, amountToLock, toLP, 1, 1, address(this), block.timestamp);
         uint256 lpBal = IERC20(pair).balanceOf(address(this));
