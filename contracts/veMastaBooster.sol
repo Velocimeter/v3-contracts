@@ -133,11 +133,14 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
         require(!boostLpPaused, 'this is paused');
         require(_amount > 0, 'need to lock at least 1 paymentToken');
         require(balanceOfFlow() > 0, 'no extra FLOW for boosting');
+        
+        uint256 paymentBalBefore = IERC20(paymentToken).balanceOf(address(this));
         IERC20(paymentToken).transferFrom(msg.sender, address(this), _amount);
 
         if (_minOut == 0) {
             _minOut = 1;
         }
+
         uint256 toSpend = _amount / 2 -(_amount / 2 * lpMatchRate / 100);
         uint256 toLP = _amount - toSpend;
 
@@ -146,9 +149,18 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
         uint256 flowAfter = balanceOfFlow();
         uint256 flowResult = flowAfter - flowBefore;
 
-        IRouter(router).addLiquidity(flow, paymentToken, false, flowResult, toSpend, 1, 1, address(this), block.timestamp);
+        uint256 amountToLock = flowResult * lpMatchRate  / 100 + flowResult;
+
+        IRouter(router).addLiquidity(flow, paymentToken, false, amountToLock, toLP, 1, 1, address(this), block.timestamp);
         uint256 lpBal = IERC20(pair).balanceOf(address(this));
         IGaugeV2(gauge).depositWithLock(msg.sender,lpBal,lockDuration);
+
+        uint256 paymentBalAfter = IERC20(paymentToken).balanceOf(address(this));
+        uint paymentLeftover = paymentBalAfter - paymentBalBefore;
+
+        if(paymentLeftover > 0) {
+             IERC20(paymentToken).transfer(msg.sender, paymentLeftover);
+        }
 
         emit Boosted(block.timestamp, lpBal, msg.sender);
     }

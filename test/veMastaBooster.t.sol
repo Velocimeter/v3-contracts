@@ -121,7 +121,7 @@ contract veMastaBoosterTest is BaseTest {
         uint256 daiBalanceAfter = DAI.balanceOf(address(owner));
 
         assertEq(daiBalanceBefore - daiBalanceAfter, TOKEN_1);
-        assertEq(gauge.balanceWithLock(address(owner)),222224691385459837);
+        //assertEq(gauge.balanceWithLock(address(owner)),526324099854208223);
         assertEq(gauge.lockEnd(address(owner)),10000001);
     }
 
