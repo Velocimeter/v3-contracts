@@ -22,8 +22,8 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
     address public flow;
     address public voting_escrow;
     address public voter;
-    uint256 public lpMatchRate = 50; // 50%
-    uint256 public veMatchRate = 50; // 50%
+    uint256 public lpMatchRate = 20; // 20%
+    uint256 public veMatchRate = 60; // 60%
     uint256 public bribeMatchRate = 50; // 50%
     
     uint256 public lockDuration;
