@@ -92,6 +92,7 @@ contract veMastaBoosterTest is BaseTest {
     }
 
     function testBoostedBuyAndVeLock() public {
+        veMastaBoosterContract.setVeMatchRate(50);
        DAI.approve(address(veMastaBoosterContract), TOKEN_1);
        uint256 flowAmount = router.getAmountOut(TOKEN_1, address(DAI), address(FLOW), false);
        uint256 daiBalanceBefore = DAI.balanceOf(address(owner));
@@ -111,6 +112,7 @@ contract veMastaBoosterTest is BaseTest {
     }
 
     function testBoostedBuyAndLPLock() public {
+       veMastaBoosterContract.setLpMatchRate(50);
        gaugeFactory.addOTokenFor(address(gauge), address(veMastaBoosterContract));
        DAI.approve(address(veMastaBoosterContract), TOKEN_1);
        uint256 flowAmount = router.getAmountOut(TOKEN_1, address(DAI), address(FLOW), false);
