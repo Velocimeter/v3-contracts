@@ -64,7 +64,7 @@ contract ProxyGaugeTest is BaseTest {
         deployPairWithOwner(address(owner));
         booster = new veMastaBooster(address(escrow),address(this),address(DAI),52 weeks,address(router),address(0x0),address(flowDaiPair),address(oFlowV2),address(voter),61 days);
 
-        address newGauge = gaugeFactory.deployGauge(address(booster));
+        address newGauge = gaugeFactory.deployGauge(address(booster),"Test");
         address gaugeAddress = voter.createGauge(newGauge, 0);
         gauge = ProxyGauge(gaugeAddress);
 

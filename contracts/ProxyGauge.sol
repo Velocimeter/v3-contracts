@@ -14,6 +14,7 @@ import 'contracts/interfaces/IVotingEscrow.sol';
 contract ProxyGauge is IGauge {
     address public immutable flow;
     address public immutable notifyAddress;
+    string public symbol;
 
     // simple re-entrancy check
     uint internal _unlocked = 1;
@@ -24,9 +25,10 @@ contract ProxyGauge is IGauge {
         _unlocked = 1;
     }
 
-    constructor(address _flow,address _notifyAddress) {
+    constructor(address _flow,address _notifyAddress,string memory _symbol) {
         flow = _flow;
         notifyAddress = _notifyAddress;
+        symbol = _symbol;
     }
 
     function notifyRewardAmount(address token, uint amount) external lock {

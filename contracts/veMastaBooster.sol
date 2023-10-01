@@ -64,6 +64,7 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
          uint256 amnt = flowBal * 100 / lpMatchRate;
          return amnt;
     }
+    
     function maxVeLockableAmount() public view returns (uint){
          uint256 flowBal = balanceOfFlow();
          uint256 amnt = flowBal * 100 / veMatchRate;
@@ -186,11 +187,11 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
 
         uint256 oTokenResult = oTokenAfter - oTokenBefore;
         
-        address gauge = IVoter(voter).gauges(_pool);
+        address poolGauge = IVoter(voter).gauges(_pool);
 
-        require(IVoter(voter).isAlive(gauge), 'gauge not alive');
+        require(IVoter(voter).isAlive(poolGauge), 'gauge not alive');
 
-        address bribeGauge = IVoter(voter).external_bribes(gauge);
+        address bribeGauge = IVoter(voter).external_bribes(poolGauge);
 
         IERC20(optionToken).approve(bribeGauge, oTokenResult);
 

@@ -18,8 +18,8 @@ contract ProxyGaugeFactory is IGaugeFactory, Ownable {
         flow = _flow;
     }
  
-    function deployGauge(address _notifyAddress) external onlyOwner returns (address) {
-        address last_gauge = address(new ProxyGauge(flow,_notifyAddress));
+    function deployGauge(address _notifyAddress,string memory _symbol) external onlyOwner returns (address) {
+        address last_gauge = address(new ProxyGauge(flow,_notifyAddress,_symbol));
         isWhitelisted[last_gauge] = true;
         return last_gauge;
     } 
