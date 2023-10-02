@@ -27,7 +27,7 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
     uint256 public veMatchRate = 60; // 60%
     uint256 public bribeMatchRate = 50; // 50%
     
-    uint256 public lockDuration;
+    uint256 public lpLockDuration;
     uint256 public maxLock;
 
     bool public boostLpPaused;
@@ -41,7 +41,7 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
 
     // need minter role for the oToken
     // need approval to deposit for lock to the maxing gauge
-    constructor(address _team, uint256 _maxLock, address _optionToken,address _voter,uint256 _lockDuration) {
+    constructor(address _team, uint256 _maxLock, address _optionToken,address _voter,uint256 _lpLockDuration) {
         _transferOwnership(_team);
         voter = _voter;
         voting_escrow = IVoter(voter)._ve();
@@ -52,7 +52,7 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
         gauge = IOptionToken(_optionToken).gauge();
         pair = IGauge(gauge).stake();
         maxLock = _maxLock;
-        lockDuration = _lockDuration;
+        lpLockDuration = _lpLockDuration;
         giveAllowances();
     }
 //VIEW FUNCTIONS
@@ -161,7 +161,7 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
 
         IRouter(router).addLiquidity(flow, paymentToken, false, amountToLock, toLP, 1, 1, address(this), block.timestamp);
         uint256 lpBal = IERC20(pair).balanceOf(address(this));
-        IGaugeV2(gauge).depositWithLock(msg.sender,lpBal,lockDuration);
+        IGaugeV2(gauge).depositWithLock(msg.sender,lpBal,lpLockDuration);
 
         uint256 paymentBalAfter = IERC20(paymentToken).balanceOf(address(this));
         uint paymentLeftover = paymentBalAfter - paymentBalBefore;
@@ -261,7 +261,10 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
     function setOptionToken(address _optionToken) external onlyOwner {
         require(_optionToken != address(0));
         optionToken = _optionToken;
-    }    
+    }
+    function setLPLockDuration(uint256 _lpLockDuration) external onlyOwner {
+        lpLockDuration = _lpLockDuration;
+    }       
     function pauseLPBoost(bool _tf) external onlyOwner {
         boostLpPaused = _tf;
         emit Pausings(block.timestamp, "LPBoost", _tf);
