@@ -79,7 +79,7 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
          return amnt;
     }
     function checkFlowBalanceEnoughForLP(uint256 _paymentAmount) public view returns (bool) {
-        (uint256 toSpend,uint256 toLP,uint amountToLock) = _getAmountsForLPLock(_paymentAmount);
+        (uint256 toSpend,uint256 toLP,uint amountToLock) = getAmountsForLPLock(_paymentAmount);
 
         uint256 amount = IRouter(router).getAmountOut(toSpend, paymentToken, flow, false);
 
@@ -97,7 +97,7 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
     function getExpectedAmountForLP(uint256 _paymentAmount) external view returns (uint256,uint256) {
         uint256 amount = IRouter(router).getAmountOut(_paymentAmount, paymentToken, flow, false);
 
-        (uint256 toSpend,uint256 toLP,uint amountToLock) = _getAmountsForLPLock(_paymentAmount);
+        (uint256 toSpend,uint256 toLP,uint amountToLock) = getAmountsForLPLock(_paymentAmount);
 
         return (amountToLock,toLP);
     }
@@ -108,6 +108,16 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
     function getExpectedAmountForBribe(uint256 _paymentAmount) external view returns (uint256) {
         uint256 amount = IRouter(router).getAmountOut(_paymentAmount, paymentToken, flow, false);
         return amount * bribeMatchRate  / 100;
+    }
+
+    function getAmountsForLPLock(uint256 _amount) public view returns (uint256,uint256,uint256) {
+        uint256 toSpend = _amount / 2 -(_amount / 2 * lpMatchRate / 100);
+        uint256 toLP = _amount - toSpend;
+
+        (uint256 flowReserve, uint256 paymentReserve) = IRouter(router).getReserves(flow, paymentToken, false);
+        uint256 amountToLock = (toLP * flowReserve) / paymentReserve;
+
+        return (toSpend,toLP,amountToLock);
     }
 
         
@@ -152,7 +162,7 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
             _minOut = 1;
         }
 
-        (uint256 toSpend,uint256 toLP,uint amountToLock) = _getAmountsForLPLock(_amount);
+        (uint256 toSpend,uint256 toLP,uint amountToLock) = getAmountsForLPLock(_amount);
         
         uint256 flowBefore = balanceOfFlow();
         IRouter(router).swapExactTokensForTokensSimple(toSpend, _minOut, paymentToken, flow, false, address(this), block.timestamp);
@@ -171,16 +181,6 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
         }
 
         emit Boosted(block.timestamp, lpBal, msg.sender);
-    }
-
-    function _getAmountsForLPLock(uint256 _amount) internal view returns (uint256,uint256,uint256) {
-        uint256 toSpend = _amount / 2 -(_amount / 2 * lpMatchRate / 100);
-        uint256 toLP = _amount - toSpend;
-
-        (uint256 flowReserve, uint256 paymentReserve) = IRouter(router).getReserves(flow, paymentToken, false);
-        uint256 amountToLock = (toLP * flowReserve) / paymentReserve;
-
-        return (toSpend,toLP,amountToLock);
     }
 
     function boostedBuyAndBribe(uint256 _amount, uint _minOut,address _pool) public {
@@ -295,4 +295,5 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
         IERC20(flow).approve(optionToken, 0);
         IERC20(pair).approve(gauge, type(uint256).max);
     }
+
 }
