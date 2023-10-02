@@ -124,7 +124,7 @@ contract veMastaBoosterTest is BaseTest {
 
         (uint amountA, uint amountB) = router.quoteRemoveLiquidity(address(DAI), address(FLOW), false, gauge.balanceWithLock(address(owner)));
 
-        assertEq(daiBalanceBefore - daiBalanceAfter, TOKEN_1 - 1);
+        assertEq(daiBalanceBefore - daiBalanceAfter, TOKEN_1);
         assertEq(gauge.balanceWithLock(address(owner)),666674074156379514);
         assertEq(amountA,749999999999999998);
         assertEq(gauge.lockEnd(address(owner)),10000001);
