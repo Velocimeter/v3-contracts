@@ -44,7 +44,7 @@ contract veMastaBoosterTest is BaseTest {
         oFlowV3.updateGauge();
         bribe = ExternalBribe(voter.external_bribes(address(gauge)));
        
-        veMastaBoosterContract = new veMastaBooster(address(escrow),address(owner),address(DAI),10000000,address(router),oFlowV3.gauge(),address(oFlowV3.pair()),address(oFlowV3),address(voter),10000000);
+        veMastaBoosterContract = new veMastaBooster(address(owner),10000000,address(oFlowV3),address(voter),10000000);
         FLOW.approve(address(veMastaBoosterContract),TOKEN_1 * 10);
         veMastaBoosterContract.notifyRewardAmount(TOKEN_1 * 10);
 

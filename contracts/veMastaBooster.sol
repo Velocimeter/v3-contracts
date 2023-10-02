@@ -8,6 +8,7 @@ import "contracts/interfaces/IRouter.sol";
 import "contracts/interfaces/IPair.sol";
 import "contracts/interfaces/IOptionToken.sol";
 import "contracts/interfaces/IBribe.sol";
+import "contracts/interfaces/IGauge.sol";
 import "contracts/interfaces/IGaugeV2.sol";
 import "contracts/interfaces/IProxyGaugeNotify.sol";
 
@@ -38,17 +39,19 @@ contract veMastaBooster is Ownable,IProxyGaugeNotify {
     event MatchRateChanged(uint256 indexed _timestamp, string _type, uint256 _newRate);
     event Pausings(uint256 indexed _timestamp, string _type, bool _paused);
 
-    constructor(address _voting_escrow, address _team, address _paymentToken, uint256 _maxLock, address _router, address _gauge, address _pair, address _optionToken,address _voter,uint256 _lockDuration) {
+    // need minter role for the oToken
+    // need approval to deposit for lock to the maxing gauge
+    constructor(address _team, uint256 _maxLock, address _optionToken,address _voter,uint256 _lockDuration) {
         _transferOwnership(_team);
-        voting_escrow = _voting_escrow;
-        flow = IVotingEscrow(voting_escrow).token();
-        paymentToken = _paymentToken;
-        maxLock = _maxLock;
-        router = _router;
-        gauge = _gauge;
-        pair = _pair;
-        optionToken = _optionToken;
         voter = _voter;
+        voting_escrow = IVoter(voter)._ve();
+        flow = IVotingEscrow(voting_escrow).token();
+        optionToken = _optionToken;
+        paymentToken = IOptionToken(_optionToken).paymentToken();
+        router = IOptionToken(_optionToken).router();
+        gauge = IOptionToken(_optionToken).gauge();
+        pair = IGauge(gauge).stake();
+        maxLock = _maxLock;
         lockDuration = _lockDuration;
         giveAllowances();
     }

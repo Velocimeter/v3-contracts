@@ -9,5 +9,8 @@ interface IOptionToken {
     ) external returns (uint256);
     function paymentToken() external returns (address);
     function underlyingToken() external returns (address);
+    function router() external returns (address);
+    function gauge() external returns (address);
     function getDiscountedPrice(uint256 _amount) external view returns (uint256);
+
 }
