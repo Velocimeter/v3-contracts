@@ -2,11 +2,14 @@ pragma solidity 0.8.13;
 
 import "./BaseTest.sol";
 import "contracts/factories/ProxyGaugeFactory.sol";
+import "contracts/GaugeV2.sol";
+import "contracts/factories/GaugeFactoryV3.sol";
 import "contracts/veMastaBooster.sol";
 
 contract ProxyGaugeTest is BaseTest {
     VotingEscrow escrow;
     ProxyGaugeFactory gaugeFactory;
+    
     BribeFactory bribeFactory;
     Voter voter;
     ProxyGauge gauge;
@@ -32,9 +35,11 @@ contract ProxyGaugeTest is BaseTest {
         deployPairFactoryAndRouter();
 
         gaugeFactory = new ProxyGaugeFactory(address(FLOW));
+        GaugeFactoryV3 gaugeFactoryV3 = new GaugeFactoryV3();
         bribeFactory = new BribeFactory();
         voter = new Voter(address(escrow), address(factory), address(gaugeFactory), address(bribeFactory));
         factory.setVoter(address(voter));
+        voter.addFactory(address(factory),address(gaugeFactoryV3));
 
         address[] memory tokens = new address[](4);
         tokens[0] = address(USDC);
@@ -54,14 +59,22 @@ contract ProxyGaugeTest is BaseTest {
         voter.initialize(tokens, address(minter));
         minter.startActivePeriod();
 
+        flowDaiPair = Pair(
+            factory.createPair(address(FLOW), address(DAI), false)
+        );
+        
         deployOptionTokenV2WithOwner(
             address(owner),
-            address(gaugeFactory),
+            address(gaugeFactoryV3),
             address(voter),
             address(escrow)
         );
 
         deployPairWithOwner(address(owner));
+
+        GaugeV2(voter.createGauge(address(flowDaiPair), 1));
+        oFlowV2.updateGauge();
+
         booster = new veMastaBooster(address(this),52 weeks,address(oFlowV2),address(voter),61 days);
 
         address newGauge = gaugeFactory.deployGauge(address(booster),"Test");
