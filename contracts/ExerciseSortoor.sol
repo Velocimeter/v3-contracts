@@ -4,7 +4,7 @@ pragma solidity 0.8.13;
 import 'openzeppelin-contracts/contracts/utils/math/Math.sol';
 import 'contracts/interfaces/IERC20.sol';
 import 'contracts/interfaces/IRouter.sol';
-import 'contracts/interfaces/IVeFlowBooster.sol';
+import 'contracts/interfaces/IProxyGaugeNotify.sol';
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 // Bribes pay out rewards for a given pool based on the votes that were received from the user (goes hand in hand with Voter.vote())
@@ -54,7 +54,7 @@ contract ExerciseSortoor is Ownable{
             IRouter(router).swapExactTokensForTokensSimple(wftmToSwap, 1, wFTM, FVM, false, address(this), block.timestamp);
             wftmBal = balanceOfWFTM();
             uint256 FVMBal = balanceOfFVM();
-            IVeFlowBooster(veBooster).donateFlow(FVMBal);
+            IProxyGaugeNotify(veBooster).notifyRewardAmount(FVMBal);
         }        
         IERC20(wFTM).transfer(treasury, wftmBal);
         
