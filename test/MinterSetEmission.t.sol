@@ -124,10 +124,10 @@ contract MinterSetEmission is BaseTest {
 
         // expect revert for out-of-bounds emission
         vm.expectRevert(abi.encodePacked("emission out of range"));
-        team.setEmission(address(minter), 1981);
+        team.setEmission(address(minter), 6001);
 
         vm.expectRevert(abi.encodePacked("emission out of range"));
-        team.setEmission(address(minter), 499);
+        team.setEmission(address(minter), 249);
 
         // new emission in bounds
         vm.expectEmit(true, true, false, true);

@@ -211,7 +211,7 @@ contract OptionTokenV3Test is BaseTest {
 
     function testSetDiscount() public {
         vm.startPrank(address(owner));
-        assertEq(oFlowV3.discount(), 90);
+        assertEq(oFlowV3.discount(), 99);
         vm.expectEmit(true, false, false, false);
         emit SetDiscount(50);
         oFlowV3.setDiscount(50);

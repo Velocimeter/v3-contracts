@@ -56,18 +56,18 @@ contract veFlowBoosterTest is BaseTest {
     function testBoostedBuyAndVeLock() public {
        DAI.approve(address(veFlowBoosterContract), TOKEN_1);
        uint256 flowAmount = router.getAmountOut(TOKEN_1, address(DAI), address(FLOW), false);
-       uint256 daiBalanceBefore = DAI.balanceOf(address(owner2));
+       uint256 daiBalanceBefore = DAI.balanceOf(address(owner));
        uint256 maxNFT = escrow.currentTokenId(); 
        
        veFlowBoosterContract.boostedBuyAndVeLock(TOKEN_1,1);
     
-        uint256 daiBalanceAfter = DAI.balanceOf(address(owner2));
+        uint256 daiBalanceAfter = DAI.balanceOf(address(owner));
         
         assertEq(escrow.currentTokenId(),maxNFT + 1);
         
         (int128 amount,uint256 duration) =  escrow.locked(maxNFT + 1);
 
-        assertEq(daiBalanceAfter - daiBalanceBefore, TOKEN_1);
+        assertEq(daiBalanceBefore - daiBalanceAfter, TOKEN_1);
         assertEq(amount,999933331111037034);
         assertEq(duration,9676800);
     }
