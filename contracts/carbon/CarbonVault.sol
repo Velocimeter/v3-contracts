@@ -28,8 +28,8 @@ contract CarbonVault is ERC20,ReentrancyGuard{
         carbonController = _carbonController;
     }
 
-    function initStrategy(uint256 _strategyIdToCopy,uint128 _amount) public {
-        require(strategyId == 0, "valut started");
+    function initStrategy(uint256 _strategyIdToCopy, uint128 _amount) public {
+        require(strategyId == 0, "vault started");
 
         SafeERC20.safeTransferFrom(IERC20(tokenToDeposit), msg.sender, address(this), _amount);
 
@@ -54,7 +54,7 @@ contract CarbonVault is ERC20,ReentrancyGuard{
     }
 
     function closeStrategy() public {
-        require(block.timestamp >= maturity, "valut has not matured");
+        require(block.timestamp >= maturity, "vault has not matured");
 
         if(strategyId != 0) {
             ICarbonController(carbonController).deleteStrategy(strategyId);
@@ -62,8 +62,8 @@ contract CarbonVault is ERC20,ReentrancyGuard{
     }
 
     function deposit(uint128 _amount) public nonReentrant {
-        require(strategyId != 0, "valut not started");
-        require(block.timestamp < maturity, "valut has matured");
+        require(strategyId != 0, "vault not started");
+        require(block.timestamp < maturity, "vault has matured");
 
         SafeERC20.safeTransferFrom(IERC20(tokenToDeposit), msg.sender, address(this), _amount);
 
@@ -92,7 +92,7 @@ contract CarbonVault is ERC20,ReentrancyGuard{
     }
 
     function withdraw(uint256 _shares) public nonReentrant{
-        require(block.timestamp >= maturity, "valut has not matured");
+        require(block.timestamp >= maturity, "vault has not matured");
         closeStrategy();
         
         // withdraw deposit
