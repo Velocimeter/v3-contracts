@@ -22,14 +22,17 @@ contract CarbonVault is ERC20,ReentrancyGuard{
 
     address public tokenToBuy; // token needs to be 18 decimals
 
+    bool public initiated; 
+
     constructor(string memory _name, string memory _symbol, uint256 _maturity,address _tokenToDeposit,address _carbonController) ERC20(_name,_symbol) {
         maturity = _maturity;
         tokenToDeposit = _tokenToDeposit;
         carbonController = _carbonController;
+        initiated = false;
     }
 
     function initStrategy(uint256 _strategyIdToCopy, uint128 _amount) public {
-        require(strategyId == 0, "vault started");
+        require(!initiated, "vault started");
 
         SafeERC20.safeTransferFrom(IERC20(tokenToDeposit), msg.sender, address(this), _amount);
 
@@ -51,6 +54,10 @@ contract CarbonVault is ERC20,ReentrancyGuard{
         SafeERC20.safeApprove(IERC20(tokenToDeposit), carbonController, _amount);
 
         strategyId = ICarbonController(carbonController).createStrategy(strategyToCopy.tokens[0], strategyToCopy.tokens[1], [targetOrder,sourceOrder]);
+
+        _mint(msg.sender, _amount);
+
+        initiated = true;
     }
 
     function closeStrategy() public {
@@ -58,6 +65,7 @@ contract CarbonVault is ERC20,ReentrancyGuard{
 
         if(strategyId != 0) {
             ICarbonController(carbonController).deleteStrategy(strategyId);
+            strategyId = 0;
         }
     }
 
