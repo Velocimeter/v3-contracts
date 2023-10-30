@@ -4,10 +4,11 @@ pragma solidity 0.8.13;
 import "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import 'openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol';
 import "openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
+import "openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
 
 import 'contracts/interfaces/carbon/ICarbonController.sol';
 
-contract CarbonVault is ERC20,ReentrancyGuard{
+contract CarbonVault is ERC20,ReentrancyGuard,IERC721Receiver{
 
     // The timestamp which users can withdraw their position from carbon
     uint256 public maturity;
@@ -127,5 +128,14 @@ contract CarbonVault is ERC20,ReentrancyGuard{
 
     function balanceOfBuyToken() public view returns (uint) {
         return IERC20(tokenToBuy).balanceOf(address(this));
+    }
+
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
     }
 }
