@@ -98,7 +98,7 @@ contract CarbonVault is ERC20,ReentrancyGuard,IERC721Receiver{
 
         ICarbonController(carbonController).updateStrategy(strategyId, strategy.orders, [targetOrder,sourceOrder]);
 
-         _amount18 = _to18decimals(tokenToDeposit,_amount); // if the deposit token is not 18 decimals we convert the amout to 18 decimals so 1 share = 1 token
+        uint256 _amount18 = _to18decimals(tokenToDeposit,_amount); // if the deposit token is not 18 decimals we convert the amout to 18 decimals so 1 share = 1 token
 
         _mint(msg.sender, _amount18);
     }
