@@ -9,7 +9,7 @@ import "openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
 
 import 'contracts/interfaces/carbon/ICarbonController.sol';
 
-contract CarbonVault is ERC20,ReentrancyGuard,IERC721Receiver{
+contract CarbonVaultTwoTokens is ERC20,ReentrancyGuard,IERC721Receiver{
 
     // The timestamp which users can withdraw their position from carbon
     uint256 public maturity;
