@@ -17,47 +17,52 @@ contract CarbonVaultTwoTokens is ERC20,ReentrancyGuard,IERC721Receiver{
     //curent id of the strategy in carbon 
     uint256 public strategyId;
 
-    //
     address public carbonController;
     
-    address public tokenToDeposit; 
-
-    address public tokenToBuy;
+    address public token0; 
+    address public token1;
 
     bool public initiated; 
 
-    constructor(string memory _name, string memory _symbol, uint256 _maturity,address _tokenToDeposit,address _carbonController) ERC20(_name,_symbol) {
+    //errors
+    error SlippageTooHigh();
+
+    constructor(string memory _name, string memory _symbol, uint256 _maturity,address _carbonController) ERC20(_name,_symbol) {
         maturity = _maturity;
-        tokenToDeposit = _tokenToDeposit;
         carbonController = _carbonController;
         initiated = false;
     }
 
-    function initStrategy(uint256 _strategyIdToCopy, uint128 _amount) public {
+    function initStrategy(uint256 _strategyIdToCopy, uint128 _amountToken0,uint128 _amountToken1) public {
         require(!initiated, "vault started");
-
-        SafeERC20.safeTransferFrom(IERC20(tokenToDeposit), msg.sender, address(this), _amount);
-
+ 
         Strategy memory strategyToCopy = ICarbonController(carbonController).strategy(_strategyIdToCopy);
          
-        bool isTargetToken0 = Token.unwrap(strategyToCopy.tokens[0]) == tokenToDeposit;
+        token0 = Token.unwrap(strategyToCopy.tokens[0]);
+        token1 = Token.unwrap(strategyToCopy.tokens[1]);
 
-        tokenToBuy = !isTargetToken0 ? Token.unwrap(strategyToCopy.tokens[0]) : Token.unwrap(strategyToCopy.tokens[1]);
+        if(_amountToken0 > 0)
+            SafeERC20.safeTransferFrom(IERC20(token0), msg.sender, address(this), _amountToken0);
+        
+        if(_amountToken1 > 0)
+            SafeERC20.safeTransferFrom(IERC20(token1), msg.sender, address(this), _amountToken1);
 
-        Order memory mainOrder = isTargetToken0 ? strategyToCopy.orders[0] : strategyToCopy.orders[1];
+        Order memory token0Order = strategyToCopy.orders[0]; 
+        Order memory token1Order = strategyToCopy.orders[1];
 
-        mainOrder.y = _amount;
-        mainOrder.z = _amount;
+        token0Order.y = _amountToken0;
+        token0Order.z = _amountToken0;
 
-        (Order memory targetOrder, Order memory sourceOrder) = isTargetToken0
-                ? (mainOrder, strategyToCopy.orders[1])
-                : (strategyToCopy.orders[0], mainOrder);
+        token1Order.y = _amountToken1;
+        token1Order.z = _amountToken1;
 
-        SafeERC20.safeApprove(IERC20(tokenToDeposit), carbonController, _amount);
+        SafeERC20.safeApprove(IERC20(token0), carbonController, _amountToken0);
+        SafeERC20.safeApprove(IERC20(token1), carbonController, _amountToken1);
 
-        strategyId = ICarbonController(carbonController).createStrategy(strategyToCopy.tokens[0], strategyToCopy.tokens[1], [targetOrder,sourceOrder]);
+        strategyId = ICarbonController(carbonController).createStrategy(strategyToCopy.tokens[0], strategyToCopy.tokens[1], [token0Order,token1Order]);
 
-        _mint(msg.sender, _amount);
+        uint256 _amount18 = _to18decimals(token0,_amountToken0);
+        _mint(msg.sender, _amount18); // this i start share by defult is base on the amout of token 1 (first init is 100% of shares)
 
         initiated = true;
     }
@@ -71,9 +76,10 @@ contract CarbonVaultTwoTokens is ERC20,ReentrancyGuard,IERC721Receiver{
         }
     }
 
-    function deposit(uint128 _amount) public nonReentrant {
+    function deposit(address tokenToDeposit,uint128 _amount,uint128 _maxAmountSecondToken) public nonReentrant {
         require(strategyId != 0, "vault not started");
         require(block.timestamp < maturity, "vault has matured");
+        require(tokenToDeposit == token0 || tokenToDeposit == token1, "deposit token is not part of the vault");
 
         SafeERC20.safeTransferFrom(IERC20(tokenToDeposit), msg.sender, address(this), _amount);
 
@@ -81,26 +87,51 @@ contract CarbonVaultTwoTokens is ERC20,ReentrancyGuard,IERC721Receiver{
 
         bool isTargetToken0 = Token.unwrap(strategy.tokens[0]) == tokenToDeposit;
 
-        Order memory mainOrder = isTargetToken0 ? strategy.orders[0] : strategy.orders[1];
+        address secondTokenAddress =  isTargetToken0 ? Token.unwrap(strategy.tokens[1]) : Token.unwrap(strategy.tokens[0]);
+
+        Order memory targetTokenOrder = isTargetToken0 ? strategy.orders[0] : strategy.orders[1];
+        Order memory secondTokenOrder = isTargetToken0 ? strategy.orders[1] : strategy.orders[0];
+
+        require(targetTokenOrder.y > secondTokenOrder.y, "you need to use other token as deposit token"); // defend against precision lost with dust amounts
+        
+        uint128 _amountSecondToken = (secondTokenOrder.y * _amount) / targetTokenOrder.y;
+
+        if (_amountSecondToken > _maxAmountSecondToken)
+            revert SlippageTooHigh();
+
+        if(_amountSecondToken > 0)
+            SafeERC20.safeTransferFrom(IERC20(secondTokenAddress), msg.sender, address(this), _maxAmountSecondToken);
+
+        uint256 depositShare =  (totalSupply() *  _amount) / targetTokenOrder.y;
 
         Order memory updatedMainOrder;
         
-        updatedMainOrder.A = mainOrder.A;
-        updatedMainOrder.B = mainOrder.B;
-        updatedMainOrder.y = mainOrder.y + _amount;
-        updatedMainOrder.z = mainOrder.z + _amount;
+        updatedMainOrder.A = targetTokenOrder.A;
+        updatedMainOrder.B = targetTokenOrder.B;
+
+        updatedMainOrder.z = ((targetTokenOrder.y + _amount) *  targetTokenOrder.z ) / targetTokenOrder.y;
+        updatedMainOrder.y = targetTokenOrder.y + _amount;
+
+        
+        Order memory updatedSecondOrder; 
+
+        updatedSecondOrder.A = secondTokenOrder.A;
+        updatedSecondOrder.B = secondTokenOrder.B;
+
+        updatedSecondOrder.z = ((secondTokenOrder.y + _amountSecondToken) *  secondTokenOrder.z ) / secondTokenOrder.y;
+        updatedSecondOrder.y = secondTokenOrder.y + _amountSecondToken;
+
 
         (Order memory targetOrder, Order memory sourceOrder) = isTargetToken0
-                ? (updatedMainOrder, strategy.orders[1])
-                : (strategy.orders[0], updatedMainOrder);
+                ? (updatedMainOrder, updatedSecondOrder)
+                : (updatedSecondOrder, updatedMainOrder);
 
         SafeERC20.safeApprove(IERC20(tokenToDeposit), carbonController, _amount);
+        SafeERC20.safeApprove(IERC20(secondTokenAddress), carbonController, _amountSecondToken);
 
         ICarbonController(carbonController).updateStrategy(strategyId, strategy.orders, [targetOrder,sourceOrder]);
 
-        uint256 _amount18 = _to18decimals(tokenToDeposit,_amount); // if the deposit token is not 18 decimals we convert the amout to 18 decimals so 1 share = 1 token
-
-        _mint(msg.sender, _amount18);
+        _mint(msg.sender, depositShare);
     }
 
     function withdraw(uint256 _shares) public nonReentrant{
@@ -108,29 +139,35 @@ contract CarbonVaultTwoTokens is ERC20,ReentrancyGuard,IERC721Receiver{
         closeStrategy();
         
         // withdraw deposit
-        uint depositTokenAmount = (balanceOfDepositToken() * _shares) / totalSupply();
+        uint token0Amount = (balanceOfToken0() * _shares) / totalSupply();
         
         // withdraw executed ammounts 
-        uint buyTokenAmount = (balanceOfBuyToken() * _shares) /  totalSupply();
+        uint token1Amount = (balanceOfToken1() * _shares) /  totalSupply();
 
         _burn(msg.sender, _shares);
 
-        if(depositTokenAmount > 0) {
-            SafeERC20.safeTransfer(IERC20(tokenToDeposit), msg.sender, depositTokenAmount);
+        if(token0Amount > 0) {
+            SafeERC20.safeTransfer(IERC20(token0), msg.sender, token0Amount);
         }
 
-        if(buyTokenAmount > 0) {
-            SafeERC20.safeTransfer(IERC20(tokenToBuy), msg.sender, buyTokenAmount);
+        if(token1Amount > 0) {
+            SafeERC20.safeTransfer(IERC20(token1), msg.sender, token1Amount);
         }
 
     }
 
-    function balanceOfDepositToken() public view returns (uint) {
-        return IERC20(tokenToDeposit).balanceOf(address(this));
+    function carbonBalance() public view returns (address,address,uint,uint) {
+         Strategy memory strategy = ICarbonController(carbonController).strategy(strategyId);
+         
+         return (Token.unwrap(strategy.tokens[0]),Token.unwrap(strategy.tokens[1]),strategy.orders[0].y,strategy.orders[1].y);
     }
 
-    function balanceOfBuyToken() public view returns (uint) {
-        return IERC20(tokenToBuy).balanceOf(address(this));
+    function balanceOfToken0() public view returns (uint) {
+        return IERC20(token0).balanceOf(address(this));
+    }
+
+    function balanceOfToken1() public view returns (uint) {
+        return IERC20(token1).balanceOf(address(this));
     }
 
     function onERC721Received(
