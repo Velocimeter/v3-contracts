@@ -118,9 +118,14 @@ contract CarbonVaultTwoTokens is ERC20,ReentrancyGuard,IERC721Receiver{
         updatedSecondOrder.A = secondTokenOrder.A;
         updatedSecondOrder.B = secondTokenOrder.B;
 
-        updatedSecondOrder.z = ((secondTokenOrder.y + _amountSecondToken) *  secondTokenOrder.z ) / secondTokenOrder.y;
-        updatedSecondOrder.y = secondTokenOrder.y + _amountSecondToken;
-
+        if(secondTokenOrder.y > 0 ) { 
+            updatedSecondOrder.z = ((secondTokenOrder.y + _amountSecondToken) *  secondTokenOrder.z ) / secondTokenOrder.y;
+            updatedSecondOrder.y = secondTokenOrder.y + _amountSecondToken;
+        }
+        else {
+            updatedSecondOrder.z = _amountSecondToken;
+            updatedSecondOrder.y = _amountSecondToken;
+        }
 
         (Order memory targetOrder, Order memory sourceOrder) = isTargetToken0
                 ? (updatedMainOrder, updatedSecondOrder)
