@@ -61,8 +61,8 @@ contract CarbonVaultTwoTokens is ERC20,ReentrancyGuard,IERC721Receiver{
 
         strategyId = ICarbonController(carbonController).createStrategy(strategyToCopy.tokens[0], strategyToCopy.tokens[1], [token0Order,token1Order]);
 
-        uint256 _amount18 = _to18decimals(token0,_amountToken0);
-        _mint(msg.sender, _amount18); // this i start share by defult is base on the amout of token 1 (first init is 100% of shares)
+        uint _amount18Shares = _amountToken0 > _amountToken1 ? _to18decimals(token0,_amountToken0) : _to18decimals(token1,_amountToken1);
+        _mint(msg.sender, _amount18Shares); // this i start share by defult is base on the amout of token that has higher vaule (first init is 100% of shares)
 
         initiated = true;
     }
