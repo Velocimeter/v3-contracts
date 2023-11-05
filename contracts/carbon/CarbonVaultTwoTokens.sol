@@ -100,7 +100,7 @@ contract CarbonVaultTwoTokens is ERC20,ReentrancyGuard,IERC721Receiver{
             revert SlippageTooHigh();
 
         if(_amountSecondToken > 0)
-            SafeERC20.safeTransferFrom(IERC20(secondTokenAddress), msg.sender, address(this), _maxAmountSecondToken);
+            SafeERC20.safeTransferFrom(IERC20(secondTokenAddress), msg.sender, address(this), _amountSecondToken);
 
         uint256 depositShare =  (totalSupply() *  _amount) / targetTokenOrder.y;
 
