@@ -167,6 +167,19 @@ contract CarbonVaultTwoTokens is ERC20,ReentrancyGuard,IERC721Receiver{
          return (Token.unwrap(strategy.tokens[0]),Token.unwrap(strategy.tokens[1]),strategy.orders[0].y,strategy.orders[1].y);
     }
 
+    function getSecondTokenAmount(address tokenToDeposit,uint128 _amount) public view returns (uint) {
+        Strategy memory strategy = ICarbonController(carbonController).strategy(strategyId);
+
+        bool isTargetToken0 = Token.unwrap(strategy.tokens[0]) == tokenToDeposit;
+
+        address secondTokenAddress =  isTargetToken0 ? Token.unwrap(strategy.tokens[1]) : Token.unwrap(strategy.tokens[0]);
+
+        Order memory targetTokenOrder = isTargetToken0 ? strategy.orders[0] : strategy.orders[1];
+        Order memory secondTokenOrder = isTargetToken0 ? strategy.orders[1] : strategy.orders[0];
+
+        return (secondTokenOrder.y * _amount) / targetTokenOrder.y;
+    }
+
     function balanceOfToken0() public view returns (uint) {
         return IERC20(token0).balanceOf(address(this));
     }
