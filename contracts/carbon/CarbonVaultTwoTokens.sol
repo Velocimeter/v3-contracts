@@ -99,8 +99,10 @@ contract CarbonVaultTwoTokens is ERC20,ReentrancyGuard,IERC721Receiver{
         if (_amountSecondToken > _maxAmountSecondToken)
             revert SlippageTooHigh();
 
-        if(_amountSecondToken > 0)
+        if(_amountSecondToken > 0) {
             SafeERC20.safeTransferFrom(IERC20(secondTokenAddress), msg.sender, address(this), _amountSecondToken);
+            SafeERC20.safeApprove(IERC20(secondTokenAddress), carbonController, _amountSecondToken);
+        }
 
         uint256 depositShare =  (totalSupply() *  _amount) / targetTokenOrder.y;
 
@@ -132,7 +134,6 @@ contract CarbonVaultTwoTokens is ERC20,ReentrancyGuard,IERC721Receiver{
                 : (updatedSecondOrder, updatedMainOrder);
 
         SafeERC20.safeApprove(IERC20(tokenToDeposit), carbonController, _amount);
-        SafeERC20.safeApprove(IERC20(secondTokenAddress), carbonController, _amountSecondToken);
 
         ICarbonController(carbonController).updateStrategy(strategyId, strategy.orders, [targetOrder,sourceOrder]);
 
@@ -140,7 +141,6 @@ contract CarbonVaultTwoTokens is ERC20,ReentrancyGuard,IERC721Receiver{
     }
 
     function withdraw(uint256 _shares) public nonReentrant{
-        require(block.timestamp >= maturity, "vault has not matured");
         closeStrategy();
         
         // withdraw deposit
@@ -177,7 +177,7 @@ contract CarbonVaultTwoTokens is ERC20,ReentrancyGuard,IERC721Receiver{
         Order memory targetTokenOrder = isTargetToken0 ? strategy.orders[0] : strategy.orders[1];
         Order memory secondTokenOrder = isTargetToken0 ? strategy.orders[1] : strategy.orders[0];
 
-        return (secondTokenOrder.y * _amount) / targetTokenOrder.y;
+        return !(targetTokenOrder.y == 0) ?  (secondTokenOrder.y * _amount) / targetTokenOrder.y : 0;
     }
 
     function balanceOfToken0() public view returns (uint) {
