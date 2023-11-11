@@ -35,6 +35,7 @@ contract CarbonVaultTwoTokens is ERC20,ReentrancyGuard,IERC721Receiver{
 
     function initStrategy(uint256 _strategyIdToCopy, uint128 _amountToken0,uint128 _amountToken1) public {
         require(!initiated, "vault started");
+        require(_amountToken0 > 0 || _amountToken1 > 0, "amountTokens == 0");
  
         Strategy memory strategyToCopy = ICarbonController(carbonController).strategy(_strategyIdToCopy);
          
@@ -80,6 +81,7 @@ contract CarbonVaultTwoTokens is ERC20,ReentrancyGuard,IERC721Receiver{
         require(strategyId != 0, "vault not started");
         require(block.timestamp < maturity, "vault has matured");
         require(tokenToDeposit == token0 || tokenToDeposit == token1, "deposit token is not part of the vault");
+        require(_amount > 0, "_amount == 0");
 
         SafeERC20.safeTransferFrom(IERC20(tokenToDeposit), msg.sender, address(this), _amount);
 
