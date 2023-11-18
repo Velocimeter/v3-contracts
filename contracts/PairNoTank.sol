@@ -149,14 +149,8 @@ contract Pair is IPair {
 
     function _sendTokenFees(address token, uint amount) internal {
         if (amount != 0) {
-            if (hasGauge) {
-                IBribe(externalBribe).notifyRewardAmount(token, amount); // transfer fees to exBribes
-                emit GaugeFees(token, amount, externalBribe);
-            } else {
-                address _tank = tank();
-                _safeTransfer(token, _tank, amount); // transfer the fees to tank MSig for gaugeless LPs
-                emit TankFees(token, amount, _tank);
-            }
+            IBribe(externalBribe).notifyRewardAmount(token, amount); // transfer fees to exBribes
+            emit GaugeFees(token, amount, externalBribe);
         }
     }
 
@@ -322,10 +316,13 @@ contract Pair is IPair {
         require(amount0In > 0 || amount1In > 0, 'IIA'); // Pair: INSUFFICIENT_INPUT_AMOUNT
         { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
         (address _token0, address _token1) = (token0, token1);
-        if (amount0In > 0) _sendTokenFees(token0, amount0In * IPairFactory(factory).getFee(address(this)) / 10000);
-        if (amount1In > 0) _sendTokenFees(token1, amount1In * IPairFactory(factory).getFee(address(this)) / 10000);
-        _balance0 = IERC20(_token0).balanceOf(address(this)); // since we removed tokens, we need to reconfirm balances, can also simply use previous balance - amountIn/ 10000, but doing balanceOf again as safety check
-        _balance1 = IERC20(_token1).balanceOf(address(this));
+
+        if (hasGauge){
+            if (amount0In > 0) _sendTokenFees(token0, amount0In * IPairFactory(factory).getFee(address(this)) / 10000);
+            if (amount1In > 0) _sendTokenFees(token1, amount1In * IPairFactory(factory).getFee(address(this)) / 10000);
+            _balance0 = IERC20(_token0).balanceOf(address(this)); // since we removed tokens, we need to reconfirm balances, can also simply use previous balance - amountIn/ 10000, but doing balanceOf again as safety check
+            _balance1 = IERC20(_token1).balanceOf(address(this));
+        };
         // The curve, either x3y+y3x for stable pools, or x*y for volatile pools
         require(_k(_balance0, _balance1) >= _k(_reserve0, _reserve1), 'K'); // Pair: K
         }
