@@ -59,7 +59,6 @@ contract Pair is IPair {
     uint public reserve0CumulativeLast;
     uint public reserve1CumulativeLast;
 
-    event TankFees(address indexed token, uint amount, address tank);
     event GaugeFees(address indexed token, uint amount, address externalBribe);
     event Mint(address indexed sender, uint amount0, uint amount1);
     event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
@@ -113,9 +112,6 @@ contract Pair is IPair {
         require(success && (data.length == 0 || abi.decode(data, (bool))));
     }
 
-    function tank() public view returns (address) {
-        return IPairFactory(factory).tank();
-    }
 
     function setExternalBribe(address _externalBribe) external {
         require(msg.sender == voter, 'Only voter can set external bribe');
@@ -322,7 +318,7 @@ contract Pair is IPair {
             if (amount1In > 0) _sendTokenFees(token1, amount1In * IPairFactory(factory).getFee(address(this)) / 10000);
             _balance0 = IERC20(_token0).balanceOf(address(this)); // since we removed tokens, we need to reconfirm balances, can also simply use previous balance - amountIn/ 10000, but doing balanceOf again as safety check
             _balance1 = IERC20(_token1).balanceOf(address(this));
-        };
+        }
         // The curve, either x3y+y3x for stable pools, or x*y for volatile pools
         require(_k(_balance0, _balance1) >= _k(_reserve0, _reserve1), 'K'); // Pair: K
         }
