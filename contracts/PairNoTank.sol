@@ -320,7 +320,7 @@ contract Pair is IPair {
             _balance1 = IERC20(_token1).balanceOf(address(this));
         } else {
             if (amount0In > 0) _balance0 = _balance0 + (amount0In * IPairFactory(factory).getFee(address(this)) / 10000);
-            if (amount1In > 0) _balance0 = _balance0 + (amount1In * IPairFactory(factory).getFee(address(this)) / 10000);
+            if (amount1In > 0) _balance1 = _balance1 + (amount1In * IPairFactory(factory).getFee(address(this)) / 10000);
         }
         // The curve, either x3y+y3x for stable pools, or x*y for volatile pools
         require(_k(_balance0, _balance1) >= _k(_reserve0, _reserve1), 'K'); // Pair: K
