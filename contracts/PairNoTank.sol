@@ -318,6 +318,9 @@ contract Pair is IPair {
             if (amount1In > 0) _sendTokenFees(token1, amount1In * IPairFactory(factory).getFee(address(this)) / 10000);
             _balance0 = IERC20(_token0).balanceOf(address(this)); // since we removed tokens, we need to reconfirm balances, can also simply use previous balance - amountIn/ 10000, but doing balanceOf again as safety check
             _balance1 = IERC20(_token1).balanceOf(address(this));
+        } else {
+            if (amount0In > 0) _balance0 = _balance0 + (amount0In * IPairFactory(factory).getFee(address(this)) / 10000);
+            if (amount1In > 0) _balance0 = _balance0 + (amount1In * IPairFactory(factory).getFee(address(this)) / 10000);
         }
         // The curve, either x3y+y3x for stable pools, or x*y for volatile pools
         require(_k(_balance0, _balance1) >= _k(_reserve0, _reserve1), 'K'); // Pair: K
