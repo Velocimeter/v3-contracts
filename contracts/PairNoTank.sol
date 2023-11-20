@@ -325,7 +325,8 @@ contract Pair is IPair {
         // The curve, either x3y+y3x for stable pools, or x*y for volatile pools
         require(_k(_balance0, _balance1) >= _k(_reserve0, _reserve1), 'K'); // Pair: K
         }
-
+        _balance0 = IERC20(_token0).balanceOf(address(this)); 
+        _balance1 = IERC20(_token1).balanceOf(address(this));
         _update(_balance0, _balance1, _reserve0, _reserve1);
         emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
     }
