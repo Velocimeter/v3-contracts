@@ -313,18 +313,20 @@ contract Pair is IPair {
         { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
         (address _token0, address _token1) = (token0, token1);
 
+        uint fee0 = amount0In * IPairFactory(factory).getFee(address(this)) / 10000;
+        uint fee1 = amount1In * IPairFactory(factory).getFee(address(this)) / 10000;
+
         if (hasGauge){
-            if (amount0In > 0) _sendTokenFees(token0, amount0In * IPairFactory(factory).getFee(address(this)) / 10000);
-            if (amount1In > 0) _sendTokenFees(token1, amount1In * IPairFactory(factory).getFee(address(this)) / 10000);
-            _balance0 = IERC20(_token0).balanceOf(address(this)); // since we removed tokens, we need to reconfirm balances, can also simply use previous balance - amountIn/ 10000, but doing balanceOf again as safety check
-            _balance1 = IERC20(_token1).balanceOf(address(this));
-        } else {
-            if (amount0In > 0) _balance0 = _balance0 - (amount0In * IPairFactory(factory).getFee(address(this)) / 10000);
-            if (amount1In > 0) _balance1 = _balance1 - (amount1In * IPairFactory(factory).getFee(address(this)) / 10000);
-        }
+            if (amount0In > 0) _sendTokenFees(token0, fee0);
+            if (amount1In > 0) _sendTokenFees(token1, fee1);
+        } 
+
+        if (amount0In > 0) _balance0 = _balance0 - fee0;
+        if (amount1In > 0) _balance1 = _balance1 - fee1;
         // The curve, either x3y+y3x for stable pools, or x*y for volatile pools
         require(_k(_balance0, _balance1) >= _k(_reserve0, _reserve1), 'K'); // Pair: K
         }
+        
         _balance0 = IERC20(_token0).balanceOf(address(this)); 
         _balance1 = IERC20(_token1).balanceOf(address(this));
         _update(_balance0, _balance1, _reserve0, _reserve1);
