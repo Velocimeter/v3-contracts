@@ -59,7 +59,6 @@ contract Pair is IPair {
     uint public reserve0CumulativeLast;
     uint public reserve1CumulativeLast;
 
-    event TankFees(address indexed token, uint amount, address tank);
     event GaugeFees(address indexed token, uint amount, address externalBribe);
     event Mint(address indexed sender, uint amount0, uint amount1);
     event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
@@ -113,9 +112,6 @@ contract Pair is IPair {
         require(success && (data.length == 0 || abi.decode(data, (bool))));
     }
 
-    function tank() public view returns (address) {
-        return IPairFactory(factory).tank();
-    }
 
     function setExternalBribe(address _externalBribe) external {
         require(msg.sender == voter, 'Only voter can set external bribe');
@@ -149,14 +145,8 @@ contract Pair is IPair {
 
     function _sendTokenFees(address token, uint amount) internal {
         if (amount != 0) {
-            if (hasGauge) {
-                IBribe(externalBribe).notifyRewardAmount(token, amount); // transfer fees to exBribes
-                emit GaugeFees(token, amount, externalBribe);
-            } else {
-                address _tank = tank();
-                _safeTransfer(token, _tank, amount); // transfer the fees to tank MSig for gaugeless LPs
-                emit TankFees(token, amount, _tank);
-            }
+            IBribe(externalBribe).notifyRewardAmount(token, amount); // transfer fees to exBribes
+            emit GaugeFees(token, amount, externalBribe);
         }
     }
 
@@ -322,14 +312,23 @@ contract Pair is IPair {
         require(amount0In > 0 || amount1In > 0, 'IIA'); // Pair: INSUFFICIENT_INPUT_AMOUNT
         { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
         (address _token0, address _token1) = (token0, token1);
-        if (amount0In > 0) _sendTokenFees(token0, amount0In * IPairFactory(factory).getFee(address(this)) / 10000);
-        if (amount1In > 0) _sendTokenFees(token1, amount1In * IPairFactory(factory).getFee(address(this)) / 10000);
-        _balance0 = IERC20(_token0).balanceOf(address(this)); // since we removed tokens, we need to reconfirm balances, can also simply use previous balance - amountIn/ 10000, but doing balanceOf again as safety check
-        _balance1 = IERC20(_token1).balanceOf(address(this));
+
+        uint fee0 = amount0In * IPairFactory(factory).getFee(address(this)) / 10000;
+        uint fee1 = amount1In * IPairFactory(factory).getFee(address(this)) / 10000;
+
+        if (hasGauge){
+            if (amount0In > 0) _sendTokenFees(token0, fee0);
+            if (amount1In > 0) _sendTokenFees(token1, fee1);
+        } 
+
+        if (amount0In > 0) _balance0 = _balance0 - fee0;
+        if (amount1In > 0) _balance1 = _balance1 - fee1;
         // The curve, either x3y+y3x for stable pools, or x*y for volatile pools
         require(_k(_balance0, _balance1) >= _k(_reserve0, _reserve1), 'K'); // Pair: K
         }
-
+        
+        _balance0 = IERC20(token0).balanceOf(address(this)); 
+        _balance1 = IERC20(token1).balanceOf(address(this));
         _update(_balance0, _balance1, _reserve0, _reserve1);
         emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
     }

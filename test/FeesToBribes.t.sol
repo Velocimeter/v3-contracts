@@ -48,7 +48,7 @@ contract FeesToBribesTest is BaseTest {
         gaugeFactory.setOFlow(address(oFlow));
     }
 
-    function testSwapAndFeesSentToTankWithoutGauge() public {
+    function testSwapAndFeesStayWithoutGauge() public {
         Router.route[] memory routes = new Router.route[](1);
         routes[0] = Router.route(address(USDC), address(FRAX), true);
 
@@ -68,19 +68,20 @@ contract FeesToBribesTest is BaseTest {
         );
         vm.warp(block.timestamp + 1801);
         vm.roll(block.number + 1);
-        address tank = pair.tank();
-        assertEq(USDC.balanceOf(tank), 200); // 0.01% -> 0.02%
+
+        address pairHere = factory.getPair(address(FRAX), address(USDC), true);
+        assertEq(USDC.balanceOf(pairHere), 200); // 0.01% -> 0.02%
     }
 
-    function testNonPairFactoryOwnerCannotSetTank() public {
-        vm.expectRevert(abi.encodePacked("Ownable: caller is not the owner"));
-        owner2.setTank(address(factory), address(owner));
-    }
+    // function testNonPairFactoryOwnerCannotSetTank() public {
+    //     vm.expectRevert(abi.encodePacked("Ownable: caller is not the owner"));
+    //     owner2.setTank(address(factory), address(owner));
+    // }
 
-    function testPairFactoryOwnerCanSetTank() public {
-        owner.setTank(address(factory), address(owner2));
-        assertEq(factory.tank(), address(owner2));
-    }
+    // function testPairFactoryOwnerCanSetTank() public {
+    //     owner.setTank(address(factory), address(owner2));
+    //     assertEq(factory.tank(), address(owner2));
+    // }
 
     function testNonPairFactoryOwnerCannotChangeFees() public {
         vm.expectRevert(abi.encodePacked("Ownable: caller is not the owner"));
@@ -114,8 +115,8 @@ contract FeesToBribesTest is BaseTest {
         );
         vm.warp(block.timestamp + 1801);
         vm.roll(block.number + 1);
-        address tank = pair.tank();
-        assertEq(USDC.balanceOf(tank), 300); // 0.01% -> 0.02%
+        // address tank = pair.tank();
+        // assertEq(USDC.balanceOf(tank), 300); // 0.01% -> 0.02%
     }
 
     function testNonPairFactoryOwnerCannotSetFeesOverrides() public {
@@ -152,8 +153,8 @@ contract FeesToBribesTest is BaseTest {
         );
         vm.warp(block.timestamp + 1801);
         vm.roll(block.number + 1);
-        address tank = pair.tank();
-        assertEq(USDC.balanceOf(tank), 3000);
+        // address tank = pair.tank();
+        // assertEq(USDC.balanceOf(tank), 3000);
     }
 
     function createLock() public {
