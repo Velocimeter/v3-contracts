@@ -32,6 +32,9 @@ contract LockDrop is Ownable,ReentrancyGuard {
         lpToken = IGaugeV2(gauge).stake();
     }
 
+    // This function allows users to deposit a predetermined LP with a determined lock time
+    // Users dont need to deposit at the same time, but must deposit before rewards are added
+    // If users deposit a second time their 1st lock will be extended, but both will be included
     function depositWithLock(uint256 amount) nonReentrant external {
       require(!seeded, "LockDrop is completed");
 
@@ -46,6 +49,7 @@ contract LockDrop is Ownable,ReentrancyGuard {
       emit DepositWithLock(msg.sender,amount,lockDuration);
     }
 
+    // This funciton allows users to claim their pro-rata rewards after the rewards have been seeded
     function claim() external nonReentrant {
         require(seeded, "LockDrop is not completed");
         require(balanceOf[msg.sender] > 0, "No LockDrop");
@@ -59,6 +63,7 @@ contract LockDrop is Ownable,ReentrancyGuard {
         emit Claimed(msg.sender,airdropAmount);
     }
 
+    // This function allows the team to deposit any but only a single reward token of any quantity.
     function rewardsDeposit(address _rewardsToken,uint256 amount) onlyOwner external {
         require(!seeded, "LockDrop is completed");
 
@@ -72,6 +77,7 @@ contract LockDrop is Ownable,ReentrancyGuard {
         emit RewardsDeposit(amount);
     }
 
+    // Imported standard ERC20 functions
     function _safeTransfer(address token, address to, uint256 value) internal {
         require(token.code.length > 0);
         (bool success, bytes memory data) =
