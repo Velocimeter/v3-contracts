@@ -41,7 +41,6 @@ contract AutoBribe is Ownable {
     constructor(address _wBribe, address _team, string memory _name) {
         wBribe = _wBribe;
         _transferOwnership(_team);
-        bribedAt = block.timestamp;
         bribeName = _name;
     }
 
