@@ -19,11 +19,13 @@ contract AutoBribe is Ownable {
     address public project;
     bool public depositSealed;
     bool public initialized;
-    uint256 public nextWeek;
+    uint256 public bribedAt;
     address[] public bribeTokens;
     mapping(address => bool) public bribeTokensDeposited;
     mapping(address => uint256) public bribeTokenToWeeksLeft;
     string public bribeName;
+
+    uint256 constant WEEK = 604800;
 
     event Deposited(
         address indexed _bribeToken,
@@ -39,7 +41,7 @@ contract AutoBribe is Ownable {
     constructor(address _wBribe, address _team, string memory _name) {
         wBribe = _wBribe;
         _transferOwnership(_team);
-        nextWeek = block.timestamp;
+        bribedAt = block.timestamp;
         bribeName = _name;
     }
 
@@ -51,7 +53,7 @@ contract AutoBribe is Ownable {
     //There is a small reward for calling this function
     //It can only be called once a week
     function bribe() public {
-        require(block.timestamp >= nextWeek, 'this bribed this week already');
+        require((block.timestamp / WEEK) * WEEK > bribedAt, 'bribed this week already');
         uint256 length = bribeTokens.length;
         address _bribeToken;
         for (uint256 i = 0; i < length; ) {
@@ -69,8 +71,8 @@ contract AutoBribe is Ownable {
                 ++i;
             }
         }
-        nextWeek = nextWeek + 604800;
-        emit Bribed(nextWeek, msg.sender);
+        bribedAt = block.timestamp;
+        emit Bribed(bribedAt, msg.sender);
     }
 
     //This just returns the balance of bribe tokens in the contract
@@ -179,20 +181,6 @@ contract AutoBribe is Ownable {
         _safeTransfer(_token, msg.sender, amount);
     }
 
-    //########################################
-    //############RECLOCK FUNCTION############
-    //########################################
-
-    // Allows project or Velocimeter to reset the week to the current block
-    // This should only be called with consideration as it can allow for double bribes in a single week.
-    // Best use is to call it BEFORE, bribe() is called in a given week
-    function reclockBribeToNow() external {
-        require(
-            msg.sender == project || msg.sender == owner(),
-            "you can't call this"
-        );
-        nextWeek = block.timestamp;
-    }
 
     //########################################
     //############INTERNAL FUNCTIONS##########
