@@ -237,68 +237,31 @@ contract LockDropToken is ERC20, AccessControl {
     /// @notice Exercises options tokens to purchase the underlying tokens.
     /// @dev The oracle may revert if it cannot give a secure result.
     /// @param _amount The amount of options tokens to exercise
-    /// @param _maxPaymentAmount The maximum acceptable amount to pay. Used for slippage protection.
-    /// @param _recipient The recipient of the purchased underlying tokens
-    /// @return The amount paid to the treasury to purchase the underlying tokens
-    function exercise(
-        uint256 _amount,
-        uint256 _maxPaymentAmount,
-        address _recipient
-    ) external returns (uint256) {
-        return _exercise(_amount, _maxPaymentAmount, _recipient);
-    }
-
-    /// @notice Exercises options tokens to purchase the underlying tokens.
-    /// @dev The oracle may revert if it cannot give a secure result.
-    /// @param _amount The amount of options tokens to exercise
-    /// @param _maxPaymentAmount The maximum acceptable amount to pay. Used for slippage protection.
-    /// @param _recipient The recipient of the purchased underlying tokens
-    /// @param _deadline The Unix timestamp (in seconds) after which the call will revert
-    /// @return The amount paid to the treasury to purchase the underlying tokens
-    function exercise(
-        uint256 _amount,
-        uint256 _maxPaymentAmount,
-        address _recipient,
-        uint256 _deadline
-    ) external returns (uint256) {
-        if (block.timestamp > _deadline) revert OptionToken_PastDeadline();
-        return _exercise(_amount, _maxPaymentAmount, _recipient);
-    }
-
-    /// @notice Exercises options tokens to purchase the underlying tokens.
-    /// @dev The oracle may revert if it cannot give a secure result.
-    /// @param _amount The amount of options tokens to exercise
-    /// @param _maxPaymentAmount The maximum acceptable amount to pay. Used for slippage protection.
     /// @param _recipient The recipient of the purchased underlying tokens
     /// @param _deadline The Unix timestamp (in seconds) after which the call will revert
     /// @return The amount paid to the treasury to purchase the underlying tokens
     function exerciseVe(
         uint256 _amount,
-        uint256 _maxPaymentAmount,
         address _recipient,
         uint256 _deadline
     ) external returns (uint256, uint256) {
         if (block.timestamp > _deadline) revert OptionToken_PastDeadline();
-        return _exerciseVe(_amount, _maxPaymentAmount, _recipient);
+        return _exerciseVe(_amount, _recipient);
     }
 
     /// @notice Exercises options tokens to create LP and stake in gauges with lock.
     /// @dev The oracle may revert if it cannot give a secure result.
     /// @param _amount The amount of options tokens to exercise
-    /// @param _maxPaymentAmount The maximum acceptable amount to pay. Used for slippage protection.
-    /// @param _discount The desired discount
     /// @param _deadline The Unix timestamp (in seconds) after which the call will revert
     /// @return The amount paid to the treasury to purchase the underlying tokens
 
     function exerciseLp(
         uint256 _amount,
-        uint256 _maxPaymentAmount,
         address _recipient,
-        uint256 _discount,
         uint256 _deadline
     ) external returns (uint256, uint256) {
         if (block.timestamp > _deadline) revert OptionToken_PastDeadline();
-        return _exerciseLp(_amount, _maxPaymentAmount, _recipient, _discount);
+        return _exerciseLp(_amount, _recipient);
     }
 
     /// -----------------------------------------------------------------------
@@ -343,10 +306,8 @@ contract LockDropToken is ERC20, AccessControl {
 
      // @notice Returns the amount in paymentTokens for a given amount of options tokens required for the LP exercise lp
     /// @param _amount The amount of options tokens to exercise
-    /// @param _discount The discount amount
-    function getPaymentTokenAmountForExerciseLp(uint256 _amount,uint256 _discount) public view returns (uint256 paymentAmount, uint256 paymentAmountToAddLiquidity)
+    function getPaymentTokenAmountForExerciseLp(uint256 _amount) public view returns (uint256 paymentAmountToAddLiquidity)
     {
-        paymentAmount = getLpDiscountedPrice(_amount, _discount);
         (uint256 underlyingReserve, uint256 paymentReserve) = IRouter(router).getReserves(underlyingToken, paymentToken, false);
         paymentAmountToAddLiquidity = (_amount * paymentReserve) / underlyingReserve;
     }
@@ -521,14 +482,6 @@ contract LockDropToken is ERC20, AccessControl {
         _mint(_to, _amount);
     }
 
-    /// @notice Called by the admin to burn options tokens and transfer underlying tokens to the caller.
-    /// @param _amount The amount of options tokens that will be burned and underlying tokens transferred to the caller
-    function burn(uint256 _amount) external onlyAdmin {
-        // transfer underlying tokens to the caller
-        _safeTransfer(underlyingToken, msg.sender, _amount);
-        // burn option tokens
-        _burn(msg.sender, _amount);
-    }
 
     /// @notice called by the admin to re-enable option exercising from a paused state.
     function unPause() external onlyAdmin {
@@ -550,45 +503,14 @@ contract LockDropToken is ERC20, AccessControl {
     /// Internal functions
     /// -----------------------------------------------------------------------
 
-    function _exercise(
-        uint256 _amount,
-        uint256 _maxPaymentAmount,
-        address _recipient
-    ) internal returns (uint256 paymentAmount) {
-        if (isPaused) revert OptionToken_Paused();
-
-        // burn callers tokens
-        _burn(msg.sender, _amount);
-        paymentAmount = getDiscountedPrice(_amount);
-        if (paymentAmount > _maxPaymentAmount)
-            revert OptionToken_SlippageTooHigh();
-
-        // transfer team fee to treasury and notify reward amount in gauge
-        uint256 gaugeRewardAmount = _takeFees(paymentToken, paymentAmount);
-        _usePaymentAsGaugeReward(gaugeRewardAmount);
-
-        // send underlying tokens to recipient
-        _safeTransfer(underlyingToken, _recipient, _amount);
-
-        emit Exercise(msg.sender, _recipient, _amount, paymentAmount);
-    }
-
     function _exerciseVe(
         uint256 _amount,
-        uint256 _maxPaymentAmount,
         address _recipient
     ) internal returns (uint256 paymentAmount, uint256 nftId) {
         if (isPaused) revert OptionToken_Paused();
 
         // burn callers tokens
         _burn(msg.sender, _amount);
-        paymentAmount = getVeDiscountedPrice(_amount);
-        if (paymentAmount > _maxPaymentAmount)
-            revert OptionToken_SlippageTooHigh();
-
-        // transfer team fee to treasury and notify reward amount in gauge
-        uint256 gaugeRewardAmount = _takeFees(paymentToken, paymentAmount);
-        _usePaymentAsGaugeReward(gaugeRewardAmount);
 
         // lock underlying tokens to veFLOW
         _safeApprove(underlyingToken, votingEscrow, _amount);
@@ -603,30 +525,19 @@ contract LockDropToken is ERC20, AccessControl {
 
     function _exerciseLp(
         uint256 _amount,   // the oTOKEN amount the user wants to redeem with
-        uint256 _maxPaymentAmount, // the 
-        address _recipient,
-        uint256 _discount
+        address _recipient
     ) internal returns (uint256 paymentAmount, uint256 lpAmount) {
         if (isPaused) revert OptionToken_Paused();
-        if (_discount > minLPDiscount || _discount < maxLPDiscount)
-            revert OptionToken_InvalidDiscount();
 
         // burn callers tokens
         _burn(msg.sender, _amount);
-        (uint256 paymentAmount,uint256 paymentAmountToAddLiquidity) =  getPaymentTokenAmountForExerciseLp(_amount,_discount);
-        if (paymentAmount > _maxPaymentAmount)
-            revert OptionToken_SlippageTooHigh();
+        uint256 paymentAmountToAddLiquidity =  getPaymentTokenAmountForExerciseLp(_amount);
           
-        // Take team fee
-        uint256 paymentGaugeRewardAmount = _takeFees(
-            paymentToken,
-            paymentAmount
-        );
         _safeTransferFrom(
             paymentToken,
             msg.sender,
             address(this),
-            paymentGaugeRewardAmount + paymentAmountToAddLiquidity
+            paymentAmountToAddLiquidity
         );
 
         // Create Lp for users
@@ -650,11 +561,8 @@ contract LockDropToken is ERC20, AccessControl {
         IGaugeV2(_gauge).depositWithLock(
             _recipient,
             lpAmount,
-            getLockDurationForLpDiscount(_discount)
+            lockDurationForMaxLpDiscount
         );
-
-        // notify gauge reward with payment token
-        _transferRewardToGauge();
 
         emit ExerciseLp(
             msg.sender,
