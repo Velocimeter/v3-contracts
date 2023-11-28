@@ -17,6 +17,8 @@ contract ExerciseSortoor is Ownable{
     address public FVM = 0x07BB65fAaC502d4996532F834A1B7ba5dC32Ff96;
     address public wFTM = 0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83;
 
+    mapping(address => bool) public callers;
+
     constructor(address _treasury, address _veBooster, address _router) {
         treasury = _treasury;
         veBooster = _veBooster;
@@ -24,7 +26,7 @@ contract ExerciseSortoor is Ownable{
         giveAllowances();
     }
 
-// ADMINS Set Functions
+// ADMIN Set Functions
     function setTreasury(address _treasury) external onlyOwner {
         require (_treasury != address(0));
         treasury = _treasury;
@@ -40,6 +42,12 @@ contract ExerciseSortoor is Ownable{
     function setRatio(uint256 _ratio) external onlyOwner {
         ratio = _ratio;
     }
+    function setCaller(address _newCaller) external onlyOwner {
+        callers[_newCaller] = true;
+    }
+    function removeCaller(address _newCaller) external onlyOwner {
+        callers[_newCaller] = false;
+
 // Public Functions
     function balanceOfFVM() public view returns (uint){
         return IERC20(FVM).balanceOf(address(this));
