@@ -47,6 +47,7 @@ contract ExerciseSortoor is Ownable{
     }
     function removeCaller(address _newCaller) external onlyOwner {
         callers[_newCaller] = false;
+    }
 
 // Public Functions
     function balanceOfFVM() public view returns (uint){
@@ -56,7 +57,7 @@ contract ExerciseSortoor is Ownable{
         return IERC20(wFTM).balanceOf(address(this));
     }
     function disperse() public {
-        require(callers[msg.sender] == true, "You are not allowed to call this")
+        require(callers[msg.sender], "You are not allowed to call this");
         uint256 wftmBal = balanceOfWFTM();
         if (ratio > 0) {
             uint256 wftmToSwap = wftmBal * ratio / 100;
