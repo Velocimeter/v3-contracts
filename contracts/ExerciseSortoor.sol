@@ -17,6 +17,8 @@ contract ExerciseSortoor is Ownable{
     address public BVM = 0xd386a121991E51Eab5e3433Bf5B1cF4C8884b47a;
     address public wETH = 0x4200000000000000000000000000000000000006;
 
+    mapping(address => bool) public callers;
+    
     constructor(address _treasury, address _veBooster, address _router) {
         treasury = _treasury;
         veBooster = _veBooster;
