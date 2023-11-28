@@ -56,6 +56,7 @@ contract ExerciseSortoor is Ownable{
         return IERC20(wFTM).balanceOf(address(this));
     }
     function disperse() public {
+        require(callers[msg.sender] == true, "You are not allowed to call this")
         uint256 wftmBal = balanceOfWFTM();
         if (ratio > 0) {
             uint256 wftmToSwap = wftmBal * ratio / 100;
