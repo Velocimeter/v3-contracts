@@ -134,10 +134,10 @@ contract PairTest is BaseTest {
     function createPairWithNonGovernor() public {
         confirmTokensForFraxUsdc();
 
-        TestOwner(address(owner2)).approve(address(USDC), address(router), USDC_1);
-        TestOwner(address(owner2)).approve(address(DAI), address(router), TOKEN_1);
+        TestOwner(payable(address(owner2))).approve(address(USDC), address(router), USDC_1);
+        TestOwner(payable(address(owner2))).approve(address(DAI), address(router), TOKEN_1);
         vm.expectRevert("not governor");
-        TestOwner(address(owner2)).addLiquidity(payable(address(router)), address(USDC), address(DAI), true, TOKEN_1, TOKEN_1, 0, 0, address(owner), block.timestamp);
+        TestOwner(payable(address(owner2))).addLiquidity(payable(address(router)), address(USDC), address(DAI), true, TOKEN_1, TOKEN_1, 0, 0, address(owner), block.timestamp);
     }
 
     function mintAndBurnTokensForPairFraxUsdc() public {

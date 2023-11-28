@@ -61,7 +61,7 @@ abstract contract BaseTest is Test, TestOwner {
     OptionTokenV2 oFlowV2;
 
     function deployOwners() public {
-        owner = TestOwner(address(this));
+        owner = TestOwner(payable(address(this)));
         owner2 = new TestOwner();
         owner3 = new TestOwner();
         owners = new address[](3);
@@ -160,7 +160,7 @@ abstract contract BaseTest is Test, TestOwner {
         assertGt(lib.getAmountOut(USDC_1, address(USDC), address(FRAX), true), 0);
     }
 
-    function mintPairFraxUsdcWithOwner(address _owner) public {
+    function mintPairFraxUsdcWithOwner(address payable _owner) public {
         TestOwner(_owner).transfer(address(USDC), address(pair), USDC_1);
         TestOwner(_owner).transfer(address(FRAX), address(pair), TOKEN_1);
         TestOwner(_owner).mint(address(pair), _owner);
@@ -195,6 +195,4 @@ abstract contract BaseTest is Test, TestOwner {
             _escrow
         );
     }
-
-    receive() external payable {}
 }

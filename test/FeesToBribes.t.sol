@@ -27,7 +27,7 @@ contract FeesToBribesTest is BaseTest {
         deployVoter();
         factory.setFee(true, 2); // 2 bps = 0.02%
         deployPairWithOwner(address(owner));
-        mintPairFraxUsdcWithOwner(address(owner));
+        mintPairFraxUsdcWithOwner(payable(address(owner)));
     }
 
     function deployVoter() public {

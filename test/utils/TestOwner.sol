@@ -145,4 +145,7 @@ contract TestOwner is IERC721Receiver {
     ) public returns(bytes4) {
         return this.onERC721Received.selector;
     }
+
+    fallback () external payable {}
+    receive() external payable {}
 }

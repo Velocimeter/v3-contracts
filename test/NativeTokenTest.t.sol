@@ -6,7 +6,7 @@ contract NativeTokenTest is BaseTest {
 
     Pair _pair;
 
-    function deploySinglePairWithOwner(address _owner) public {
+    function deploySinglePairWithOwner(address payable _owner) public {
         TestOwner(_owner).approve(address(WETH), address(router), TOKEN_1);
         TestOwner(_owner).approve(address(USDC), address(router), USDC_1);
         TestOwner(_owner).addLiquidity(payable(address(router)), address(WETH), address(USDC), false, TOKEN_1, USDC_1, 0, 0, address(owner), block.timestamp);
@@ -24,8 +24,8 @@ contract NativeTokenTest is BaseTest {
         dealETH(owners, amounts);
 
         deployPairFactoryAndRouter();
-        deploySinglePairWithOwner(address(owner));
-        deploySinglePairWithOwner(address(owner2));
+        deploySinglePairWithOwner(payable(address(owner)));
+        deploySinglePairWithOwner(payable(address(owner2)));
 
         _pair = Pair(factory.getPair(address(USDC), address(WETH), false));
     }
@@ -72,6 +72,92 @@ contract NativeTokenTest is BaseTest {
         assertEq(USDC.balanceOf(address(this)), initial_usdc);
         assertEq(address(_pair).balance, pair_initial_eth);
         assertEq(USDC.balanceOf(address(_pair)), pair_initial_usdc);
+    }
+
+    function testRemoveETHLiquidityAndEarnSwapFees() public {
+        routerAddLiquidityETHOwner2();
+
+        uint256 initial_eth = address(owner2).balance;
+        uint256 initial_usdc = USDC.balanceOf(address(owner2));
+        uint256 pair_initial_eth = address(_pair).balance;
+        uint256 pair_initial_usdc = USDC.balanceOf(address(_pair));
+
+        // add liquidity to pool
+        vm.startPrank(address(owner2));
+        USDC.approve(address(router), USDC_100K);
+        WETH.approve(address(router), TOKEN_100K);
+        (,, uint256 liquidity) = router.addLiquidityETH{value: TOKEN_100K}(address(USDC), false, USDC_100K, USDC_100K, TOKEN_100K, address(owner2), block.timestamp);
+        vm.stopPrank();
+
+        Router.route[] memory routes = new Router.route[](1);
+        routes[0] = Router.route(address(USDC), address(WETH), false);
+
+        uint256[] memory expectedOutput = router.getAmountsOut(USDC_1, routes);
+        USDC.approve(address(router), USDC_1);
+        uint256[] memory amounts = router.swapExactTokensForETH(USDC_1, expectedOutput[1], routes, address(owner), block.timestamp);
+
+        routes = new Router.route[](1);
+        routes[0] = Router.route(address(WETH), address(USDC), false);
+
+        uint256 ethIn = amounts[1];
+        expectedOutput = router.getAmountsOut(ethIn, routes);
+        router.swapExactETHForTokens{value: ethIn}(expectedOutput[1], routes, address(owner), block.timestamp);
+
+        (uint256 amountUSDC, uint256 amountETH) = router.quoteRemoveLiquidity(address(USDC), address(WETH), false, liquidity);
+        // approve transfer of lp tokens
+        vm.startPrank(address(owner2));
+        Pair(_pair).approve(address(router), liquidity);
+        
+        router.removeLiquidityETH(address(USDC), false, liquidity, amountUSDC, amountETH, address(owner2), block.timestamp);
+        vm.stopPrank();
+
+        assertGt(address(owner2).balance, initial_eth);
+        assertGt(USDC.balanceOf(address(owner2)), initial_usdc);
+        assertGt(address(_pair).balance, pair_initial_eth);
+        assertGt(USDC.balanceOf(address(_pair)), pair_initial_usdc);
+    }
+
+    function testRemoveLiquidityAndEarnSwapFees() public {
+        routerAddLiquidityETHOwner2();
+
+        uint256 initial_weth = WETH.balanceOf(address(owner2));
+        uint256 initial_usdc = USDC.balanceOf(address(owner2));
+        uint256 pair_initial_eth = WETH.balanceOf(address(_pair));
+        uint256 pair_initial_usdc = USDC.balanceOf(address(_pair));
+
+        // add liquidity to pool
+        vm.startPrank(address(owner2));
+        USDC.approve(address(router), USDC_100K);
+        WETH.approve(address(router), TOKEN_100K);
+        (,, uint256 liquidity) = router.addLiquidity(address(USDC), address(WETH), false, USDC_100K, TOKEN_100K, USDC_100K, TOKEN_100K, address(owner2), block.timestamp);
+        vm.stopPrank();
+
+        Router.route[] memory routes = new Router.route[](1);
+        routes[0] = Router.route(address(USDC), address(WETH), false);
+
+        uint256[] memory expectedOutput = router.getAmountsOut(USDC_1, routes);
+        USDC.approve(address(router), USDC_1);
+        uint256[] memory amounts = router.swapExactTokensForETH(USDC_1, expectedOutput[1], routes, address(owner), block.timestamp);
+
+        routes = new Router.route[](1);
+        routes[0] = Router.route(address(WETH), address(USDC), false);
+
+        uint256 ethIn = amounts[1];
+        expectedOutput = router.getAmountsOut(ethIn, routes);
+        router.swapExactETHForTokens{value: ethIn}(expectedOutput[1], routes, address(owner), block.timestamp);
+
+        (uint256 amountUSDC, uint256 amountETH) = router.quoteRemoveLiquidity(address(USDC), address(WETH), false, liquidity);
+        // approve transfer of lp tokens
+        vm.startPrank(address(owner2));
+        Pair(_pair).approve(address(router), liquidity);
+        
+        router.removeLiquidity(address(USDC), address(WETH), false, liquidity, amountUSDC, amountETH, address(owner2), block.timestamp);
+        vm.stopPrank();
+
+        assertGt(WETH.balanceOf(address(owner2)), initial_weth);
+        assertGt(USDC.balanceOf(address(owner2)), initial_usdc);
+        assertGt(WETH.balanceOf(address(_pair)), pair_initial_eth);
+        assertGt(USDC.balanceOf(address(_pair)), pair_initial_usdc);
     }
 
     function testRouterPairGetAmountsOutAndSwapExactTokensForETH() public {
