@@ -18,6 +18,8 @@ contract ExerciseSortoor is Ownable{
     address public wFTM = 0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83;
 
     mapping(address => bool) public callers;
+    uint256 target;
+    uint256 maxGas;
 
     constructor(address _treasury, address _veBooster, address _router) {
         treasury = _treasury;
@@ -48,6 +50,12 @@ contract ExerciseSortoor is Ownable{
     function removeCaller(address _newCaller) external onlyOwner {
         callers[_newCaller] = false;
     }
+    function setTarget(uint256 _newTarget)external onlyOwner {
+        target = _newTarget;
+    }
+    function setMaxGas(uint256 _newMaxGas)external onlyOwner {
+        maxGas = _newMaxGas;
+    }
 
 // Public Functions
     function balanceOfFVM() public view returns (uint){
@@ -55,6 +63,9 @@ contract ExerciseSortoor is Ownable{
     }
     function balanceOfWFTM() public view returns (uint){
         return IERC20(wFTM).balanceOf(address(this));
+    }
+    function checkTargetMet() public view returns (bool canExec){
+        if (balanceOfWFTM() > target && tx.gasprice < maxGas) return (true);
     }
     function disperse() public {
         require(callers[msg.sender], "You are not allowed to call this");
