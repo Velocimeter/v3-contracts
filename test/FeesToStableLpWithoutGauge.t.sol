@@ -2,7 +2,7 @@ pragma solidity 0.8.13;
 
 import './BaseTest.sol';
 
-contract FeesToLpWithoutGauge is BaseTest {
+contract FeesToStableLpWithoutGauge is BaseTest {
     VotingEscrow escrow;
     GaugeFactory gaugeFactory;
     BribeFactory bribeFactory;
@@ -89,17 +89,16 @@ contract FeesToLpWithoutGauge is BaseTest {
         Router.route[] memory routes = new Router.route[](1);
         routes[0] = Router.route(address(USDC), address(FRAX), true);
 
-        uint256[] memory expectedOutput = router.getAmountsOut(USDC_1, routes);
-        USDC.approve(address(router), USDC_1);
-        uint256[] memory amounts = router.swapExactTokensForTokens(USDC_1, expectedOutput[1], routes, address(owner), block.timestamp);
+        uint256[] memory expectedOutput = router.getAmountsOut(USDC_100, routes);
+        USDC.approve(address(router), USDC_100);
+        router.swapExactTokensForTokens(USDC_100, expectedOutput[1], routes, address(owner), block.timestamp);
 
         routes = new Router.route[](1);
         routes[0] = Router.route(address(FRAX), address(USDC), true);
 
-        uint256 amountIn = amounts[1];
-        expectedOutput = router.getAmountsOut(amountIn, routes);
-        FRAX.approve(address(router), amountIn);
-        router.swapExactTokensForTokens(amountIn, expectedOutput[1], routes, address(owner), block.timestamp);
+        expectedOutput = router.getAmountsOut(TOKEN_100, routes);
+        FRAX.approve(address(router), TOKEN_100);
+        router.swapExactTokensForTokens(TOKEN_100, expectedOutput[1], routes, address(owner), block.timestamp);
 
         (uint256 amountUSDC, uint256 amountFRAX) = router.quoteRemoveLiquidity(address(USDC), address(FRAX), true, liquidity);
         // approve transfer of lp tokens
