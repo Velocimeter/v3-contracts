@@ -9,7 +9,7 @@ contract NativeTokenTest is BaseTest {
     function deploySinglePairWithOwner(address payable _owner) public {
         TestOwner(_owner).approve(address(WETH), address(router), TOKEN_1);
         TestOwner(_owner).approve(address(USDC), address(router), USDC_1);
-        TestOwner(_owner).addLiquidity(payable(address(router)), address(WETH), address(USDC), false, TOKEN_1, USDC_1, 0, 0, address(owner), block.timestamp);
+        TestOwner(_owner).addLiquidity(payable(address(router)), address(WETH), address(USDC), false, address(factory), TOKEN_1, USDC_1, 0, 0, address(owner), block.timestamp);
     }
 
     function deployPair() public {
@@ -36,7 +36,7 @@ contract NativeTokenTest is BaseTest {
         // add initial liquidity from owner
         USDC.approve(address(router), USDC_100K);
         WETH.approve(address(router), TOKEN_100K);
-        router.addLiquidityETH{value: TOKEN_100K}(address(USDC), false, USDC_100K, USDC_100K, TOKEN_100K, address(owner), block.timestamp);
+        router.addLiquidityETH{value: TOKEN_100K}(address(USDC), false, address(factory), USDC_100K, USDC_100K, TOKEN_100K, address(owner), block.timestamp);
     }
 
     function routerAddLiquidityETHOwner2() public {
@@ -44,7 +44,7 @@ contract NativeTokenTest is BaseTest {
 
         owner2.approve(address(USDC), address(router), USDC_100K);
         owner2.approve(address(WETH), address(router), TOKEN_100K);
-        owner2.addLiquidityETH{value: TOKEN_100K}(payable(address(router)), address(USDC), false, USDC_100K, USDC_100K, TOKEN_100K, address(owner), block.timestamp);
+        owner2.addLiquidityETH{value: TOKEN_100K}(payable(address(router)), address(USDC), false, address(factory), USDC_100K, USDC_100K, TOKEN_100K, address(owner), block.timestamp);
     }
 
     function testRemoveETHLiquidity() public {
@@ -58,15 +58,15 @@ contract NativeTokenTest is BaseTest {
         // add liquidity to pool
         USDC.approve(address(router), USDC_100K);
         WETH.approve(address(router), TOKEN_100K);
-        (,, uint256 liquidity) = router.addLiquidityETH{value: TOKEN_100K}(address(USDC), false, USDC_100K, USDC_100K, TOKEN_100K, address(owner), block.timestamp);
+        (,, uint256 liquidity) = router.addLiquidityETH{value: TOKEN_100K}(address(USDC), false, address(factory), USDC_100K, USDC_100K, TOKEN_100K, address(owner), block.timestamp);
 
         assertEq(address(this).balance, initial_eth - TOKEN_100K);
         assertEq(USDC.balanceOf(address(this)), initial_usdc - USDC_100K);
 
-        (uint256 amountUSDC, uint256 amountETH) = router.quoteRemoveLiquidity(address(USDC), address(WETH), false, liquidity);
+        (uint256 amountUSDC, uint256 amountETH) = router.quoteRemoveLiquidity(address(USDC), address(WETH), false, address(factory), liquidity);
         // approve transfer of lp tokens
         Pair(_pair).approve(address(router), liquidity);
-        router.removeLiquidityETH(address(USDC), false, liquidity, amountUSDC, amountETH, address(owner), block.timestamp);
+        router.removeLiquidityETH(Router.RemoveLiquidityETHParams(address(USDC), false, address(factory), liquidity, amountUSDC, amountETH, address(owner), block.timestamp));
 
         assertEq(address(this).balance, initial_eth);
         assertEq(USDC.balanceOf(address(this)), initial_usdc);
@@ -78,7 +78,7 @@ contract NativeTokenTest is BaseTest {
         routerAddLiquidityETHOwner2();
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(USDC), address(WETH), false);
+        routes[0] = Router.route(address(USDC), address(WETH), false, address(factory));
 
         assertEq(router.getAmountsOut(USDC_1, routes)[1], _pair.getAmountOut(USDC_1, address(USDC)));
 
@@ -91,7 +91,7 @@ contract NativeTokenTest is BaseTest {
         routerAddLiquidityETHOwner2();
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(WETH), address(USDC), false);
+        routes[0] = Router.route(address(WETH), address(USDC), false, address(factory));
 
         assertEq(router.getAmountsOut(TOKEN_1, routes)[1], _pair.getAmountOut(TOKEN_1, address(WETH)));
 

@@ -63,6 +63,7 @@ contract VeloVotingTest is BaseTest {
             address(FRAX),
             address(FLOW),
             false,
+            address(factory),
             TOKEN_1,
             TOKEN_1,
             0,
@@ -71,7 +72,7 @@ contract VeloVotingTest is BaseTest {
             block.timestamp
         );
 
-        address pair = router.pairFor(address(FRAX), address(FLOW), false);
+        address pair = router.pairFor(address(FRAX), address(FLOW), false, address(factory));
 
         FLOW.approve(address(voter), 5 * TOKEN_100K);
         voter.createGauge(pair, 0);
@@ -117,7 +118,7 @@ contract VeloVotingTest is BaseTest {
     // reset() can be called by anyone before voting to abstain votes before transferring to a new wallet
 
     function testCannotChangeVoteAndPokeAndResetInSameEpoch() public {
-        address pair = router.pairFor(address(FRAX), address(FLOW), false);
+        address pair = router.pairFor(address(FRAX), address(FLOW), false, address(factory));
 
         // vote
         vm.warp(block.timestamp + 1 weeks);
@@ -149,7 +150,7 @@ contract VeloVotingTest is BaseTest {
     }
 
     function testCanChangeVoteOrResetInNextEpoch() public {
-        address pair = router.pairFor(address(FRAX), address(FLOW), false);
+        address pair = router.pairFor(address(FRAX), address(FLOW), false, address(factory));
 
         // vote
         vm.warp(block.timestamp + 1 weeks);
@@ -174,7 +175,7 @@ contract VeloVotingTest is BaseTest {
     }
 
     function testCanResetAndTransferAndVoteInNextEpoch() public {
-        address pair = router.pairFor(address(FRAX), address(FLOW), false);
+        address pair = router.pairFor(address(FRAX), address(FLOW), false, address(factory));
 
         // vote
         vm.warp(block.timestamp + 1 weeks);

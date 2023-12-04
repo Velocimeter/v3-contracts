@@ -55,20 +55,20 @@ contract OracleTest is BaseTest {
 
         USDC.approve(address(router), USDC_100K);
         FRAX.approve(address(router), TOKEN_100K);
-        router.addLiquidity(address(FRAX), address(USDC), true, TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
+        router.addLiquidity(address(FRAX), address(USDC), true, address(factory), TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
         USDC.approve(address(router), USDC_100K);
         FRAX.approve(address(router), TOKEN_100K);
-        router.addLiquidity(address(FRAX), address(USDC), false, TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
+        router.addLiquidity(address(FRAX), address(USDC), false, address(factory), TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
         DAI.approve(address(router), TOKEN_100M);
         FRAX.approve(address(router), TOKEN_100M);
-        router.addLiquidity(address(FRAX), address(DAI), true, TOKEN_100M, TOKEN_100M, 0, 0, address(owner), block.timestamp);
+        router.addLiquidity(address(FRAX), address(DAI), true, address(factory), TOKEN_100M, TOKEN_100M, 0, 0, address(owner), block.timestamp);
     }
 
     function routerPair1GetAmountsOutAndSwapExactTokensForTokens() public {
         routerAddLiquidity();
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(USDC), address(FRAX), true);
+        routes[0] = Router.route(address(USDC), address(FRAX), true, address(factory));
 
         assertEq(router.getAmountsOut(USDC_1, routes)[1], pair.getAmountOut(USDC_1, address(USDC)));
 

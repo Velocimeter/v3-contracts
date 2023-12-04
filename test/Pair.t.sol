@@ -137,7 +137,7 @@ contract PairTest is BaseTest {
         TestOwner(payable(address(owner2))).approve(address(USDC), address(router), USDC_1);
         TestOwner(payable(address(owner2))).approve(address(DAI), address(router), TOKEN_1);
         vm.expectRevert("not governor");
-        TestOwner(payable(address(owner2))).addLiquidity(payable(address(router)), address(USDC), address(DAI), true, TOKEN_1, TOKEN_1, 0, 0, address(owner), block.timestamp);
+        TestOwner(payable(address(owner2))).addLiquidity(payable(address(router)), address(USDC), address(DAI), true, address(factory), TOKEN_1, TOKEN_1, 0, 0, address(owner), block.timestamp);
     }
 
     function mintAndBurnTokensForPairFraxUsdc() public {
@@ -147,10 +147,10 @@ contract PairTest is BaseTest {
         FRAX.transfer(address(pair), TOKEN_1);
         pair.mint(address(owner));
         assertEq(pair.getAmountOut(USDC_1, address(USDC)), 982117769725505988);
-        (uint256 amount, bool stable) = router.getAmountOut(USDC_1, address(USDC), address(FRAX));
+        (uint256 amount, bool stable) = router.getAmountOut(USDC_1, address(USDC), address(FRAX), address(factory));
         assertEq(pair.getAmountOut(USDC_1, address(USDC)), amount);
         assertTrue(stable);
-        assertTrue(router.isPair(address(pair)));
+        assertTrue(router.isPair(address(pair), address(factory)));
     }
 
     function mintAndBurnTokensForPairFraxUsdcOwner2() public {
@@ -167,13 +167,13 @@ contract PairTest is BaseTest {
 
         USDC.approve(address(router), USDC_100K);
         FRAX.approve(address(router), TOKEN_100K);
-        router.addLiquidity(address(FRAX), address(USDC), true, TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
+        router.addLiquidity(address(FRAX), address(USDC), true, address(factory), TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
         USDC.approve(address(router), USDC_100K);
         FRAX.approve(address(router), TOKEN_100K);
-        router.addLiquidity(address(FRAX), address(USDC), false, TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
+        router.addLiquidity(address(FRAX), address(USDC), false, address(factory), TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
         DAI.approve(address(router), TOKEN_100M);
         FRAX.approve(address(router), TOKEN_100M);
-        router.addLiquidity(address(FRAX), address(DAI), true, TOKEN_100M, TOKEN_100M, 0, 0, address(owner), block.timestamp);
+        router.addLiquidity(address(FRAX), address(DAI), true, address(factory), TOKEN_100M, TOKEN_100M, 0, 0, address(owner), block.timestamp);
     }
 
     function routerRemoveLiquidity() public {
@@ -181,8 +181,8 @@ contract PairTest is BaseTest {
 
         USDC.approve(address(router), USDC_100K);
         FRAX.approve(address(router), TOKEN_100K);
-        router.quoteAddLiquidity(address(FRAX), address(USDC), true, TOKEN_100K, USDC_100K);
-        router.quoteRemoveLiquidity(address(FRAX), address(USDC), true, USDC_100K);
+        router.quoteAddLiquidity(address(FRAX), address(USDC), true, address(factory), TOKEN_100K, USDC_100K);
+        router.quoteRemoveLiquidity(address(FRAX), address(USDC), true, address(factory), USDC_100K);
     }
 
     function routerAddLiquidityOwner2() public {
@@ -190,20 +190,20 @@ contract PairTest is BaseTest {
 
         owner2.approve(address(USDC), address(router), USDC_100K);
         owner2.approve(address(FRAX), address(router), TOKEN_100K);
-        owner2.addLiquidity(payable(address(router)), address(FRAX), address(USDC), true, TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner2), block.timestamp);
+        owner2.addLiquidity(payable(address(router)), address(FRAX), address(USDC), true, address(factory), TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner2), block.timestamp);
         owner2.approve(address(USDC), address(router), USDC_100K);
         owner2.approve(address(FRAX), address(router), TOKEN_100K);
-        owner2.addLiquidity(payable(address(router)), address(FRAX), address(USDC), false, TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner2), block.timestamp);
+        owner2.addLiquidity(payable(address(router)), address(FRAX), address(USDC), false, address(factory), TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner2), block.timestamp);
         owner2.approve(address(DAI), address(router), TOKEN_100M);
         owner2.approve(address(FRAX), address(router), TOKEN_100M);
-        owner2.addLiquidity(payable(address(router)), address(FRAX), address(DAI), true, TOKEN_100M, TOKEN_100M, 0, 0, address(owner2), block.timestamp);
+        owner2.addLiquidity(payable(address(router)), address(FRAX), address(DAI), true, address(factory), TOKEN_100M, TOKEN_100M, 0, 0, address(owner2), block.timestamp);
     }
 
     function routerPair1GetAmountsOutAndSwapExactTokensForTokens() public {
         routerAddLiquidityOwner2();
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(USDC), address(FRAX), true);
+        routes[0] = Router.route(address(USDC), address(FRAX), true, address(factory));
 
         assertEq(router.getAmountsOut(USDC_1, routes)[1], pair.getAmountOut(USDC_1, address(USDC)));
 
@@ -218,7 +218,7 @@ contract PairTest is BaseTest {
         routerPair1GetAmountsOutAndSwapExactTokensForTokens();
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(USDC), address(FRAX), true);
+        routes[0] = Router.route(address(USDC), address(FRAX), true, address(factory));
 
         assertEq(router.getAmountsOut(USDC_1, routes)[1], pair.getAmountOut(USDC_1, address(USDC)));
 
@@ -231,7 +231,7 @@ contract PairTest is BaseTest {
         routerPair1GetAmountsOutAndSwapExactTokensForTokensOwner2();
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(USDC), address(FRAX), false);
+        routes[0] = Router.route(address(USDC), address(FRAX), false, address(factory));
 
         assertEq(router.getAmountsOut(USDC_1, routes)[1], pair2.getAmountOut(USDC_1, address(USDC)));
 
@@ -244,7 +244,7 @@ contract PairTest is BaseTest {
         routerPair2GetAmountsOutAndSwapExactTokensForTokens();
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(FRAX), address(DAI), true);
+        routes[0] = Router.route(address(FRAX), address(DAI), true, address(factory));
 
         assertEq(router.getAmountsOut(TOKEN_1M, routes)[1], pair3.getAmountOut(TOKEN_1M, address(FRAX)));
 
@@ -522,7 +522,7 @@ contract PairTest is BaseTest {
         bribeClaimRewards();
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(USDC), address(FRAX), true);
+        routes[0] = Router.route(address(USDC), address(FRAX), true, address(factory));
 
         uint256[] memory expectedOutput = router.getAmountsOut(USDC_1, routes);
         USDC.approve(address(router), USDC_1);
@@ -533,7 +533,7 @@ contract PairTest is BaseTest {
         routerPair1GetAmountsOutAndSwapExactTokensForTokens2();
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(USDC), address(FRAX), false);
+        routes[0] = Router.route(address(USDC), address(FRAX), false, address(factory));
 
         uint256[] memory expectedOutput = router.getAmountsOut(USDC_1, routes);
         USDC.approve(address(router), USDC_1);
@@ -544,7 +544,7 @@ contract PairTest is BaseTest {
         routerPair2GetAmountsOutAndSwapExactTokensForTokens2();
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(FRAX), address(USDC), false);
+        routes[0] = Router.route(address(FRAX), address(USDC), false, address(factory));
 
         uint256[] memory expectedOutput = router.getAmountsOut(TOKEN_1, routes);
         FRAX.approve(address(router), TOKEN_1);
@@ -555,7 +555,7 @@ contract PairTest is BaseTest {
         routerPair1GetAmountsOutAndSwapExactTokensForTokens2Again();
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(FRAX), address(USDC), false);
+        routes[0] = Router.route(address(FRAX), address(USDC), false, address(factory));
 
         uint256[] memory expectedOutput = router.getAmountsOut(TOKEN_1, routes);
         FRAX.approve(address(router), TOKEN_1);
@@ -566,8 +566,8 @@ contract PairTest is BaseTest {
         routerPair2GetAmountsOutAndSwapExactTokensForTokens2Again();
 
         Router.route[] memory route = new Router.route[](2);
-        route[0] = Router.route(address(FRAX), address(USDC), false);
-        route[1] = Router.route(address(USDC), address(FRAX), true);
+        route[0] = Router.route(address(FRAX), address(USDC), false, address(factory));
+        route[1] = Router.route(address(USDC), address(FRAX), true, address(factory));
 
         uint256 before = FRAX.balanceOf(address(owner)) - TOKEN_1;
 
@@ -749,7 +749,7 @@ contract PairTest is BaseTest {
 
         owner3.approve(address(USDC), address(router), 1e12);
         owner3.approve(address(FRAX), address(router), TOKEN_1M);
-        owner3.addLiquidity(payable(address(router)), address(FRAX), address(USDC), true, TOKEN_1M, 1e12, 0, 0, address(owner3), block.timestamp);
+        owner3.addLiquidity(payable(address(router)), address(FRAX), address(USDC), true, address(factory), TOKEN_1M, 1e12, 0, 0, address(owner3), block.timestamp);
     }
 
     function deployPairFactoryGaugeOwner3() public {

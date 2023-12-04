@@ -49,9 +49,9 @@ contract MinterTest is BaseTest {
 
         FLOW.approve(address(router), TOKEN_1);
         FRAX.approve(address(router), TOKEN_1);
-        router.addLiquidity(address(FRAX), address(FLOW), false, TOKEN_1, TOKEN_1, 0, 0, address(owner), block.timestamp);
+        router.addLiquidity(address(FRAX), address(FLOW), false, address(factory), TOKEN_1, TOKEN_1, 0, 0, address(owner), block.timestamp);
 
-        address pair = router.pairFor(address(FRAX), address(FLOW), false);
+        address pair = router.pairFor(address(FRAX), address(FLOW), false, address(factory));
 
         FLOW.approve(address(voter), 5 * TOKEN_100K);
         voter.createGauge(pair, 0);

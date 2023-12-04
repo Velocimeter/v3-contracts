@@ -68,13 +68,13 @@ contract ImbalanceTest is BaseTest {
 
         USDC.approve(address(router), USDC_100K);
         FRAX.approve(address(router), TOKEN_100K);
-        router.addLiquidity(address(FRAX), address(USDC), true, TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
+        router.addLiquidity(address(FRAX), address(USDC), true, address(factory), TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
         USDC.approve(address(router), USDC_100K);
         FRAX.approve(address(router), TOKEN_100K);
-        router.addLiquidity(address(FRAX), address(USDC), false, TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
+        router.addLiquidity(address(FRAX), address(USDC), false, address(factory), TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
         DAI.approve(address(router), TOKEN_100M);
         FRAX.approve(address(router), TOKEN_100M);
-        router.addLiquidity(address(FRAX), address(DAI), true, TOKEN_100M, TOKEN_100M, 0, 0, address(owner), block.timestamp);
+        router.addLiquidity(address(FRAX), address(DAI), true, address(factory), TOKEN_100M, TOKEN_100M, 0, 0, address(owner), block.timestamp);
     }
 
     function deployVoter() public {
@@ -115,9 +115,9 @@ contract ImbalanceTest is BaseTest {
         deployPairFactoryGauge();
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(FRAX), address(DAI), true);
+        routes[0] = Router.route(address(FRAX), address(DAI), true, address(factory));
         Router.route[] memory routes2 = new Router.route[](1);
-        routes2[0] = Router.route(address(DAI), address(FRAX), true);
+        routes2[0] = Router.route(address(DAI), address(FRAX), true, address(factory));
 
         uint256 fb = FRAX.balanceOf(address(owner));
         uint256 db = DAI.balanceOf(address(owner));
@@ -134,7 +134,7 @@ contract ImbalanceTest is BaseTest {
         DAI.approve(address(router), TOKEN_10B);
         FRAX.approve(address(router), TOKEN_10B);
         uint256 pairBefore = pair3.balanceOf(address(owner));
-        router.addLiquidity(address(FRAX), address(DAI), true, TOKEN_10B, TOKEN_10B, 0, 0, address(owner), block.timestamp);
+        router.addLiquidity(address(FRAX), address(DAI), true, address(factory), TOKEN_10B, TOKEN_10B, 0, 0, address(owner), block.timestamp);
         uint256 pairAfter = pair3.balanceOf(address(owner));
         uint256 LPBal = pairAfter - pairBefore;
 
@@ -146,7 +146,7 @@ contract ImbalanceTest is BaseTest {
             router.swapExactTokensForTokens(1e25, expectedOutput2[1], routes2, address(owner), block.timestamp);
         }
         pair3.approve(address(router), LPBal);
-        router.removeLiquidity(address(FRAX), address(DAI), true, LPBal, 0, 0, address(owner), block.timestamp);
+        router.removeLiquidity(Router.RemoveLiquidityParams(address(FRAX), address(DAI), true, address(factory), LPBal, 0, 0, address(owner), block.timestamp));
 
         uint256 fa = FRAX.balanceOf(address(owner));
         uint256 da = DAI.balanceOf(address(owner));

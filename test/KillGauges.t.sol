@@ -146,7 +146,7 @@ contract KillGaugesTest is BaseTest {
   function testKilledGaugeCannotDeposit() public {
     USDC.approve(address(router), USDC_100K);
     FRAX.approve(address(router), TOKEN_100K);
-    router.addLiquidity(address(FRAX), address(USDC), true, TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
+    router.addLiquidity(address(FRAX), address(USDC), true, address(factory), TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
 
     address gaugeAddress = address(gauge);
     voter.pauseGauge(gaugeAddress);
@@ -160,7 +160,7 @@ contract KillGaugesTest is BaseTest {
   function testKilledGaugeCanWithdraw() public {
     USDC.approve(address(router), USDC_100K);
     FRAX.approve(address(router), TOKEN_100K);
-    router.addLiquidity(address(FRAX), address(USDC), true, TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
+    router.addLiquidity(address(FRAX), address(USDC), true, address(factory), TOKEN_100K, USDC_100K, TOKEN_100K, USDC_100K, address(owner), block.timestamp);
 
     address gaugeAddress = address(gauge);
 

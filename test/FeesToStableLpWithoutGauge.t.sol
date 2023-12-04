@@ -12,7 +12,7 @@ contract FeesToStableLpWithoutGauge is BaseTest {
     function deploySinglePairWithOwner(address payable _owner) public {
         TestOwner(_owner).approve(address(FRAX), address(router), TOKEN_1);
         TestOwner(_owner).approve(address(USDC), address(router), USDC_1);
-        TestOwner(_owner).addLiquidity(payable(address(router)), address(FRAX), address(USDC), true, TOKEN_1, USDC_1, 0, 0, address(owner), block.timestamp);
+        TestOwner(_owner).addLiquidity(payable(address(router)), address(FRAX), address(USDC), true, address(factory), TOKEN_1, USDC_1, 0, 0, address(owner), block.timestamp);
     }
 
     function deployPair() public {
@@ -60,7 +60,7 @@ contract FeesToStableLpWithoutGauge is BaseTest {
         // add initial liquidity from owner
         USDC.approve(address(router), USDC_100K);
         FRAX.approve(address(router), TOKEN_100K);
-        router.addLiquidity(address(USDC), address(FRAX), true, USDC_100K, TOKEN_100K, USDC_100K, TOKEN_100K, address(owner), block.timestamp);
+        router.addLiquidity(address(USDC), address(FRAX), true, address(factory), USDC_100K, TOKEN_100K, USDC_100K, TOKEN_100K, address(owner), block.timestamp);
     }
 
     function routerAddLiquidityOwner2() public {
@@ -68,7 +68,7 @@ contract FeesToStableLpWithoutGauge is BaseTest {
 
         owner2.approve(address(USDC), address(router), USDC_100K);
         owner2.approve(address(FRAX), address(router), TOKEN_100K);
-        owner2.addLiquidity(payable(address(router)), address(USDC), address(FRAX), true, USDC_100K, TOKEN_100K, USDC_100K, TOKEN_100K, address(owner), block.timestamp);
+        owner2.addLiquidity(payable(address(router)), address(USDC), address(FRAX), true, address(factory), USDC_100K, TOKEN_100K, USDC_100K, TOKEN_100K, address(owner), block.timestamp);
     }
 
     function testRemoveLiquidityAndEarnSwapFees() public {
@@ -83,29 +83,29 @@ contract FeesToStableLpWithoutGauge is BaseTest {
         vm.startPrank(address(owner2));
         USDC.approve(address(router), USDC_100K);
         FRAX.approve(address(router), TOKEN_100K);
-        (,, uint256 liquidity) = router.addLiquidity(address(USDC), address(FRAX), true, USDC_100K, TOKEN_100K, USDC_100K, TOKEN_100K, address(owner2), block.timestamp);
+        (,, uint256 liquidity) = router.addLiquidity(address(USDC), address(FRAX), true, address(factory), USDC_100K, TOKEN_100K, USDC_100K, TOKEN_100K, address(owner2), block.timestamp);
         vm.stopPrank();
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(USDC), address(FRAX), true);
+        routes[0] = Router.route(address(USDC), address(FRAX), true, address(factory));
 
         uint256[] memory expectedOutput = router.getAmountsOut(USDC_100, routes);
         USDC.approve(address(router), USDC_100);
         router.swapExactTokensForTokens(USDC_100, expectedOutput[1], routes, address(owner), block.timestamp);
 
         routes = new Router.route[](1);
-        routes[0] = Router.route(address(FRAX), address(USDC), true);
+        routes[0] = Router.route(address(FRAX), address(USDC), true, address(factory));
 
         expectedOutput = router.getAmountsOut(TOKEN_100, routes);
         FRAX.approve(address(router), TOKEN_100);
         router.swapExactTokensForTokens(TOKEN_100, expectedOutput[1], routes, address(owner), block.timestamp);
 
-        (uint256 amountUSDC, uint256 amountFRAX) = router.quoteRemoveLiquidity(address(USDC), address(FRAX), true, liquidity);
+        (uint256 amountUSDC, uint256 amountFRAX) = router.quoteRemoveLiquidity(address(USDC), address(FRAX), true, address(factory), liquidity);
         // approve transfer of lp tokens
         vm.startPrank(address(owner2));
         Pair(_pair).approve(address(router), liquidity);
         
-        router.removeLiquidity(address(USDC), address(FRAX), true, liquidity, amountUSDC, amountFRAX, address(owner2), block.timestamp);
+        router.removeLiquidity(Router.RemoveLiquidityParams(address(USDC), address(FRAX), true, address(factory), liquidity, amountUSDC, amountFRAX, address(owner2), block.timestamp));
         vm.stopPrank();
 
         assertGt(FRAX.balanceOf(address(owner2)), initial_frax);

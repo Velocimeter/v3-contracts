@@ -137,20 +137,20 @@ abstract contract BaseTest is Test, TestOwner {
         vm.startPrank(_owner, _owner);
         FRAX.approve(address(router), TOKEN_1);
         USDC.approve(address(router), USDC_1);
-        router.addLiquidity(address(FRAX), address(USDC), true, TOKEN_1, USDC_1, 0, 0, address(owner), block.timestamp);
+        router.addLiquidity(address(FRAX), address(USDC), true, address(factory), TOKEN_1, USDC_1, 0, 0, address(owner), block.timestamp);
         FRAX.approve(address(router), TOKEN_1);
         USDC.approve(address(router), USDC_1);
-        router.addLiquidity(address(FRAX), address(USDC), false, TOKEN_1, USDC_1, 0, 0, address(owner), block.timestamp);
+        router.addLiquidity(address(FRAX), address(USDC), false, address(factory), TOKEN_1, USDC_1, 0, 0, address(owner), block.timestamp);
         FRAX.approve(address(router), TOKEN_1);
         DAI.approve(address(router), TOKEN_1);
-        router.addLiquidity(address(FRAX), address(DAI), true, TOKEN_1, TOKEN_1, 0, 0, address(owner), block.timestamp);
+        router.addLiquidity(address(FRAX), address(DAI), true, address(factory), TOKEN_1, TOKEN_1, 0, 0, address(owner), block.timestamp);
         FLOW.approve(address(router), TOKEN_1);
         DAI.approve(address(router), TOKEN_1);
-        router.addLiquidity(address(FLOW), address(DAI), false, TOKEN_1, TOKEN_1, 0, 0, address(owner), block.timestamp);
+        router.addLiquidity(address(FLOW), address(DAI), false, address(factory), TOKEN_1, TOKEN_1, 0, 0, address(owner), block.timestamp);
         vm.stopPrank();
         assertEq(factory.allPairsLength(), 4);
 
-        address create2address = router.pairFor(address(FRAX), address(USDC), true);
+        address create2address = router.pairFor(address(FRAX), address(USDC), true, address(factory));
         address address1 = factory.getPair(address(FRAX), address(USDC), true);
         pair = Pair(address1);
         address address2 = factory.getPair(address(FRAX), address(USDC), false);
@@ -160,7 +160,7 @@ abstract contract BaseTest is Test, TestOwner {
         address address4 = factory.getPair(address(FLOW), address(DAI), false);
         flowDaiPair = Pair(address4);
         assertEq(address(pair), create2address);
-        assertGt(lib.getAmountOut(USDC_1, address(USDC), address(FRAX), true), 0);
+        assertGt(lib.getAmountOut(USDC_1, address(USDC), address(FRAX), true, address(factory)), 0);
     }
 
     function mintPairFraxUsdcWithOwner(address payable _owner) public {

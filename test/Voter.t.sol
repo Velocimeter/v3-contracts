@@ -223,7 +223,7 @@ contract VoterTest is BaseTest {
         voter.setExternalBribeFor(gaugeAddress, address(newExternalBribe));
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(USDC), address(FRAX), true);
+        routes[0] = Router.route(address(USDC), address(FRAX), true, address(factory));
 
         assertEq(
             router.getAmountsOut(USDC_1, routes)[1],

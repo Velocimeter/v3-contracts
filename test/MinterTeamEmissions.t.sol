@@ -61,6 +61,7 @@ contract MinterTeamEmissions is BaseTest {
             address(FRAX),
             address(FLOW),
             false,
+            address(factory),
             TOKEN_1,
             TOKEN_1,
             0,
@@ -69,7 +70,7 @@ contract MinterTeamEmissions is BaseTest {
             block.timestamp
         );
 
-        address pair = router.pairFor(address(FRAX), address(FLOW), false);
+        address pair = router.pairFor(address(FRAX), address(FLOW), false, address(factory));
 
         FLOW.approve(address(voter), 5 * TOKEN_100K);
         voter.createGauge(pair, 0);

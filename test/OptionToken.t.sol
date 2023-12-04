@@ -248,6 +248,7 @@ contract OptionTokenTest is BaseTest {
             address(FLOW),
             address(DAI),
             false,
+            address(factory),
             TOKEN_100K,
             TOKEN_100K,
             0,
@@ -257,9 +258,9 @@ contract OptionTokenTest is BaseTest {
         );
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(FLOW), address(DAI), false);
+        routes[0] = Router.route(address(FLOW), address(DAI), false, address(factory));
         Router.route[] memory routes2 = new Router.route[](1);
-        routes2[0] = Router.route(address(DAI), address(FLOW), false);
+        routes2[0] = Router.route(address(DAI), address(FLOW), false, address(factory));
 
         uint256 i;
         for (i = 0; i < 10; i++) {

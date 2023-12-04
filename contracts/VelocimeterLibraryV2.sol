@@ -5,7 +5,7 @@ pragma solidity 0.8.13;
 import "contracts/interfaces/IPair.sol";
 import "contracts/interfaces/IRouter.sol";
 
-contract VelocimeterLibrary {
+contract VelocimeterLibraryV2 {
     IRouter internal immutable router;
 
     constructor(address _router) {

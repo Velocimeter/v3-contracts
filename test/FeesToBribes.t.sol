@@ -48,31 +48,6 @@ contract FeesToBribesTest is BaseTest {
         gaugeFactory.setOFlow(address(oFlow));
     }
 
-    function testSwapAndFeesStayWithoutGauge() public {
-        Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(USDC), address(FRAX), true);
-
-        assertEq(
-            router.getAmountsOut(USDC_1, routes)[1],
-            pair.getAmountOut(USDC_1, address(USDC))
-        );
-
-        uint256[] memory assertedOutput = router.getAmountsOut(USDC_1, routes);
-        USDC.approve(address(router), USDC_1);
-        router.swapExactTokensForTokens(
-            USDC_1,
-            assertedOutput[1],
-            routes,
-            address(owner),
-            block.timestamp
-        );
-        vm.warp(block.timestamp + 1801);
-        vm.roll(block.number + 1);
-
-        address pairHere = factory.getPair(address(FRAX), address(USDC), true);
-        assertEq(USDC.balanceOf(pairHere), 200); // 0.01% -> 0.02%
-    }
-
     // function testNonPairFactoryOwnerCannotSetTank() public {
     //     vm.expectRevert(abi.encodePacked("Ownable: caller is not the owner"));
     //     owner2.setTank(address(factory), address(owner));
@@ -97,7 +72,7 @@ contract FeesToBribesTest is BaseTest {
         factory.setFee(true, 3); // 3 bps = 0.03%
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(USDC), address(FRAX), true);
+        routes[0] = Router.route(address(USDC), address(FRAX), true, address(factory));
 
         assertEq(
             router.getAmountsOut(USDC_1, routes)[1],
@@ -135,7 +110,7 @@ contract FeesToBribesTest is BaseTest {
         factory.setFeesOverrides(address(pair), 30); // 30 bps = 0.3%
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(USDC), address(FRAX), true);
+        routes[0] = Router.route(address(USDC), address(FRAX), true, address(factory));
 
         assertEq(
             router.getAmountsOut(USDC_1, routes)[1],
@@ -175,7 +150,7 @@ contract FeesToBribesTest is BaseTest {
         xbribe = ExternalBribe(xBribeAddress);
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(USDC), address(FRAX), true);
+        routes[0] = Router.route(address(USDC), address(FRAX), true, address(factory));
 
         assertEq(
             router.getAmountsOut(USDC_1, routes)[1],

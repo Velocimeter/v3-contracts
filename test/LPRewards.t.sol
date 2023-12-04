@@ -49,7 +49,7 @@ contract LPRewardsTest is BaseTest {
         // owner1 deposits LP
         USDC.approve(address(router), 1e12);
         FRAX.approve(address(router), TOKEN_1M);
-        router.addLiquidity(address(FRAX), address(USDC), true, TOKEN_1M, 1e12, 0, 0, address(owner2), block.timestamp);
+        router.addLiquidity(address(FRAX), address(USDC), true, address(factory), TOKEN_1M, 1e12, 0, 0, address(owner2), block.timestamp);
         address address1 = factory.getPair(address(FRAX), address(USDC), true);
         pair = Pair(address1);
         voter.createGauge(address(pair), 0);
@@ -62,7 +62,7 @@ contract LPRewardsTest is BaseTest {
         vm.startPrank(address(owner2));
         USDC.approve(address(router), 1e12);
         FRAX.approve(address(router), TOKEN_1M);
-        router.addLiquidity(address(FRAX), address(USDC), true, TOKEN_1M, 1e12, 0, 0, address(owner2), block.timestamp);
+        router.addLiquidity(address(FRAX), address(USDC), true, address(factory), TOKEN_1M, 1e12, 0, 0, address(owner2), block.timestamp);
         pair.approve(address(gauge), PAIR_1);
         gauge.deposit(PAIR_1, 0);
         vm.stopPrank();

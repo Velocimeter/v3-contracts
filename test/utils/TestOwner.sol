@@ -53,12 +53,12 @@ contract TestOwner is IERC721Receiver {
                                 Router
     //////////////////////////////////////////////////////////////*/
 
-    function addLiquidity(address payable _router, address _tokenA, address _tokenB, bool _stable, uint256 _amountADesired, uint256 _amountBDesired, uint256 _amountAMin, uint256 _amountBMin, address _to, uint256 _deadline) public {
-        Router(_router).addLiquidity(_tokenA, _tokenB, _stable, _amountADesired, _amountBDesired, _amountAMin, _amountBMin, _to, _deadline);
+    function addLiquidity(address payable _router, address _tokenA, address _tokenB, bool _stable, address _factory, uint256 _amountADesired, uint256 _amountBDesired, uint256 _amountAMin, uint256 _amountBMin, address _to, uint256 _deadline) public {
+        Router(_router).addLiquidity(_tokenA, _tokenB, _stable, _factory, _amountADesired, _amountBDesired, _amountAMin, _amountBMin, _to, _deadline);
     }
 
-    function addLiquidityETH(address payable _router, address _token, bool _stable, uint256 _amountTokenDesired, uint256 _amountTokenMin, uint256 _amountETHMin, address _to, uint256 _deadline) public payable {
-        Router(_router).addLiquidityETH{value: msg.value}(_token, _stable, _amountTokenDesired, _amountTokenMin, _amountETHMin, _to, _deadline);
+    function addLiquidityETH(address payable _router, address _token, bool _stable, address _factory, uint256 _amountTokenDesired, uint256 _amountTokenMin, uint256 _amountETHMin, address _to, uint256 _deadline) public payable {
+        Router(_router).addLiquidityETH{value: msg.value}(_token, _stable, _factory, _amountTokenDesired, _amountTokenMin, _amountETHMin, _to, _deadline);
     }
 
     function swapExactTokensForTokens(address payable _router, uint256 _amountIn, uint256 _amountOutMin, Router.route[] calldata _routes, address _to, uint256 _deadline) public {

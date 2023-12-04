@@ -9,7 +9,7 @@ contract FeesToVolatileLpWithoutGauge is BaseTest {
     function deploySinglePairWithOwner(address payable _owner) public {
         TestOwner(_owner).approve(address(WETH), address(router), TOKEN_1);
         TestOwner(_owner).approve(address(FRAX), address(router), TOKEN_1);
-        TestOwner(_owner).addLiquidity(payable(address(router)), address(WETH), address(FRAX), false, TOKEN_1, TOKEN_1, 0, 0, address(owner), block.timestamp);
+        TestOwner(_owner).addLiquidity(payable(address(router)), address(WETH), address(FRAX), false, address(factory), TOKEN_1, TOKEN_1, 0, 0, address(owner), block.timestamp);
     }
 
     function deployPair() public {
@@ -36,7 +36,7 @@ contract FeesToVolatileLpWithoutGauge is BaseTest {
         // add initial liquidity from owner
         FRAX.approve(address(router), TOKEN_100K);
         WETH.approve(address(router), TOKEN_100K);
-        router.addLiquidityETH{value: TOKEN_100K}(address(FRAX), false, TOKEN_100K, TOKEN_100K, TOKEN_100K, address(owner), block.timestamp);
+        router.addLiquidityETH{value: TOKEN_100K}(address(FRAX), false, address(factory), TOKEN_100K, TOKEN_100K, TOKEN_100K, address(owner), block.timestamp);
     }
 
     function routerAddLiquidityETHOwner2() public {
@@ -44,7 +44,7 @@ contract FeesToVolatileLpWithoutGauge is BaseTest {
 
         owner2.approve(address(FRAX), address(router), TOKEN_100K);
         owner2.approve(address(WETH), address(router), TOKEN_100K);
-        owner2.addLiquidityETH{value: TOKEN_100K}(payable(address(router)), address(FRAX), false, TOKEN_100K, TOKEN_100K, TOKEN_100K, address(owner), block.timestamp);
+        owner2.addLiquidityETH{value: TOKEN_100K}(payable(address(router)), address(FRAX), false, address(factory), TOKEN_100K, TOKEN_100K, TOKEN_100K, address(owner), block.timestamp);
     }
 
     // function testRemoveETHLiquidityAndEarnSwapFees() public {
@@ -101,28 +101,28 @@ contract FeesToVolatileLpWithoutGauge is BaseTest {
         vm.startPrank(address(owner2));
         FRAX.approve(address(router), TOKEN_100K);
         WETH.approve(address(router), TOKEN_100K);
-        (,, uint256 liquidity) = router.addLiquidity(address(FRAX), address(WETH), false, TOKEN_100K, TOKEN_100K, TOKEN_100K, TOKEN_100K, address(owner2), block.timestamp);
+        (,, uint256 liquidity) = router.addLiquidity(address(FRAX), address(WETH), false, address(factory), TOKEN_100K, TOKEN_100K, TOKEN_100K, TOKEN_100K, address(owner2), block.timestamp);
         vm.stopPrank();
 
         Router.route[] memory routes = new Router.route[](1);
-        routes[0] = Router.route(address(WETH), address(FRAX), false);
+        routes[0] = Router.route(address(WETH), address(FRAX), false, address(factory));
 
         uint256[] memory expectedOutput = router.getAmountsOut(TOKEN_10, routes);
         uint256[] memory amounts = router.swapExactETHForTokens{value: TOKEN_10}(expectedOutput[1], routes, address(owner), block.timestamp);
 
         routes = new Router.route[](1);
-        routes[0] = Router.route(address(FRAX), address(WETH), false);
+        routes[0] = Router.route(address(FRAX), address(WETH), false, address(factory));
 
         expectedOutput = router.getAmountsOut(TOKEN_10, routes);
         FRAX.approve(address(router), TOKEN_10);
         router.swapExactTokensForETH(TOKEN_10, expectedOutput[1], routes, address(owner), block.timestamp);
 
-        (uint256 amountFRAX, uint256 amountETH) = router.quoteRemoveLiquidity(address(FRAX), address(WETH), false, liquidity);
+        (uint256 amountFRAX, uint256 amountETH) = router.quoteRemoveLiquidity(address(FRAX), address(WETH), false, address(factory), liquidity);
         // approve transfer of lp tokens
         vm.startPrank(address(owner2));
         Pair(_pair).approve(address(router), liquidity);
         
-        router.removeLiquidity(address(FRAX), address(WETH), false, liquidity, amountFRAX, amountETH, address(owner2), block.timestamp);
+        router.removeLiquidity(Router.RemoveLiquidityParams(address(FRAX), address(WETH), false, address(factory), liquidity, amountFRAX, amountETH, address(owner2), block.timestamp));
         vm.stopPrank();
 
         assertGt(WETH.balanceOf(address(owner2)), initial_weth);
