@@ -113,7 +113,6 @@ contract LockDropTokenTest is BaseTest {
             address(FLOW),
             flowDaiPair,
             _gaugeFactory,
-            _owner,
             _voter,
             _escrow,
             address(router)
@@ -156,34 +155,6 @@ contract LockDropTokenTest is BaseTest {
         lockDrop.setPairAndPaymentToken(IPair(daiFraxPair), address(DAI));
         vm.stopPrank();
     }
-
-    function testSetTreasury() public {
-        vm.startPrank(address(owner));
-        assertEq(lockDrop.treasury(), address(owner));
-        vm.expectEmit(true, false, false, false);
-        emit SetTreasury(address(owner2),address(owner2));
-        lockDrop.setTreasury(address(owner2),address(owner2));
-        assertEq(lockDrop.treasury(), address(owner2));
-        assertEq(lockDrop.vmTreasury(), address(owner2));
-        vm.stopPrank();
-    }
-
-    function testNonAdminCannotSetTreasury() public {
-        vm.startPrank(address(owner2));
-        vm.expectRevert(OptionToken_NoAdminRole.selector);
-        lockDrop.setTreasury(address(owner2),address(owner2));
-        vm.stopPrank();
-    }
-
-
-     function testSetMaxLPDiscount() public {
-        vm.startPrank(address(owner));
-        assertEq(lockDrop.maxLPDiscount(), 20);
-        lockDrop.setMaxLPDiscount(10);
-        assertEq(lockDrop.maxLPDiscount(), 10);
-        vm.stopPrank();
-    }
-
 
     function testMint() public {
         uint256 flowBalanceBefore = FLOW.balanceOf(address(owner));
@@ -307,8 +278,6 @@ contract LockDropTokenTest is BaseTest {
         uint256 treasuryDaiBalanceBefore = DAI.balanceOf(address(owner));
         uint256 rewardGaugeDaiBalanceBefore = DAI.balanceOf(address(gauge));
 
-        uint256 discountedPrice = lockDrop.getVeDiscountedPrice(TOKEN_1);
-
         vm.startPrank(address(owner2));
         DAI.approve(address(lockDrop), TOKEN_100K);
         vm.expectEmit(true, true, false, true);
@@ -359,9 +328,6 @@ contract LockDropTokenTest is BaseTest {
 
         (uint256 underlyingReserve, uint256 paymentReserve) = IRouter(router).getReserves(address(FLOW), address(DAI), false);
         uint256 paymentAmountToAddLiquidity = (TOKEN_1 * paymentReserve) /  underlyingReserve;
-
-        uint256 discountedPrice = lockDrop.getLpDiscountedPrice(TOKEN_1,20);
-
       
         vm.startPrank(address(owner2));
         DAI.approve(address(lockDrop), TOKEN_100K);
@@ -384,7 +350,7 @@ contract LockDropTokenTest is BaseTest {
         uint256 treasuryDaiBalanceAfter = DAI.balanceOf(address(owner));
         uint256 rewardGaugeDaiAfter = DAI.balanceOf(address(gauge));
 
-        assertEq(gauge.lockEnd(address(owner2)),block.timestamp + 52 * 7 * 86400);
+        assertEq(gauge.lockEnd(address(owner2)),block.timestamp + 12 * 7 * 86400);
 
         assertEq(flowBalanceAfter - flowBalanceBefore, 0);
         assertEq(oFlowV3BalanceBefore - oFlowV3BalanceAfter, TOKEN_1);

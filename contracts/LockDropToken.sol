@@ -25,11 +25,7 @@ contract LockDropToken is ERC20, AccessControl {
     /// -----------------------------------------------------------------------
     /// Constants
     /// -----------------------------------------------------------------------
-    uint256 public constant MAX_DISCOUNT = 100; // 100%
-    uint256 public constant MIN_DISCOUNT = 0; // 0%
-    uint256 public constant MAX_TWAP_POINTS = 50; // 25 hours
     uint256 public constant FULL_LOCK = 52 * 7 * 86400; // 52 weeks
-    uint256 public constant MAX_FEES = 50; // 50%
 
     /// -----------------------------------------------------------------------
     /// Roles
@@ -63,12 +59,6 @@ contract LockDropToken is ERC20, AccessControl {
     /// Events
     /// -----------------------------------------------------------------------
 
-    event Exercise(
-        address indexed sender,
-        address indexed recipient,
-        uint256 amount,
-        uint256 paymentAmount
-    );
     event ExerciseVe(
         address indexed sender,
         address indexed recipient,
@@ -88,17 +78,9 @@ contract LockDropToken is ERC20, AccessControl {
         address indexed newPaymentToken
     );
     event SetGauge(address indexed newGauge);
-    event SetTreasury(address indexed newTreasury,address indexed newVMTreasury);
-    event SetFees(uint256 newTeamFee,uint256 newVMFee);
     event SetRouter(address indexed newRouter);
-    event SetDiscount(uint256 discount);
-    event SetVeDiscount(uint256 veDiscount);
-    event SetMinLPDiscount(uint256 lpMinDiscount);
-    event SetMaxLPDiscount(uint256 lpMaxDiscount);
-    event SetLockDurationForMaxLpDiscount(uint256 lockDurationForMaxLpDiscount);
-    event SetLockDurationForMinLpDiscount(uint256 lockDurationForMinLpDiscount);
+    event SetLockDurationForLp(uint256 lockDurationForLp);
     event PauseStateChanged(bool isPaused);
-    event SetTwapPoints(uint256 twapPoints);
 
     /// -----------------------------------------------------------------------
     /// Immutable parameters
@@ -133,37 +115,8 @@ contract LockDropToken is ERC20, AccessControl {
     /// @notice The guage contract for the pair
     address public gauge;
 
-    /// @notice The treasury address which receives tokens paid during redemption
-    address public treasury;
-
-    /// @notice The VM address which receives tokens paid during redemption
-    address public vmTreasury;
-
-    /// @notice the discount given during exercising with locking to the LP
-    uint256 public  maxLPDiscount = 20; //  User pays 20%
-    uint256 public  minLPDiscount = 80; //  User pays 80%
-
-    /// @notice the discount given during exercising. 30 = user pays 30%
-    uint256 public discount = 99; // User pays 90%
-
-    /// @notice the discount for locking to veFLOW
-    uint256 public veDiscount = 10; // User pays 10%
-
-    /// @notice the lock duration for max discount to create locked LP
-    uint256 public lockDurationForMaxLpDiscount = FULL_LOCK; // 52 weeks
-
-    // @notice the lock duration for max discount to create locked LP
-    uint256 public lockDurationForMinLpDiscount = 7 * 86400; // 1 week
-
-    /// @notice
-    uint256 public teamFee = 5; // 5%
-
-    /// @notice
-    uint256 public vmFee = 5; // 5%
-
-    /// @notice controls the duration of the twap used to calculate the strike price
-    // each point represents 30 minutes. 4 points = 2 hours
-    uint256 public twapPoints = 4;
+    /// @notice the lock duration for to create locked LP
+    uint256 public lockDurationForLp =  12 * 7 * 86400; // 12 weeks
 
     /// @notice Is excersizing options currently paused
     bool public isPaused;
@@ -205,7 +158,6 @@ contract LockDropToken is ERC20, AccessControl {
         address _underlyingToken,
         IPair _pair,
         address _gaugeFactory,
-        address _treasury,
         address _voter,
         address _votingEscrow,
         address _router
@@ -219,14 +171,11 @@ contract LockDropToken is ERC20, AccessControl {
         paymentToken = _paymentToken;
         underlyingToken = _underlyingToken;
         pair = _pair;
-        treasury = _treasury;
-        vmTreasury = _treasury;
         voter = _voter;
         votingEscrow = _votingEscrow;
         router = _router;
 
         emit SetPairAndPaymentToken(_pair, paymentToken);
-        emit SetTreasury(_treasury,_treasury);
         emit SetRouter(_router);
     }
 
@@ -268,41 +217,6 @@ contract LockDropToken is ERC20, AccessControl {
     /// Public functions
     /// -----------------------------------------------------------------------
 
-    /// @notice Returns the discounted price in paymentTokens for a given amount of options tokens
-    /// @param _amount The amount of options tokens to exercise
-    /// @return The amount of payment tokens to pay to purchase the underlying tokens
-    function getDiscountedPrice(uint256 _amount) public view returns (uint256) {
-        return (getTimeWeightedAveragePrice(_amount) * discount) / 100;
-    }
-
-    /// @notice Returns the discounted price in paymentTokens for a given amount of options tokens redeemed to veFLOW
-    /// @param _amount The amount of options tokens to exercise
-    /// @return The amount of payment tokens to pay to purchase the underlying tokens
-    function getVeDiscountedPrice(
-        uint256 _amount
-    ) public view returns (uint256) {
-        return (getTimeWeightedAveragePrice(_amount) * veDiscount) / 100;
-    }
-
-    /// @notice Returns the discounted price in paymentTokens for a given amount of options tokens redeemed to veFLOW
-    /// @param _amount The amount of options tokens to exercise
-    /// @param _discount The discount amount
-    /// @return The amount of payment tokens to pay to purchase the underlying tokens
-    function getLpDiscountedPrice(
-        uint256 _amount,
-        uint256 _discount
-    ) public view returns (uint256) {
-        return (getTimeWeightedAveragePrice(_amount) * _discount) / 100;
-    }
-
-    /// @notice Returns the lock duration for a desired discount to create locked LP
-    ///
-    function getLockDurationForLpDiscount(
-        uint256 _discount
-    ) public view returns (uint256 duration) {
-        (int256 slope, int256 intercept) = getSlopeInterceptForLpDiscount();
-        duration = SignedMath.abs(slope * int256(_discount) + intercept);
-    }
 
      // @notice Returns the amount in paymentTokens for a given amount of options tokens required for the LP exercise lp
     /// @param _amount The amount of options tokens to exercise
@@ -312,37 +226,6 @@ contract LockDropToken is ERC20, AccessControl {
         paymentAmountToAddLiquidity = (_amount * paymentReserve) / underlyingReserve;
     }
 
-    function getSlopeInterceptForLpDiscount()
-        public
-        view
-        returns (int256 slope, int256 intercept)
-    {
-        slope =
-            int256(lockDurationForMaxLpDiscount - lockDurationForMinLpDiscount) /
-            (int256(maxLPDiscount) - int256(minLPDiscount));
-        intercept = int256(lockDurationForMinLpDiscount) - (slope * int256(minLPDiscount));
-    }
-
-    /// @notice Returns the average price in payment tokens over 2 hours for a given amount of underlying tokens
-    /// @param _amount The amount of underlying tokens to purchase
-    /// @return The amount of payment tokens
-    function getTimeWeightedAveragePrice(
-        uint256 _amount
-    ) public view returns (uint256) {
-        uint256[] memory amtsOut = IPair(pair).prices(
-            underlyingToken,
-            _amount,
-            twapPoints
-        );
-        uint256 len = amtsOut.length;
-        uint256 summedAmount;
-
-        for (uint256 i = 0; i < len; i++) {
-            summedAmount += amtsOut[i];
-        }
-
-        return summedAmount / twapPoints;
-    }
 
     /// -----------------------------------------------------------------------
     /// Admin functions
@@ -379,14 +262,6 @@ contract LockDropToken is ERC20, AccessControl {
         emit SetGauge(_gauge);
     }
 
-    /// @notice Sets the treasury address. Only callable by the admin.
-    /// @param _treasury The new treasury address
-    function setTreasury(address _treasury,address _vmTreasury) external onlyAdmin {
-        treasury = _treasury;
-        vmTreasury = _vmTreasury;
-        emit SetTreasury(_treasury,_vmTreasury);
-    }
-
     /// @notice Sets the router address. Only callable by the admin.
     /// @param _router The new router address
     function setRouter(address _router) external onlyAdmin {
@@ -394,82 +269,13 @@ contract LockDropToken is ERC20, AccessControl {
         emit SetRouter(_router);
     }
 
-    /// @notice Sets the team fee. Only callable by the admin.
-    /// @param _fee The new team fee.
-    /// @param _vmFee The new vm fee.
-    function setFees(uint256 _fee,uint256 _vmFee) external onlyAdmin {
-        if (_fee + _vmFee > MAX_FEES) revert OptionToken_InvalidFee();
-        teamFee = _fee;
-        vmFee = _vmFee;
-        emit SetFees(_fee,_vmFee);
-    }
-
-
-    /// @notice Sets the discount amount. Only callable by the admin.
-    /// @param _discount The new discount amount.
-    function setDiscount(uint256 _discount) external onlyAdmin {
-        if (_discount > MAX_DISCOUNT || _discount == MIN_DISCOUNT)
-            revert OptionToken_InvalidDiscount();
-        discount = _discount;
-        emit SetDiscount(_discount);
-    }
-
-    /// @notice Sets the discount amount for locking. Only callable by the admin.
-    /// @param _veDiscount The new discount amount.
-    function setVeDiscount(uint256 _veDiscount) external onlyAdmin {
-        if (_veDiscount > MAX_DISCOUNT || _veDiscount == MIN_DISCOUNT)
-            revert OptionToken_InvalidDiscount();
-        veDiscount = _veDiscount;
-        emit SetVeDiscount(_veDiscount);
-    }
-
-    /// @notice Sets the discount amount for lp. Only callable by the admin.
-    /// @param _lpMinDiscount The new discount amount.
-    function setMinLPDiscount(uint256 _lpMinDiscount) external onlyAdmin {
-        if (_lpMinDiscount > MAX_DISCOUNT || _lpMinDiscount == MIN_DISCOUNT || maxLPDiscount > _lpMinDiscount)
-            revert OptionToken_InvalidDiscount();
-        minLPDiscount = _lpMinDiscount;
-        emit SetMinLPDiscount(_lpMinDiscount);
-    }
-
-    /// @notice Sets the discount amount for lp. Only callable by the admin.
-    /// @param _lpMaxDiscount The new discount amount.
-    function setMaxLPDiscount(uint256 _lpMaxDiscount) external onlyAdmin {
-        if (_lpMaxDiscount > MAX_DISCOUNT || _lpMaxDiscount == MIN_DISCOUNT || _lpMaxDiscount > minLPDiscount)
-            revert OptionToken_InvalidDiscount();
-        maxLPDiscount = _lpMaxDiscount;
-        emit SetMaxLPDiscount(_lpMaxDiscount);
-    }
-
-    /// @notice Sets the lock duration for max discount amount to create LP and stake in gauge. Only callable by the admin.
+    /// @notice Sets the lock duration to create LP and stake in gauge. Only callable by the admin.
     /// @param _duration The new lock duration.
-    function setLockDurationForMaxLpDiscount(
+    function setLockDurationForLp(
         uint256 _duration
     ) external onlyAdmin {
-        if (_duration <= lockDurationForMinLpDiscount)
-            revert OptionToken_InvalidLockDuration();
-        lockDurationForMaxLpDiscount = _duration;
-        emit SetLockDurationForMaxLpDiscount(_duration);
-    }
-
-    // @notice Sets the lock duration for min discount amount to create LP and stake in gauge. Only callable by the admin.
-    /// @param _duration The new lock duration.
-    function setLockDurationForMinLpDiscount(
-        uint256 _duration
-    ) external onlyAdmin {
-        if (_duration > lockDurationForMaxLpDiscount)
-            revert OptionToken_InvalidLockDuration();
-        lockDurationForMinLpDiscount = _duration;
-        emit SetLockDurationForMinLpDiscount(_duration);
-    }
-
-    /// @notice Sets the twap points. to control the length of our twap
-    /// @param _twapPoints The new twap points.
-    function setTwapPoints(uint256 _twapPoints) external onlyAdmin {
-        if (_twapPoints > MAX_TWAP_POINTS || _twapPoints == 0)
-            revert OptionToken_InvalidTwapPoints();
-        twapPoints = _twapPoints;
-        emit SetTwapPoints(_twapPoints);
+        lockDurationForLp = _duration;
+        emit SetLockDurationForLp(_duration);
     }
 
     /// @notice Called by the admin to mint options tokens. Admin must grant token approval.
@@ -561,7 +367,7 @@ contract LockDropToken is ERC20, AccessControl {
         IGaugeV2(_gauge).depositWithLock(
             _recipient,
             lpAmount,
-            lockDurationForMaxLpDiscount
+            lockDurationForLp
         );
 
         emit ExerciseLp(
@@ -571,33 +377,6 @@ contract LockDropToken is ERC20, AccessControl {
             paymentAmount,
             lpAmount
         );
-    }
-
-    function _takeFees(
-        address token,
-        uint256 paymentAmount
-    ) internal returns (uint256 remaining) {
-        uint256 _teamFee = (paymentAmount * teamFee) / 100;
-        uint256 _vmFee = (paymentAmount * vmFee) / 100;
-        _safeTransferFrom(token, msg.sender, treasury, _teamFee);
-        _safeTransferFrom(token, msg.sender, vmTreasury, _vmFee);
-        remaining = paymentAmount - _teamFee - _vmFee;
-    }
-
-    function _usePaymentAsGaugeReward(uint256 amount) internal {
-        _safeTransferFrom(paymentToken, msg.sender, address(this), amount);
-        _transferRewardToGauge();
-    }
-
-    function _transferRewardToGauge() internal {
-        uint256 paymentTokenCollectedAmount = IERC20(paymentToken).balanceOf(address(this));
-
-        uint256 leftRewards = IGaugeV2(gauge).left(paymentToken);
-
-        if(paymentTokenCollectedAmount > leftRewards) { // we are sending rewards only if we have more then the current rewards in the gauge
-            _safeApprove(paymentToken, gauge, paymentTokenCollectedAmount);
-            IGaugeV2(gauge).notifyRewardAmount(paymentToken, paymentTokenCollectedAmount);
-        }
     }
 
     function _safeTransfer(address token, address to, uint256 value) internal {
