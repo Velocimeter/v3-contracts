@@ -49,6 +49,11 @@ contract LockDrop is Ownable,ReentrancyGuard {
       emit DepositWithLock(msg.sender,amount,lockDuration);
     }
 
+    //function to update the lock duration
+    function setLockDuration(uint256 _lockDuration) external onlyOwner {
+        lockDuration = _lockDuration;
+    }
+
     // This funciton allows users to claim their pro-rata rewards after the rewards have been seeded
     function claim() external nonReentrant {
         require(seeded, "LockDrop is not completed");
