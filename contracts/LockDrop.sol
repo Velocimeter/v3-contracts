@@ -79,7 +79,7 @@ contract LockDrop is Ownable,ReentrancyGuard {
 
     //function to update the lock duration
     function setLockDuration(uint256 _lockDuration) external onlyOwner {
-        require(_lockDuration >= lockDuration + 1209600);
+        require(_lockDuration >= lockDuration + 604800);
         lockDuration = _lockDuration;
     }
 
