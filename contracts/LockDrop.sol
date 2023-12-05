@@ -77,6 +77,12 @@ contract LockDrop is Ownable,ReentrancyGuard {
         emit RewardsDeposit(amount);
     }
 
+    //function to update the lock duration
+    function setLockDuration(uint256 _lockDuration) external onlyOwner {
+        require(_lockDuration >= lockDuration + 1209600);
+        lockDuration = _lockDuration;
+    }
+
     // Imported standard ERC20 functions
     function _safeTransfer(address token, address to, uint256 value) internal {
         require(token.code.length > 0);
