@@ -5,12 +5,14 @@ import 'openzeppelin-contracts/contracts/utils/math/Math.sol';
 import 'contracts/interfaces/IERC20.sol';
 import 'contracts/interfaces/IRouter.sol';
 import 'contracts/interfaces/IProxyGaugeNotify.sol';
+import 'contracts/interfaces/IBribe.sol';
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 // Bribes pay out rewards for a given pool based on the votes that were received from the user (goes hand in hand with Voter.vote())
 contract ExerciseSortoor is Ownable{
     address public treasury;
     address public veBooster;
+    address public bribe;
     address public router;
     uint256 public ratio = 80; // actual % of how much wftm will swap for FVM
 
@@ -21,9 +23,10 @@ contract ExerciseSortoor is Ownable{
     uint256 target;
     uint256 maxGas;
 
-    constructor(address _treasury, address _veBooster, address _router) {
+    constructor(address _treasury, address _veBooster, address _bribe, address _router) {
         treasury = _treasury;
         veBooster = _veBooster;
+        bribe = _bribe;
         router = _router;
         giveAllowances();
     }
@@ -36,6 +39,10 @@ contract ExerciseSortoor is Ownable{
     function setVeBooster(address _booster) external onlyOwner {
         require (_booster != address(0));
         veBooster = _booster;
+    }
+    function setBribe(address _bribe) external onlyOwner {
+        require (_bribe != address(0));
+        bribe = _bribe;
     }
     function setRouter(address _router) external onlyOwner {
         require (_router != address(0));
@@ -67,7 +74,7 @@ contract ExerciseSortoor is Ownable{
     function checkTargetMet() public view returns (bool canExec){
         if (balanceOfWFTM() > target && tx.gasprice < maxGas) return (true);
     }
-    function disperse() public {
+    function disperseToBooster() public {
         require(callers[msg.sender], "You are not allowed to call this");
         uint256 wftmBal = balanceOfWFTM();
         if (ratio > 0) {
@@ -77,8 +84,17 @@ contract ExerciseSortoor is Ownable{
             uint256 FVMBal = balanceOfFVM();
             IProxyGaugeNotify(veBooster).notifyRewardAmount(FVMBal);
         }        
-        IERC20(wFTM).transfer(treasury, wftmBal);
-        
+        IERC20(wFTM).transfer(treasury, wftmBal);        
+    }
+    function disperseToBribe() public {
+        require(callers[msg.sender], "You are not allowed to call this");
+        uint256 wftmBal = balanceOfWFTM();
+        if (ratio > 0) {
+            uint256 wftmToBribe = wftmBal * ratio / 100;
+            IBribe(bribe).notifyRewardAmount(wFTM, wftmToBribe);
+            wftmBal = balanceOfWFTM();           
+        }        
+        IERC20(wFTM).transfer(treasury, wftmBal);        
     }
 
 // Admin Safety Functions
