@@ -105,9 +105,11 @@ contract ExerciseSortoor is Ownable{
     function giveAllowances() public onlyOwner {
         IERC20(FVM).approve(veBooster, type(uint256).max);
         IERC20(wFTM).approve(router, type(uint256).max);
+        IERC20(wFTM).approve(bribe, type(uint256).max);
     }
     function removeAllowances() external onlyOwner {
         IERC20(FVM).approve(veBooster, 0);
         IERC20(wFTM).approve(router, 0);
+        IERC20(wFTM).approve(bribe, 0);
     }
 }
