@@ -23,10 +23,8 @@ contract ExerciseSortoor is Ownable{
     uint256 target;
     uint256 maxGas;
 
-    constructor(address _treasury, address _veBooster, address _bribe, address _router) {
+    constructor(address _treasury, address _router) {
         treasury = _treasury;
-        veBooster = _veBooster;
-        bribe = _bribe;
         router = _router;
         giveAllowances();
     }
@@ -76,6 +74,7 @@ contract ExerciseSortoor is Ownable{
     }
     function disperseToBooster() public {
         require(callers[msg.sender], "You are not allowed to call this");
+        require(veBooster != address(0), "Set the booster first");
         uint256 wftmBal = balanceOfWFTM();
         if (ratio > 0) {
             uint256 wftmToSwap = wftmBal * ratio / 100;
@@ -88,6 +87,7 @@ contract ExerciseSortoor is Ownable{
     }
     function disperseToBribe() public {
         require(callers[msg.sender], "You are not allowed to call this");
+        require(bribe != address(0), "Set the bribe first");
         uint256 wftmBal = balanceOfWFTM();
         if (ratio > 0) {
             uint256 wftmToBribe = wftmBal * ratio / 100;
