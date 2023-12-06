@@ -254,7 +254,7 @@ contract SimpleExerciseHelper is Ownable2Step, IFlashLoanReceiver {
 
   /**
    * @notice Fallback function used during flash loans.
-   * @dev May only be called by balancer vault as part of
+   * @dev May only be called by lendle vault as part of
    *  flash loan callback.
    * @param _tokens The tokens we are swapping (in our case, only WMNT).
    * @param _amounts The amounts of said tokens.
@@ -268,9 +268,9 @@ contract SimpleExerciseHelper is Ownable2Step, IFlashLoanReceiver {
     address initiator,
     bytes calldata _userData
   ) external override returns (bool) {
-    // only balancer vault may call this, during a flash loan
+    // only lendle vault may call this, during a flash loan
     if (msg.sender != address(lendlePool)) {
-      revert("Only balancer vault can call");
+      revert("Only lendle vault can call");
     }
     if (!flashEntered) {
       revert("Flashloan not in progress");
