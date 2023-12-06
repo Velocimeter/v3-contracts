@@ -80,7 +80,7 @@ contract SimpleExerciseHelper is Ownable2Step, IFlashLoanReceiver {
   IERC20 internal constant wmnt =
     IERC20(0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8);
 
-  /// @notice Flashloan from Balancer vault
+  /// @notice Flashloan from Lendle vault
   ILendingPool internal constant lendlePool =
     ILendingPool(0xCFa5aE7c2CE8Fadc6426C1ff872cA45378Fb7cF3);
 
@@ -209,7 +209,7 @@ contract SimpleExerciseHelper is Ownable2Step, IFlashLoanReceiver {
   }
 
   /**
-   * @notice Flash loan our WMNT from Balancer.
+   * @notice Flash loan our WMNT from Lendle.
    * @param _oToken The option token we are exercising.
    * @param _amountNeeded The amount of WMNT needed.
    * @param _slippageAllowed Slippage (really price impact) we allow while swapping underlying to WMNT.
