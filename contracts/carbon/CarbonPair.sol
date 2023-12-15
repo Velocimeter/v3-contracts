@@ -23,7 +23,7 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
 
     //errors
     error SlippageTooHigh();
-
+    
     constructor(string memory _name, string memory _symbol,address _carbonController) ERC20(_name,_symbol) {
         carbonController = _carbonController;
         initiated = false;
@@ -162,12 +162,12 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
     function withdraw(uint256 _shares) public nonReentrant{
         require(_shares > 0, "_shares == 0");
         
-        _burn(msg.sender, _shares);
-
         Strategy memory strategy = ICarbonController(carbonController).strategy(strategyId);
 
         uint128 token0Amount = uint128((strategy.orders[0].y * _shares) /  totalSupply());
         uint128 token1Amount = uint128((strategy.orders[1].y * _shares) /  totalSupply());
+
+        _burn(msg.sender, _shares);
 
         require(token0Amount > 0 || token1Amount > 0,"0 to withdraw"); // in case if sombody try to burn small ammount that are lost in the uint256 -> uint128 convert
 
@@ -177,6 +177,7 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         newOrder0.B = strategy.orders[0].B;
 
         newOrder0.z = ((strategy.orders[0].y - token0Amount) *  strategy.orders[0].z ) / strategy.orders[0].y;
+
         newOrder0.y = strategy.orders[0].y - token0Amount;
         
         Order memory newOrder1; 
