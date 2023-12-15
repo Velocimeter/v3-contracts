@@ -16,19 +16,19 @@ import {Voter} from "../contracts/Voter.sol";
 
 contract OFlowDeployment is Script {
     address private constant TEAM_MULTI_SIG =
-        0x0a2553153801Cd4F652e80B14B9824A8EE8538E2;
+        0x86f50BeA072E80ff6ceB1135A39459BB2Cb626C3;
     address private constant DEPLOYER =
-        0x0a2553153801Cd4F652e80B14B9824A8EE8538E2;
+        0x86f50BeA072E80ff6ceB1135A39459BB2Cb626C3;
 
     // TODO: Fill the address
-    address private constant WETH = 0x5300000000000000000000000000000000000004;
-    address private constant NEW_FLOW = 0x1AEe2203fd88ab93784Ea5F37b654d72641167d6;
-    address private constant NEW_PAIR_FACTORY = 0x315111782a6Bf07e405709154d9358c8f8AF457b;
-    address private constant NEW_GAUGE_FACTORY = 0x3bF261E0aB9053c33bA3fd2d8e8f64C86EbF10fD;
-    address private constant NEW_VOTER = 0x6E7cfd2A3fFa6264A5a2f237dD4a5cc1a35025D6;
-    address private constant NEW_VOTING_ESCROW = 0x21871EB8D9CbD8C2B7a6FB044d91491799A07b03;
-    address payable private constant NEW_ROUTER = payable(0x31227ce6a35eF8323695a3A682210B81058Acd87);
-    address private constant NEW_MINTER = 0xc0D5Ec393CDF88445bf01364c5E3B2F44e75c1B3;
+    address private constant WETH = 0x5806E416dA447b267cEA759358cF22Cc41FAE80F;
+    address private constant NEW_FLOW = 0x53Fd17012047E44f44F9C7A29196801A8fdb6f23;
+    address private constant NEW_PAIR_FACTORY = 0x877031892Ed5F77EBf1BfED84CF890684ce1d1C1;
+    address private constant NEW_GAUGE_FACTORY = 0xf171958e893EE4E809Cf2Ed0D221666019A135D7;
+    address private constant NEW_VOTER = 0x299e0fab05B87B888A5905c9Cdf820A73c9A2954;
+    address private constant NEW_VOTING_ESCROW = 0xF7DD6973618C4ED5bf425F898E174e30c2c139eC;
+    address payable private constant NEW_ROUTER = payable(0xe7123FddacD3Ac5D672292E9abAB910D2957ff80);
+    address private constant NEW_MINTER = 0x6b46cc017DeC9ECa70b5750a03748947ECa71C12;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -54,8 +54,8 @@ contract OFlowDeployment is Script {
 
         // Option to buy Flow
         OptionTokenV3 oFlow = new OptionTokenV3(
-            "Option to buy SVM", // name
-            "oSVM", // symbol
+            "Option to buy BeraVM", // name
+            "oBeraVM", // symbol
             TEAM_MULTI_SIG, // admin
             WETH, // payment token
             NEW_FLOW, // underlying token

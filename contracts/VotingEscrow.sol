@@ -128,8 +128,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
                              METADATA STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    string constant public name = "veSVM";
-    string constant public symbol = "veSVM";
+    string constant public name = "veBeraVM";
+    string constant public symbol = "veBeraVM";
     string constant public version = "1.0.0";
     uint8 constant public decimals = 18;
 
