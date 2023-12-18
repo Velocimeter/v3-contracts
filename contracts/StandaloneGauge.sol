@@ -5,11 +5,12 @@ import 'openzeppelin-contracts/contracts/utils/math/Math.sol';
 import 'contracts/interfaces/IBribe.sol';
 import 'contracts/interfaces/IERC20.sol';
 import 'contracts/interfaces/IGauge.sol';
+import 'contracts/interfaces/IProxyGaugeNotify.sol';
 import 'contracts/interfaces/IOptionToken.sol';
 import 'contracts/interfaces/IVotingEscrow.sol';
 
 // Gauges are used to incentivize pools, they emit reward tokens over 7 days for staked LP tokens
-contract FvmGauge is IGauge {
+contract StandaloneGauge is IGauge,IProxyGaugeNotify {
 
     address public immutable stake; // the LP token that needs to be staked for rewards
     address public immutable _ve; // the ve token used for gauges
@@ -536,7 +537,11 @@ contract FvmGauge is IGauge {
         return _remaining * rewardRate[token];
     }
 
-    function notifyRewardAmount(address token, uint amount) external lock {
+    function notifyRewardAmount(uint256 _amount) external {
+        notifyRewardAmount(flow,_amount);
+    }
+
+    function notifyRewardAmount(address token, uint amount) public lock {
         require(token != stake);
         require(amount > 0);
         if (!isReward[token]) {

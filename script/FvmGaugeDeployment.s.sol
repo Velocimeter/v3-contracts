@@ -4,7 +4,7 @@ pragma solidity 0.8.13;
 // Scripting tool
 import {Script} from "../lib/forge-std/src/Script.sol";
 import {IFlow} from "../contracts/interfaces/IFlow.sol";
-import {FvmGauge} from "../contracts/FvmGauge.sol";
+import {StandaloneGauge} from "../contracts/StandaloneGauge.sol";
 
 contract FvmGaugeDeployment is Script {
     // TODO: set variables
@@ -22,7 +22,7 @@ contract FvmGaugeDeployment is Script {
         rewards[1] = OFVM;
 
         // FvmGauge
-        FvmGauge fvmGauge = new FvmGauge(
+        StandaloneGauge standaloneGauge = new StandaloneGauge(
             FVM,
             VOTING_ESCROW,
             OFVM,
