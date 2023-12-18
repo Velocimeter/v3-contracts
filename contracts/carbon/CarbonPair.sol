@@ -23,7 +23,7 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
 
     //errors
     error SlippageTooHigh();
-    
+
     constructor(string memory _name, string memory _symbol,address _carbonController) ERC20(_name,_symbol) {
         carbonController = _carbonController;
         initiated = false;
@@ -173,20 +173,27 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
 
         Order memory newOrder0;
         
-        newOrder0.A = strategy.orders[0].A;
-        newOrder0.B = strategy.orders[0].B;
+        if(token0Amount >0) {
+            newOrder0.A = strategy.orders[0].A;
+            newOrder0.B = strategy.orders[0].B;
 
-        newOrder0.z = ((strategy.orders[0].y - token0Amount) *  strategy.orders[0].z ) / strategy.orders[0].y;
-
-        newOrder0.y = strategy.orders[0].y - token0Amount;
+            newOrder0.z = ((strategy.orders[0].y - token0Amount) *  strategy.orders[0].z ) / strategy.orders[0].y;
+            newOrder0.y = strategy.orders[0].y - token0Amount;
+        } else {
+            newOrder0 = strategy.orders[0];
+        }
         
         Order memory newOrder1; 
 
-        newOrder1.A = strategy.orders[1].A;
-        newOrder1.B = strategy.orders[1].B;
-      
-        newOrder1.z = ((strategy.orders[1].y - token1Amount) *  strategy.orders[1].z ) / strategy.orders[1].y;
-        newOrder1.y = strategy.orders[1].y - token1Amount;
+        if(token1Amount >0) {
+            newOrder1.A = strategy.orders[1].A;
+            newOrder1.B = strategy.orders[1].B;
+        
+            newOrder1.z = ((strategy.orders[1].y - token1Amount) *  strategy.orders[1].z ) / strategy.orders[1].y;
+            newOrder1.y = strategy.orders[1].y - token1Amount;
+        } else {
+            newOrder1 = strategy.orders[1];
+        }
 
         ICarbonController(carbonController).updateStrategy(strategyId, strategy.orders, [newOrder0,newOrder1]);
 
