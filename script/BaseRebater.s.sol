@@ -42,6 +42,7 @@ contract Rebater is Script {
             // minttank.transferOwnership(MSIG);
 
         vm.stopBroadcast();
+    }
 
         function mintForRebate() private {
             MintTank minttank = MintTank(MintTankAddy);
@@ -66,7 +67,7 @@ contract Rebater is Script {
         }
 
     } 
-}
+
 
 // forge script script/Rebater.s.sol:Rebater --rpc-url https://rpc.ftm.tools  -vvvv
 // forge script script/Rebater.s.sol:Rebater --rpc-url https://fantom.blockpi.network/v1/rpc/public -vvvv
