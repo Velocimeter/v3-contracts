@@ -15,6 +15,10 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
     uint256 public strategyId;
 
     address public carbonController;
+    address public voter;
+
+    address public externalBribe;
+    bool public hasGauge;
     
     address public token0; 
     address public token1;
@@ -24,8 +28,15 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
     //errors
     error SlippageTooHigh();
 
-    constructor(string memory _name, string memory _symbol,address _carbonController) ERC20(_name,_symbol) {
+    event Mint(address indexed sender, uint amount0, uint amount1,uint share);
+    event Burn(address indexed sender, uint amount0, uint amount1,uint share);
+
+    event ExternalBribeSet(address indexed externalBribe);
+    event HasGaugeSet(bool value);
+
+    constructor(string memory _name, string memory _symbol,address _carbonController,address _voter) ERC20(_name,_symbol) {
         carbonController = _carbonController;
+        voter = _voter;
         initiated = false;
     }
 
@@ -157,6 +168,8 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         ICarbonController(carbonController).updateStrategy(strategyId, strategy.orders, [targetOrder,sourceOrder]);
 
         _mint(msg.sender, depositShare);
+
+        emit Mint(msg.sender, _amount, _amountSecondToken,depositShare);
     }
 
     function withdraw(uint256 _shares) public nonReentrant{
@@ -205,6 +218,7 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
             SafeERC20.safeTransfer(IERC20(Token.unwrap(strategy.tokens[1])), msg.sender, token1Amount);
         }
 
+        emit Burn(msg.sender, token0Amount, token1Amount, _shares);
     }
 
     function carbonBalance() public view returns (address,address,uint,uint) {
@@ -241,6 +255,19 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         bytes calldata data
     ) external returns (bytes4) {
         return IERC721Receiver.onERC721Received.selector;
+    }
+
+    //functions required by voter
+    function setHasGauge(bool value) external {
+        require(msg.sender == voter, 'Only voter can set has gauge');
+        hasGauge = value;
+        emit HasGaugeSet(value);
+    }
+
+    function setExternalBribe(address _externalBribe) external {
+        require(msg.sender == voter, 'Only voter can set external bribe');
+        externalBribe = _externalBribe;
+        emit ExternalBribeSet(_externalBribe);
     }
 
      //precision functions
