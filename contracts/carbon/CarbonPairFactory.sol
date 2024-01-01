@@ -51,6 +51,8 @@ contract CarbonPairFactory is Ownable {
         isCarbonPair[address(cp)] = true;
 
         emit PairCreated(cp.strategyId(),_strategyIdToCopy,address(cp));
+
+        return address(cp);
     }
 
     function carbonBalance(uint strategyId) public view returns (address,address,uint,uint) {
