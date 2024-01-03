@@ -87,6 +87,7 @@ address constant	A68	=	0x0764BC8cc585F2864b423278398cD023A5490A85	; //	vAMM-bTiT
 address constant	A69	=	0x72bF48F90855Dfd95AB93FAbb18664c9364712BD	; //	vAMM-WETH/scott
 address constant	A70	=	0xc89AFAc1b61D4EF0Fa43353746c313Ffa3A97E96	; //	vAMM-SURV/WETH
 
+address constant safe = 0xfA89A4C7F79Dc4111c116a0f01061F4a7D9fAb73;
 
 mapping(uint256 => address) tokens;
 mapping(uint256 => address) gauges;
@@ -194,6 +195,8 @@ function makePGauges() internal {
 function run() external {
         uint256 PrivateKey = vm.envUint("VOTE_PRIVATE_KEY");
         vm.startBroadcast(PrivateKey);
+        Voter voter = Voter(0xab9B68c9e53c94D7c0949FB909E80e4a29F9134A);
+
 
         makeTokens();
         // makeGauges();
@@ -212,11 +215,26 @@ function run() external {
         //     current++;
         // }
 
+        uint256 currentP = 1;
+        uint256 maxPGauge = 53;
+
+        while (currentP <= maxPGauge){
+            address paddy = pGauges[currentP];
+            address ppair = IGauge(paddy).stake();
+            symbol = IERC20(ppair).symbol();
+            // console2.log("pause", symbol);
+            bool isAlive = voter.isAlive(paddy);
+            console2.log(symbol, "isAlive", isAlive);
+            bool isGauge = voter.isGauge(paddy);
+            console2.log(symbol, "isGauge", isGauge);
+            // _pauseGauges(paddy);
+            currentP++;
+        }
+
         uint256 current = 1;
         uint256 maxtoken = 17;
 
         while (current <= maxtoken){
-            Voter voter = Voter(0xab9B68c9e53c94D7c0949FB909E80e4a29F9134A);
             address taddy = tokens[current];
             symbol = IERC20(taddy).symbol();
             bool white = voter.isWhitelisted(taddy);
@@ -228,17 +246,8 @@ function run() external {
             current++;
         }
 
-        uint256 currentP = 1;
-        uint256 maxPGauge = 53;
-
-        while (currentP <= maxPGauge){
-            address paddy = pGauges[currentP];
-            address ppair = IGauge(paddy).stake();
-            symbol = IERC20(ppair).symbol();
-            console2.log("pause", symbol);
-            // _pauseGauges(paddy);
-            currentP++;
-        }
+        // voter.setGovernor(safe);
+        
 
         vm.stopBroadcast();
     }
