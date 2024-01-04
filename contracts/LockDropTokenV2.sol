@@ -288,13 +288,14 @@ contract LockDropTokenV2 is ERC20, AccessControl {
 
     /// @notice Sets which exercise functions can be used.ab
     /// @param _onOff is the state of on / off
-    /// @dev This will effect all circulating tokens 
-    function toggleVe(bool _onOff) {
-        veToggle == _onOff;
+    /// @dev This will effect all circulating tokens
+    function toggleVe(bool _onOff) onlyAdmin {
+        veToggle = _onOff;
         emit veToggledTo(veToggle);
     }
-    function toggleLp(bool _onOff) {
-        lpToggle == _onOff;
+
+    function toggleLp(bool _onOff) onlyAdmin {
+        lpToggle = _onOff;
         emit lpToggledTo(lpToggle);
     }
 
