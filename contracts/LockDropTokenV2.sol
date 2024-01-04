@@ -83,8 +83,8 @@ contract LockDropTokenV2 is ERC20, AccessControl {
     event SetRouter(address indexed newRouter);
     event SetLockDurationForLp(uint256 lockDurationForLp);
     event PauseStateChanged(bool isPaused);
-    event veToggledTo(veToggle);
-    event lpToggledTo(lpToggle);
+    event veToggledTo(bool veToggle);
+    event lpToggledTo(bool lpToggle);
 
     /// -----------------------------------------------------------------------
     /// Immutable parameters
@@ -289,12 +289,12 @@ contract LockDropTokenV2 is ERC20, AccessControl {
     /// @notice Sets which exercise functions can be used.ab
     /// @param _onOff is the state of on / off
     /// @dev This will effect all circulating tokens
-    function toggleVe(bool _onOff) onlyAdmin {
+    function toggleVe(bool _onOff) external onlyAdmin {
         veToggle = _onOff;
         emit veToggledTo(veToggle);
     }
 
-    function toggleLp(bool _onOff) onlyAdmin {
+    function toggleLp(bool _onOff) external onlyAdmin {
         lpToggle = _onOff;
         emit lpToggledTo(lpToggle);
     }
@@ -335,7 +335,7 @@ contract LockDropTokenV2 is ERC20, AccessControl {
         address _recipient
     ) internal returns (uint256 paymentAmount, uint256 nftId) {
         if (isPaused) revert OptionToken_Paused();
-        if (!lpToggle) revert VeToggledOff();
+        if (!veToggle) revert VeToggledOff();
 
         // burn callers tokens
         _burn(msg.sender, _amount);
