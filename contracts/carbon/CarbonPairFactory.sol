@@ -31,6 +31,14 @@ contract CarbonPairFactory is Ownable {
         isPair[_pair] = false;
     }
 
+    function addExistingPair (address _pair) external onlyOwner {
+        require(!isCarbonPair[_pair],"existing carbon pair");
+        
+        allPairs.push(_pair);
+        isCarbonPair[_pair] = true;
+        isPair[_pair] = true;
+    }
+
     function createPair(uint256 _strategyIdToCopy) external returns (address pair) {
         (address token0,address token1,uint token0Amount,uint token1Amount) = carbonBalance(_strategyIdToCopy);
 
@@ -68,5 +76,9 @@ contract CarbonPairFactory is Ownable {
          Strategy memory strategy = ICarbonController(carbonController).strategy(strategyId);
          
          return (Token.unwrap(strategy.tokens[0]),Token.unwrap(strategy.tokens[1]),strategy.orders[0].y,strategy.orders[1].y);
+    }
+
+    function allPairsLength() external view returns (uint) {
+        return allPairs.length;
     }
 }
