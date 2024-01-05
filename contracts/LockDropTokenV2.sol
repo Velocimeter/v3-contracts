@@ -56,6 +56,7 @@ contract LockDropTokenV2 is ERC20, AccessControl {
     error OptionToken_IncorrectPairToken();
     error VeToggledOff();
     error LpToggledOff();
+    error veOnlyForThisAddress();
 
     /// -----------------------------------------------------------------------
     /// Events
@@ -85,6 +86,8 @@ contract LockDropTokenV2 is ERC20, AccessControl {
     event PauseStateChanged(bool isPaused);
     event veToggledTo(bool veToggle);
     event lpToggledTo(bool lpToggle);
+    event veOnlySet(address _partner, bool _onOff);
+
 
     /// -----------------------------------------------------------------------
     /// Immutable parameters
@@ -128,6 +131,10 @@ contract LockDropTokenV2 is ERC20, AccessControl {
     /// @notice These are for turning on/off the various exercise types
     bool public veToggle = true;
     bool public lpToggle = true;
+
+    /// @notice This will make it so certain addresses can only exerciseVe
+    /// @dev This is not fool proof as they can transfer it to another to bypass
+    mapping (address => bool) public veOnly;
 
     /// -----------------------------------------------------------------------
     /// Modifiers
@@ -293,10 +300,14 @@ contract LockDropTokenV2 is ERC20, AccessControl {
         veToggle = _onOff;
         emit veToggledTo(veToggle);
     }
-
     function toggleLp(bool _onOff) external onlyAdmin {
         lpToggle = _onOff;
         emit lpToggledTo(lpToggle);
+    }
+
+    function setVeOnlyAddress(address _partner, bool _onOff) external onlyAdmin {
+        veOnly[_partner] = _onOff;
+        emit veOnlySet(_partner, _onOff);
     }
 
     /// @notice Called by the admin to mint options tokens. Admin must grant token approval.
@@ -357,6 +368,7 @@ contract LockDropTokenV2 is ERC20, AccessControl {
     ) internal returns (uint256 paymentAmount, uint256 lpAmount) {
         if (isPaused) revert OptionToken_Paused();
         if (!lpToggle) revert LpToggledOff();
+        if (veOnly[msg.sender]) revert veOnlyForThisAddress();
 
         // burn callers tokens
         _burn(msg.sender, _amount);
