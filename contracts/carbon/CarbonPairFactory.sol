@@ -26,6 +26,11 @@ contract CarbonPairFactory is Ownable {
         isPair[_pair] = true;
     }
 
+    function blacklistPair (address _pair) external onlyOwner {
+        require(isCarbonPair[_pair],"not a carbon pair");
+        isPair[_pair] = false;
+    }
+
     function createPair(uint256 _strategyIdToCopy) external returns (address pair) {
         (address token0,address token1,uint token0Amount,uint token1Amount) = carbonBalance(_strategyIdToCopy);
 
