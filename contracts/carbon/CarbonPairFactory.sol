@@ -52,12 +52,16 @@ contract CarbonPairFactory is Ownable {
 
         cp.initStrategyExactCopy(_strategyIdToCopy);
         
-        allPairs.push(address(cp));
-        isCarbonPair[address(cp)] = true;
+        address newCPAddress = address(cp);
 
-        emit PairCreated(cp.strategyId(),_strategyIdToCopy,address(cp));
+        allPairs.push(newCPAddress);
+        isCarbonPair[newCPAddress] = true;
 
-        return address(cp);
+        IERC20(newCPAddress).transfer(msg.sender,IERC20(newCPAddress).balanceOf(address(this)));
+
+        emit PairCreated(cp.strategyId(),_strategyIdToCopy,newCPAddress);
+
+        return newCPAddress;
     }
 
     function carbonBalance(uint strategyId) public view returns (address,address,uint,uint) {
