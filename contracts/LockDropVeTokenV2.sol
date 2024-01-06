@@ -21,7 +21,7 @@ import {IRouter} from "./interfaces/IRouter.sol";
 /// @dev Assumes the underlying token and the payment token both use 18 decimals and revert on
 // failure to transfer.
 
-contract LockDropTokenV2 is ERC20, AccessControl {
+contract LockDropVeTokenV2 is ERC20, AccessControl {
     /// -----------------------------------------------------------------------
     /// Constants
     /// -----------------------------------------------------------------------
@@ -128,7 +128,7 @@ contract LockDropTokenV2 is ERC20, AccessControl {
 
     /// @notice These are for turning on/off the various exercise types
     bool public veToggle = true;
-    bool public lpToggle = true;
+    bool public lpToggle = false;
 
 
     /// -----------------------------------------------------------------------
