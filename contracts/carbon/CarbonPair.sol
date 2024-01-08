@@ -123,7 +123,8 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         Order memory secondTokenOrder = isTargetToken0 ? strategy.orders[1] : strategy.orders[0];
 
         require(targetTokenOrder.y > secondTokenOrder.y, "you need to use other token as deposit token"); // defend against precision lost with dust amounts
-        
+        require(targetTokenOrder.y != 0 && secondTokenOrder.y != 0, "out of range");
+
         uint128 _amountSecondToken = (secondTokenOrder.y * _amount) / targetTokenOrder.y;
 
         if (_amountSecondToken > _maxAmountSecondToken)
@@ -150,15 +151,9 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         updatedSecondOrder.A = secondTokenOrder.A;
         updatedSecondOrder.B = secondTokenOrder.B;
 
-        if(secondTokenOrder.y > 0 ) { 
-            updatedSecondOrder.z = ((secondTokenOrder.y + _amountSecondToken) *  secondTokenOrder.z ) / secondTokenOrder.y;
-            updatedSecondOrder.y = secondTokenOrder.y + _amountSecondToken;
-        }
-        else {
-            updatedSecondOrder.z = secondTokenOrder.z;
-            updatedSecondOrder.y = secondTokenOrder.y;
-        }
-
+        updatedSecondOrder.z = ((secondTokenOrder.y + _amountSecondToken) *  secondTokenOrder.z ) / secondTokenOrder.y;
+        updatedSecondOrder.y = secondTokenOrder.y + _amountSecondToken;
+        
         (Order memory targetOrder, Order memory sourceOrder) = isTargetToken0
                 ? (updatedMainOrder, updatedSecondOrder)
                 : (updatedSecondOrder, updatedMainOrder);
