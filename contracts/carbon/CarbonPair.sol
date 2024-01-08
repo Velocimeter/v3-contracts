@@ -155,8 +155,8 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
             updatedSecondOrder.y = secondTokenOrder.y + _amountSecondToken;
         }
         else {
-            updatedSecondOrder.z = _amountSecondToken;
-            updatedSecondOrder.y = _amountSecondToken;
+            updatedSecondOrder.z = secondTokenOrder.z;
+            updatedSecondOrder.y = secondTokenOrder.y;
         }
 
         (Order memory targetOrder, Order memory sourceOrder) = isTargetToken0
