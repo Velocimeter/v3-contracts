@@ -1,0 +1,39 @@
+forge verify-contract 0xA174FF104e8bA33E718a0506F6196dbC3EA2005f --verifier-url https://api.etherscan.io/api src/LPLock.sol:LPLock --watch --compiler-version 0.8.23 --etherscan-api-key RUJ4FMTAXU2F61WFMJY8C8W2YPZ8SUVWUT
+
+"contractName": "GaugeFactoryV3",
+      forge verify-contract 0xf19d2e09223b6d0c2f82A84cEF85E951245Ce567",
+
+      "contractName": "BribeFactory",
+      forge verify-contract 0xdDF154447923C74071Fb8E6C6Fe73d211a6633f6",
+
+      "contractName": "PairFactory",
+      forge verify-contract 0x99F9a4A96549342546f9DAE5B2738EDDcD43Bf4C",
+
+      "contractName": "Router",
+      forge verify-contract 0xCe30506F6c1Cea34aC704f93d51d55058791E497",
+
+      "contractName": "VelocimeterLibrary",
+      forge verify-contract 0x1D821307a623dCbFcFb65E62A96eb804baDdaF68",
+
+      "contractName": "VotingEscrow",
+      forge verify-contract 0xA906901429F62708A587EA1fC5Fef6C850AA5F9b",
+
+      "contractName": "RewardsDistributor",
+      forge verify-contract 0x64c6F1CFDaa58c4572ddcA9043B8A95d0D75D411",
+
+      "contractName": "Voter",
+      forge verify-contract 0x2215aB2e64490bC8E9308d0371e708845a796A29",
+
+      "contractName": "PairFactory",
+      forge verify-contract 0x99F9a4A96549342546f9DAE5B2738EDDcD43Bf4C",
+
+      "contractName": "Minter",
+      forge verify-contract 0xb074FeF76F0b5B544e4337226d4f9eB54E46ee3F",
+
+      "contractName": "Flow",
+      forge verify-contract 0x861A6Fc736Cbb12ad57477B535B829239c8347d7",
+
+Needs booster + bribe booster
+
+      "contractName": "OptionTokenV3",
+      forge verify-contract 0x3b19B8EC75BBf85848d133F1a47710EeEd57Bd90",
