@@ -222,6 +222,15 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
          return (Token.unwrap(strategy.tokens[0]),Token.unwrap(strategy.tokens[1]),strategy.orders[0].y,strategy.orders[1].y);
     }
 
+    function quoteRemoveLiquidity(uint256 _shares) public view returns (address,address,uint,uint) {
+        Strategy memory strategy = ICarbonController(carbonController).strategy(strategyId);
+
+        uint128 token0Amount = uint128((strategy.orders[0].y * _shares) /  totalSupply());
+        uint128 token1Amount = uint128((strategy.orders[1].y * _shares) /  totalSupply());
+
+        return (Token.unwrap(strategy.tokens[0]),Token.unwrap(strategy.tokens[1]),token0Amount,token1Amount);
+    }
+
     function getSecondTokenAmount(address tokenToDeposit,uint128 _amount) public view returns (uint) {
         Strategy memory strategy = ICarbonController(carbonController).strategy(strategyId);
 
