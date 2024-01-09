@@ -203,6 +203,14 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
             newOrder1 = strategy.orders[1];
         }
 
+        if(token0Amount == 0 ) {
+            newOrder0.z = (newOrder1.z * newOrder0.z) / strategy.orders[1].z;
+        }
+
+        if(token1Amount == 0 ) {
+            newOrder1.z = (newOrder0.z * newOrder1.z) / strategy.orders[0].z;
+        }
+
         ICarbonController(carbonController).updateStrategy(strategyId, strategy.orders, [newOrder0,newOrder1]);
 
         if(token0Amount > 0) {
