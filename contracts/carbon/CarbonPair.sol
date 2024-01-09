@@ -123,7 +123,7 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         Order memory secondTokenOrder = isTargetToken0 ? strategy.orders[1] : strategy.orders[0];
 
         require(targetTokenOrder.y > secondTokenOrder.y, "you need to use other token as deposit token"); // defend against precision lost with dust amounts
-        require(!outOfRange(), "out of range");
+        require(targetTokenOrder.y != 0 && secondTokenOrder.y != 0, "out of range");
 
         uint128 _amountSecondToken = (secondTokenOrder.y * _amount) / targetTokenOrder.y;
 
