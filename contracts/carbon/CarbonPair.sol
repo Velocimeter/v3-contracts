@@ -142,7 +142,7 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         updatedMainOrder.A = targetTokenOrder.A;
         updatedMainOrder.B = targetTokenOrder.B;
 
-        updatedMainOrder.z = ((targetTokenOrder.y + _amount) *  targetTokenOrder.z ) / targetTokenOrder.y;
+        updatedMainOrder.z = uint128(((uint256(targetTokenOrder.y) + uint256(_amount)) *  uint256(targetTokenOrder.z) ) / uint256(targetTokenOrder.y));
         updatedMainOrder.y = targetTokenOrder.y + _amount;
 
         
@@ -151,7 +151,7 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         updatedSecondOrder.A = secondTokenOrder.A;
         updatedSecondOrder.B = secondTokenOrder.B;
 
-        updatedSecondOrder.z = ((secondTokenOrder.y + _amountSecondToken) *  secondTokenOrder.z ) / secondTokenOrder.y;
+        updatedSecondOrder.z = uint128(((uint256(secondTokenOrder.y) + uint256(_amountSecondToken)) *  uint256(secondTokenOrder.z )) / uint256(secondTokenOrder.y));
         updatedSecondOrder.y = secondTokenOrder.y + _amountSecondToken;
         
         (Order memory targetOrder, Order memory sourceOrder) = isTargetToken0
@@ -185,10 +185,13 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
             newOrder0.A = strategy.orders[0].A;
             newOrder0.B = strategy.orders[0].B;
 
-            newOrder0.z = ((strategy.orders[0].y - token0Amount) *  strategy.orders[0].z ) / strategy.orders[0].y;
+            newOrder0.z = uint128(((uint256(strategy.orders[0].y) - uint256(token0Amount)) *  uint256(strategy.orders[0].z) ) / uint256(strategy.orders[0].y));
             newOrder0.y = strategy.orders[0].y - token0Amount;
         } else {
-            newOrder0 = strategy.orders[0];
+            newOrder0.A = strategy.orders[0].A;
+            newOrder0.B = strategy.orders[0].B;
+            newOrder0.z = strategy.orders[0].z;
+            newOrder0.y = strategy.orders[0].y;
         }
         
         Order memory newOrder1; 
@@ -197,18 +200,21 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
             newOrder1.A = strategy.orders[1].A;
             newOrder1.B = strategy.orders[1].B;
         
-            newOrder1.z = ((strategy.orders[1].y - token1Amount) *  strategy.orders[1].z ) / strategy.orders[1].y;
+            newOrder1.z = uint128(((uint256(strategy.orders[1].y) - uint256(token1Amount)) *  uint256(strategy.orders[1].z )) / uint256(strategy.orders[1].y));
             newOrder1.y = strategy.orders[1].y - token1Amount;
         } else {
-            newOrder1 = strategy.orders[1];
+            newOrder1.A = strategy.orders[1].A;
+            newOrder1.B = strategy.orders[1].B;
+            newOrder1.z = strategy.orders[1].z;
+            newOrder1.y = strategy.orders[1].y;
         }
 
         if(token0Amount == 0 ) {
-            newOrder0.z = (newOrder1.z * newOrder0.z) / strategy.orders[1].z;
+            newOrder0.z = uint128((uint256(newOrder1.z) * uint256(newOrder0.z)) / uint256(strategy.orders[1].z));
         }
 
         if(token1Amount == 0 ) {
-            newOrder1.z = (newOrder0.z * newOrder1.z) / strategy.orders[0].z;
+            newOrder1.z = uint128((uint256(newOrder0.z) * uint256(newOrder1.z)) / uint256(strategy.orders[0].z));
         }
 
         ICarbonController(carbonController).updateStrategy(strategyId, strategy.orders, [newOrder0,newOrder1]);
