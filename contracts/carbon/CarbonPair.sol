@@ -6,6 +6,7 @@ import "openzeppelin-contracts/contracts/interfaces/IERC20Metadata.sol";
 import 'openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol';
 import "openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
+import "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 
 import 'contracts/interfaces/carbon/ICarbonController.sol';
 
@@ -172,8 +173,8 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         
         Strategy memory strategy = ICarbonController(carbonController).strategy(strategyId);
 
-        uint128 token0Amount = uint128((strategy.orders[0].y * _shares) /  totalSupply());
-        uint128 token1Amount = uint128((strategy.orders[1].y * _shares) /  totalSupply());
+        uint128 token0Amount = SafeCast.toUint128((strategy.orders[0].y * _shares) /  totalSupply());
+        uint128 token1Amount = SafeCast.toUint128((strategy.orders[1].y * _shares) /  totalSupply());
 
         _burn(msg.sender, _shares);
 
@@ -185,7 +186,7 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
             newOrder0.A = strategy.orders[0].A;
             newOrder0.B = strategy.orders[0].B;
 
-            newOrder0.z = uint128(((uint256(strategy.orders[0].y) - uint256(token0Amount)) *  uint256(strategy.orders[0].z) ) / uint256(strategy.orders[0].y));
+            newOrder0.z = SafeCast.toUint128(((uint256(strategy.orders[0].y) - uint256(token0Amount)) *  uint256(strategy.orders[0].z) ) / uint256(strategy.orders[0].y));
             newOrder0.y = strategy.orders[0].y - token0Amount;
         } else {
             newOrder0.A = strategy.orders[0].A;
@@ -200,7 +201,7 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
             newOrder1.A = strategy.orders[1].A;
             newOrder1.B = strategy.orders[1].B;
         
-            newOrder1.z = uint128(((uint256(strategy.orders[1].y) - uint256(token1Amount)) *  uint256(strategy.orders[1].z )) / uint256(strategy.orders[1].y));
+            newOrder1.z = SafeCast.toUint128(((uint256(strategy.orders[1].y) - uint256(token1Amount)) *  uint256(strategy.orders[1].z )) / uint256(strategy.orders[1].y));
             newOrder1.y = strategy.orders[1].y - token1Amount;
         } else {
             newOrder1.A = strategy.orders[1].A;
@@ -210,11 +211,11 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         }
 
         if(token0Amount == 0 ) {
-            newOrder0.z = uint128((uint256(newOrder1.z) * uint256(newOrder0.z)) / uint256(strategy.orders[1].z));
+            newOrder0.z = SafeCast.toUint128((uint256(newOrder1.z) * uint256(newOrder0.z)) / uint256(strategy.orders[1].z));
         }
 
         if(token1Amount == 0 ) {
-            newOrder1.z = uint128((uint256(newOrder0.z) * uint256(newOrder1.z)) / uint256(strategy.orders[0].z));
+            newOrder1.z = SafeCast.toUint128((uint256(newOrder0.z) * uint256(newOrder1.z)) / uint256(strategy.orders[0].z));
         }
 
         ICarbonController(carbonController).updateStrategy(strategyId, strategy.orders, [newOrder0,newOrder1]);
@@ -245,8 +246,8 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
     function quoteRemoveLiquidity(uint256 _shares) public view returns (address,address,uint,uint) {
         Strategy memory strategy = ICarbonController(carbonController).strategy(strategyId);
 
-        uint128 token0Amount = uint128((strategy.orders[0].y * _shares) /  totalSupply());
-        uint128 token1Amount = uint128((strategy.orders[1].y * _shares) /  totalSupply());
+        uint128 token0Amount = SafeCast.toUint128((strategy.orders[0].y * _shares) /  totalSupply());
+        uint128 token1Amount = SafeCast.toUint128((strategy.orders[1].y * _shares) /  totalSupply());
 
         return (Token.unwrap(strategy.tokens[0]),Token.unwrap(strategy.tokens[1]),token0Amount,token1Amount);
     }
