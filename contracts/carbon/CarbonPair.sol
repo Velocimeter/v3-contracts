@@ -173,8 +173,8 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         
         Strategy memory strategy = ICarbonController(carbonController).strategy(strategyId);
 
-        uint128 token0Amount = SafeCast.toUint128((strategy.orders[0].y * _shares) /  totalSupply());
-        uint128 token1Amount = SafeCast.toUint128((strategy.orders[1].y * _shares) /  totalSupply());
+        uint128 token0Amount = SafeCast.toUint128((uint256(strategy.orders[0].y) * _shares) /  totalSupply());
+        uint128 token1Amount = SafeCast.toUint128((uint256(strategy.orders[1].y) * _shares) /  totalSupply());
 
         _burn(msg.sender, _shares);
 
@@ -246,8 +246,8 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
     function quoteRemoveLiquidity(uint256 _shares) public view returns (address,address,uint,uint) {
         Strategy memory strategy = ICarbonController(carbonController).strategy(strategyId);
 
-        uint128 token0Amount = SafeCast.toUint128((strategy.orders[0].y * _shares) /  totalSupply());
-        uint128 token1Amount = SafeCast.toUint128((strategy.orders[1].y * _shares) /  totalSupply());
+        uint128 token0Amount = SafeCast.toUint128((uint256(strategy.orders[0].y) * _shares) /  totalSupply());
+        uint128 token1Amount = SafeCast.toUint128((uint256(strategy.orders[1].y) * _shares) /  totalSupply());
 
         return (Token.unwrap(strategy.tokens[0]),Token.unwrap(strategy.tokens[1]),token0Amount,token1Amount);
     }
