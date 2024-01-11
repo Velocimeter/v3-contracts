@@ -18,9 +18,10 @@ contract CarbonPairFactory is Ownable {
 
     event PairCreated(uint indexed strategyId,uint strategyIdToCopy,address pair);
 
-    constructor(address _carbonController,address _voter) {
+    constructor(address _carbonController,address _voter,address _team) {
         carbonController = _carbonController;
         voter = _voter;
+        transferOwnership(_team);
     }
 
     function whitelistPair (address _pair) external onlyOwner {
@@ -92,7 +93,10 @@ contract CarbonPairFactory is Ownable {
     function emergencyWithdraw(address pair) public onlyOwner {
         require(betaPhase,"not beta phase");
         require(isCarbonPair[pair],"not a carbon pair");
+
+        isCarbonPair[pair] = false;
+        isPair[pair] = false;
         
-        CarbonPair(pair).emergencyWithdraw(owner());
+        CarbonPair(pair).emergencyWithdraw(msg.sender);
     }
 }
