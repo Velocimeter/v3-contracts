@@ -14,6 +14,8 @@ contract CarbonPairFactory is Ownable {
     mapping(address => bool) public isPair; // only whitelisted ones
     mapping(address => bool) public isCarbonPair; 
 
+    bool betaPhase = true;
+
     event PairCreated(uint indexed strategyId,uint strategyIdToCopy,address pair);
 
     constructor(address _carbonController,address _voter) {
@@ -80,5 +82,17 @@ contract CarbonPairFactory is Ownable {
 
     function allPairsLength() external view returns (uint) {
         return allPairs.length;
+    }
+
+    function betaPhaseDone() public onlyOwner {
+        require(betaPhase,"not beta phase");
+        betaPhase = false;
+    }
+
+    function emergencyWithdraw(address pair) public onlyOwner {
+        require(betaPhase,"not beta phase");
+        require(isCarbonPair[pair],"not a carbon pair");
+        
+        CarbonPair(pair).emergencyWithdraw(owner());
     }
 }

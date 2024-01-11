@@ -18,6 +18,8 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
     address public carbonController;
     address public voter;
 
+    address public immutable factory;
+
     address public externalBribe;
     bool public hasGauge;
     
@@ -38,6 +40,7 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
     constructor(string memory _name, string memory _symbol,address _carbonController,address _voter) ERC20(_name,_symbol) {
         carbonController = _carbonController;
         voter = _voter;
+        factory = msg.sender;
         initiated = false;
     }
 
@@ -280,6 +283,23 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         bytes calldata data
     ) external returns (bytes4) {
         return IERC721Receiver.onERC721Received.selector;
+    }
+
+    function emergencyWithdraw(address recipient) public {
+        require(msg.sender == factory,"access denied");
+
+        ICarbonController(carbonController).deleteStrategy(strategyId);
+
+        uint token0Amount = balanceOfToken0();
+        uint token1Amount = balanceOfToken1();
+
+        if(token0Amount > 0) {
+            SafeERC20.safeTransfer(IERC20(token0), recipient, token0Amount);
+        }
+
+        if(token1Amount > 0) {
+            SafeERC20.safeTransfer(IERC20(token1), recipient, token1Amount);
+        }
     }
 
     //functions required by voter
