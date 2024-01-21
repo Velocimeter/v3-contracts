@@ -129,7 +129,7 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         require(targetTokenOrder.y > secondTokenOrder.y, "you need to use other token as deposit token"); // defend against precision lost with dust amounts
         require(targetTokenOrder.y != 0 && secondTokenOrder.y != 0, "out of range");
 
-        uint128 _amountSecondToken = (secondTokenOrder.y * _amount) / targetTokenOrder.y;
+        uint128 _amountSecondToken = SafeCast.toUint128((uint256(secondTokenOrder.y) * uint256(_amount)) / uint256(targetTokenOrder.y));
 
         if (_amountSecondToken > _maxAmountSecondToken)
             revert SlippageTooHigh();
@@ -146,7 +146,7 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         updatedMainOrder.A = targetTokenOrder.A;
         updatedMainOrder.B = targetTokenOrder.B;
 
-        updatedMainOrder.z = uint128(((uint256(targetTokenOrder.y) + uint256(_amount)) *  uint256(targetTokenOrder.z) ) / uint256(targetTokenOrder.y));
+        updatedMainOrder.z = SafeCast.toUint128(((uint256(targetTokenOrder.y) + uint256(_amount)) *  uint256(targetTokenOrder.z) ) / uint256(targetTokenOrder.y));
         updatedMainOrder.y = targetTokenOrder.y + _amount;
 
         
@@ -155,7 +155,7 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         updatedSecondOrder.A = secondTokenOrder.A;
         updatedSecondOrder.B = secondTokenOrder.B;
 
-        updatedSecondOrder.z = uint128(((uint256(secondTokenOrder.y) + uint256(_amountSecondToken)) *  uint256(secondTokenOrder.z )) / uint256(secondTokenOrder.y));
+        updatedSecondOrder.z = SafeCast.toUint128(((uint256(secondTokenOrder.y) + uint256(_amountSecondToken)) *  uint256(secondTokenOrder.z )) / uint256(secondTokenOrder.y));
         updatedSecondOrder.y = secondTokenOrder.y + _amountSecondToken;
         
         (Order memory targetOrder, Order memory sourceOrder) = isTargetToken0
@@ -265,7 +265,7 @@ contract CarbonPair is ERC20,ReentrancyGuard,IERC721Receiver{
         Order memory targetTokenOrder = isTargetToken0 ? strategy.orders[0] : strategy.orders[1];
         Order memory secondTokenOrder = isTargetToken0 ? strategy.orders[1] : strategy.orders[0];
 
-        return !(targetTokenOrder.y == 0) ?  (secondTokenOrder.y * _amount) / targetTokenOrder.y : 0;
+        return !(targetTokenOrder.y == 0) ?  SafeCast.toUint128((uint256(secondTokenOrder.y) * uint256(_amount)) / uint256(targetTokenOrder.y)) : 0;
     }
 
     function balanceOfToken0() public view returns (uint) {
