@@ -35,3 +35,6 @@ lib/ds-test
 lib/solmate
 
 DispersoorBase.s.sol
+DispersoorFTM.s.sol
+
+.gitignore
