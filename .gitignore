@@ -36,5 +36,6 @@ lib/solmate
 
 DispersoorBase.s.sol
 DispersoorFTM.s.sol
+DispersoorMVM.s.sol
 
 .gitignore
