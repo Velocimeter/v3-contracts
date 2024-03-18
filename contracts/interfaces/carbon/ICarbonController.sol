@@ -21,6 +21,10 @@ struct Strategy {
 
 type Token is address;
 
+struct Pair {
+    uint128 id;
+    Token[2] tokens;
+}
 
 interface ICarbonController {
     function tradeBySourceAmount(
@@ -66,4 +70,6 @@ interface ICarbonController {
     function deleteStrategy(uint256 strategyId) external;
 
     function strategy(uint256 id) external view returns (Strategy memory);
+
+    function pair(Token token0, Token token1) external view returns (Pair memory);
 }
