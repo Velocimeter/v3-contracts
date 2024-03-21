@@ -132,6 +132,10 @@ contract CarbonRewards is ReentrancyGuard,IProxyGaugeNotify {
         _addRewards(pairId,_amount,_reward);
     }
 
+    function getPairRewards(uint128 _pairId,uint256 _epoch) external view returns (PairRewards[] memory) {
+        return pairRewards[_pairId][_epoch];
+    }
+
     function _addRewards(uint128 pairId,uint256 _amount,address _reward) internal {
          IERC20(_reward).transferFrom(msg.sender, address(this), _amount);
          uint256 currentEpoch = epoch();
