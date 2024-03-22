@@ -89,22 +89,27 @@ contract CarbonRewards is ReentrancyGuard,IProxyGaugeNotify {
 
         for (uint i = 0; i < _who.length; i++) {
             claimableAmount[_who[i]][_reward] += _amount[i];
-            left[_reward] -= _amount[i];
+            left[_reward] -= _amount[i]; // we want code to revert in case if there is no rewards in the system
         }
     }
 
-    function claim(address _reward) external nonReentrant {
+    function claim(address _reward) public nonReentrant {
         require(claimableAmount[msg.sender][_reward] != 0, "No rewards available");
 
         uint amount = claimableAmount[msg.sender][_reward];
         claimableAmount[msg.sender][_reward] = 0;
 
         if(_reward == flow) {
-            IERC20(flow).approve(optionToken, 0);
-            IERC20(flow).approve(optionToken, amount);
+            IERC20(flow).safeApprove(optionToken, amount);
             IOptionToken(optionToken).mint(msg.sender, amount);
         } else {
             IERC20(_reward).safeTransfer(msg.sender, amount);
+        }
+    }
+
+    function claimMany(address[] memory _tokens) external nonReentrant {
+        for (uint i = 0; i < _tokens.length; i++) {
+            claim(_tokens[i]);
         }
     }
 
@@ -137,7 +142,7 @@ contract CarbonRewards is ReentrancyGuard,IProxyGaugeNotify {
     }
 
     function _addRewards(uint128 pairId,uint256 _amount,address _reward) internal {
-         IERC20(_reward).transferFrom(msg.sender, address(this), _amount);
+         IERC20(_reward).safeTransferFrom(msg.sender, address(this), _amount);
          uint256 currentEpoch = epoch();
          PairRewards memory pr = PairRewards({ reward: _reward, amount: _amount });
          pairRewards[pairId][currentEpoch].push(pr);
