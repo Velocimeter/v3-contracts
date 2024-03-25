@@ -32,6 +32,8 @@ contract CarbonRewards is ReentrancyGuard,IProxyGaugeNotify {
 
     mapping(address => uint128) public gauges; // mapping of proxy gauge to the pairId 
 
+    mapping(uint128 => address) public pairs; // mapping of proxy gauge to the pairId 
+
     mapping(uint128 => mapping(uint256 => PairRewards[])) public pairRewards; // pairId => ( epoch => pairRewards)
 
     mapping(address => uint256) public left; // amout of specific reward tokens left to be distriubted 
@@ -78,9 +80,11 @@ contract CarbonRewards is ReentrancyGuard,IProxyGaugeNotify {
     function addProxyGauge(address proxyGauge,uint128 pairId) external onlyOwner{
         require(gauges[proxyGauge] == 0); 
         gauges[proxyGauge] = pairId;
+        pairs[pairId] = proxyGauge;
     }
 
     function removeProxyGauge(address proxyGauge) external onlyOwner {
+        pairs[gauges[proxyGauge]] = address(0);
         gauges[proxyGauge] = 0;
     }
 
