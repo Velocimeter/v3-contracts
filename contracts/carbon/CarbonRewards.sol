@@ -38,6 +38,9 @@ contract CarbonRewards is ReentrancyGuard,IProxyGaugeNotify {
 
     mapping(address => uint256) public left; // amout of specific reward tokens left to be distriubted 
 
+    address[] public rewards;
+    mapping(address => bool) public isReward;
+
     modifier onlyOwner {
         require(msg.sender == owner, 'not owner');
         _;
@@ -151,6 +154,10 @@ contract CarbonRewards is ReentrancyGuard,IProxyGaugeNotify {
          PairRewards memory pr = PairRewards({ reward: _reward, amount: _amount });
          pairRewards[pairId][currentEpoch].push(pr);
          left[_reward] += _amount;
+         if (!isReward[_reward]) {
+            isReward[_reward] = true;
+            rewards.push(_reward);
+         }
          emit RewardsAdded(block.timestamp,_reward,_amount);
     }
 
@@ -162,5 +169,9 @@ contract CarbonRewards is ReentrancyGuard,IProxyGaugeNotify {
         IERC20(_token).safeTransfer(owner, amount);
 
         emit Withdraw(amount);
+    }
+
+    function rewardsListLength() external view returns (uint) {
+        return rewards.length;
     }
 }
